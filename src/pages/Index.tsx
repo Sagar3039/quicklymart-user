@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search, ShoppingCart, User, MapPin, Clock, Star, Grid, List, Filter, Plus, Minus, Mic, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ const QuicklyMart = () => {
   const [isAgeVerified, setIsAgeVerified] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [showAgeModal, setShowAgeModal] = useState(false);
 
   // Sample product data
   const products = {
@@ -52,18 +54,6 @@ const QuicklyMart = () => {
     { name: 'DISCOUNTS', subtitle: 'Up To 60% OFF', icon: '%', color: 'bg-green-600' },
     { name: 'Bolt', subtitle: 'Food In 10 Mins', icon: '⚡', color: 'bg-orange-600' },
   ];
-
-  const categoryIcons = {
-    essentials: '🛒',
-    localfoods: '🍲',
-    alcohol: '🍷'
-  };
-
-  const categoryColors = {
-    essentials: 'from-green-400 to-green-600',
-    localfoods: 'from-orange-400 to-orange-600',
-    alcohol: 'from-purple-400 to-purple-600'
-  };
 
   const filteredProducts = products[activeCategory]?.filter(product => 
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
@@ -101,9 +91,31 @@ const QuicklyMart = () => {
 
   const handleCategoryChange = (category) => {
     if (category === 'alcohol' && !isAgeVerified) {
-      return; // Age verification modal will handle this
+      setShowAgeModal(true);
+      return;
     }
     setActiveCategory(category);
+  };
+
+  const handleOrderNow = () => {
+    toast.success('Redirecting to orders...');
+  };
+
+  const handleBuyOne = () => {
+    toast.success('BUY one feature activated!');
+  };
+
+  const handleProductClick = (product) => {
+    setSelectedProduct(product);
+  };
+
+  const handleWineStoreClick = () => {
+    if (!isAgeVerified) {
+      setShowAgeModal(true);
+    } else {
+      setActiveCategory('alcohol');
+      toast.success('Opening wine stores...');
+    }
   };
 
   useEffect(() => {
@@ -144,7 +156,10 @@ const QuicklyMart = () => {
             </div>
 
             <div className="flex items-center space-x-3">
-              <Button className="bg-orange-500 hover:bg-orange-600 text-white rounded-full px-6">
+              <Button 
+                className="bg-orange-500 hover:bg-orange-600 text-white rounded-full px-6"
+                onClick={handleBuyOne}
+              >
                 BUY one
               </Button>
               <Button
@@ -175,6 +190,7 @@ const QuicklyMart = () => {
               variant="ghost" 
               size="sm"
               className="absolute right-2 top-1/2 transform -translate-y-1/2 text-orange-500"
+              onClick={() => toast.success('Voice search activated!')}
             >
               <Mic className="w-5 h-5" />
             </Button>
@@ -193,7 +209,10 @@ const QuicklyMart = () => {
             <div>
               <h2 className="text-2xl font-bold mb-2">Foodie Weekend💰</h2>
               <p className="text-lg mb-4">Upto 60% OFF on delights!</p>
-              <Button className="bg-yellow-400 text-black font-bold px-6 py-2 rounded-full hover:bg-yellow-300">
+              <Button 
+                className="bg-yellow-400 text-black font-bold px-6 py-2 rounded-full hover:bg-yellow-300"
+                onClick={handleOrderNow}
+              >
                 ORDER NOW
               </Button>
             </div>
@@ -209,11 +228,15 @@ const QuicklyMart = () => {
       <div className="container mx-auto px-4 mb-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {serviceCategories.map((service, index) => (
-            <div key={index} className={`${service.color} rounded-2xl p-4 text-white relative overflow-hidden`}>
+            <button
+              key={index}
+              className={`${service.color} rounded-2xl p-4 text-white relative overflow-hidden hover:opacity-90 transition-opacity`}
+              onClick={() => toast.success(`${service.name} activated!`)}
+            >
               <div className="text-2xl mb-2">{service.icon}</div>
               <h3 className="font-bold text-sm mb-1">{service.name}</h3>
               <p className="text-xs opacity-90">{service.subtitle}</p>
-            </div>
+            </button>
           ))}
         </div>
       </div>
@@ -228,7 +251,10 @@ const QuicklyMart = () => {
                 <h3 className="text-xl font-bold">Bolt | Dinner in 10 mins</h3>
               </div>
               <p className="mb-4">Fresh, hot & crisp delights for you.</p>
-              <Button className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2 rounded-full">
+              <Button 
+                className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2 rounded-full"
+                onClick={handleOrderNow}
+              >
                 ORDER NOW
               </Button>
             </div>
@@ -242,7 +268,11 @@ const QuicklyMart = () => {
         <h2 className="text-white text-2xl font-bold mb-4">Fast delivery</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {filteredProducts.slice(0, 3).map((product) => (
-            <Card key={product.id} className="relative overflow-hidden bg-white rounded-2xl">
+            <Card 
+              key={product.id} 
+              className="relative overflow-hidden bg-white rounded-2xl cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => handleProductClick(product)}
+            >
               <div className="relative">
                 <img
                   src={product.image}
@@ -253,6 +283,10 @@ const QuicklyMart = () => {
                   variant="ghost" 
                   size="sm"
                   className="absolute top-3 right-3 bg-white/80 hover:bg-white rounded-full p-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toast.success('Added to wishlist!');
+                  }}
                 >
                   <Heart className="w-4 h-4" />
                 </Button>
@@ -289,12 +323,15 @@ const QuicklyMart = () => {
       {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t z-50">
         <div className="grid grid-cols-3 h-16">
-          <button className="flex flex-col items-center justify-center space-y-1 border-t-2 border-orange-500 text-orange-500">
+          <button 
+            className="flex flex-col items-center justify-center space-y-1 border-t-2 border-orange-500 text-orange-500"
+            onClick={() => handleCategoryChange('localfoods')}
+          >
             <span className="text-xl">🍽️</span>
             <span className="text-xs font-medium">Food</span>
           </button>
           <button 
-            className="flex flex-col items-center justify-center space-y-1 text-gray-400"
+            className="flex flex-col items-center justify-center space-y-1 text-gray-400 hover:text-gray-600"
             onClick={() => setIsCartOpen(true)}
           >
             <div className="relative">
@@ -305,9 +342,12 @@ const QuicklyMart = () => {
                 </Badge>
               )}
             </div>
-            <span className="text-xs">Reorder</span>
+            <span className="text-xs">Cart</span>
           </button>
-          <button className="flex flex-col items-center justify-center space-y-1 text-gray-400">
+          <button 
+            className="flex flex-col items-center justify-center space-y-1 text-gray-400 hover:text-gray-600"
+            onClick={handleWineStoreClick}
+          >
             <span className="text-xl">🍷</span>
             <span className="text-xs">Wine Stores</span>
           </button>
@@ -318,13 +358,15 @@ const QuicklyMart = () => {
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       
       <AgeVerificationModal 
-        isOpen={activeCategory === 'alcohol' && !isAgeVerified}
+        isOpen={showAgeModal}
         onVerified={() => {
           setIsAgeVerified(true);
           localStorage.setItem('quicklymart-age-verified', 'true');
           setActiveCategory('alcohol');
+          setShowAgeModal(false);
+          toast.success('Age verified! Welcome to wine stores.');
         }}
-        onClose={() => setActiveCategory('essentials')}
+        onClose={() => setShowAgeModal(false)}
       />
 
       <ProductQuickView 
