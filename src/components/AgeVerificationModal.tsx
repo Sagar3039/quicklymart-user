@@ -6,7 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/sonner';
 
-const AgeVerificationModal = ({ isOpen, onVerified, onClose }) => {
+interface AgeVerificationModalProps {
+  isOpen: boolean;
+  onVerified: () => void;
+  onClose: () => void;
+}
+
+const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({ isOpen, onVerified, onClose }) => {
   const [birthDate, setBirthDate] = useState('');
 
   const handleVerification = () => {
@@ -17,7 +23,7 @@ const AgeVerificationModal = ({ isOpen, onVerified, onClose }) => {
 
     const today = new Date();
     const birth = new Date(birthDate);
-    const age = Math.floor((today - birth) / (365.25 * 24 * 60 * 60 * 1000));
+    const age = Math.floor((today.getTime() - birth.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
 
     if (age >= 21) {
       toast.success('Age verification successful');
