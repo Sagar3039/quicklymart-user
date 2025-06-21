@@ -166,7 +166,7 @@ const App = () => {
                 <Route path="/all-categories" element={<AllCategories />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/past-orders" element={<PastOrders />} />
-                <Route path="/current-order" element={<CurrentOrder />} />
+                <Route path="/current-order/:orderId" element={<CurrentOrder />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/address" element={<Address />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

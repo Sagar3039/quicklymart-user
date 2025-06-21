@@ -859,7 +859,7 @@ const QuicklyMart = () => {
         <div className={`grid ${isLoggedIn ? 'grid-cols-4' : 'grid-cols-3'} h-16`}>
           <button 
             className={`flex flex-col items-center justify-center space-y-1 ${activeBottomNav === 'food' ? 'text-quicklymart-orange-500' : 'text-gray-400 hover:text-white'}`}
-            onClick={() => handleFoodClick('Biryani')}
+            onClick={() => handleFoodClick('all')}
           >
             <span className="text-2xl">🍜</span>
             <span className="text-xs font-medium">Food</span>
@@ -881,7 +881,7 @@ const QuicklyMart = () => {
           {isLoggedIn && (
             <button 
               className={`flex flex-col items-center justify-center space-y-1 ${activeBottomNav === 'reorder' ? 'text-quicklymart-orange-500' : 'text-gray-400 hover:text-white'}`}
-              onClick={handleReorderClick}
+              onClick={() => navigate('/past-orders')}
             >
               <History className="w-6 h-6" />
               <span className="text-xs font-medium">Reorder</span>
