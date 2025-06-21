@@ -180,7 +180,7 @@ const DailyEssential = () => {
                         <Heart className="w-4 h-4" />
                         </Button>
                         {product.discount && (
-                        <div className="absolute top-3 left-3 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                        <div className="absolute top-3 left-3 bg-quicklymart-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold">
                             {product.discount}
                         </div>
                         )}

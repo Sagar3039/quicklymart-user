@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -28,10 +27,11 @@ const ProductQuickView = ({ product, onClose, onAddToCart }) => {
           <div className="space-y-4">
             <DialogHeader>
               <DialogTitle className="text-xl">{product.name}</DialogTitle>
-              <DialogDescription>
-                <Badge variant="secondary">{product.category}</Badge>
-              </DialogDescription>
             </DialogHeader>
+            
+            <div className="flex items-center space-x-2 mb-2">
+              <Badge variant="secondary">{product.category}</Badge>
+            </div>
 
             <div className="flex items-center space-x-2">
               <div className="flex items-center space-x-1">

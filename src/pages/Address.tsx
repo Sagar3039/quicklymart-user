@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, MapPin, Edit, Trash2, Home, Briefcase, Star, Search, Send, MoreVertical, Moon, Sun } from 'lucide-react';
+import { ArrowLeft, Plus, MapPin, Edit, Trash2, Home, Briefcase, Star, Search, Send, MoreVertical, Moon, Sun, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,10 +12,12 @@ import { useNavigate } from 'react-router-dom';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, orderBy } from 'firebase/firestore';
 import { useTheme } from '@/App';
+import { useSelectedAddress } from '@/App';
 
 const Address = () => {
   const navigate = useNavigate();
   const { isDarkMode, toggleDarkMode } = useTheme();
+  const { selectedAddress, setSelectedAddress } = useSelectedAddress();
   const [user, setUser] = useState(null);
   const [addresses, setAddresses] = useState([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -215,6 +217,12 @@ const Address = () => {
 
       await updateDoc(doc(db, 'addresses', addressId), { isDefault: true });
       
+      // Find the selected address object
+      const selectedAddressObj = addresses.find(addr => addr.id === addressId);
+      if (selectedAddressObj) {
+        setSelectedAddress(selectedAddressObj);
+      }
+      
       toast.success('Default address updated!');
       await loadAddresses(user.uid);
       setSelectedAddressId(addressId);
@@ -242,41 +250,31 @@ const Address = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
+      <header className="sticky top-0 z-40 bg-quicklymart-orange-500 border-b border-quicklymart-orange-600">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+            <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="text-white hover:bg-quicklymart-orange-600">
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-xl font-bold text-gray-800 dark:text-white">My Addresses</h1>
+            <h1 className="text-xl font-bold text-white">My Addresses</h1>
           </div>
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
               size="icon"
-              className="text-gray-600 dark:text-gray-300"
+              className="text-white hover:bg-quicklymart-orange-600"
               onClick={toggleDarkMode}
               title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </Button>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Address
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Add New Address</DialogTitle>
-                  <DialogDescription>
-                    Add a new delivery address to your account.
-                  </DialogDescription>
-                </DialogHeader>
-                <AddAddressForm onAddressAdded={handleAddressAdded} />
-              </DialogContent>
-            </Dialog>
+            <Button 
+              className="bg-white hover:bg-gray-100 text-quicklymart-orange-500 font-medium"
+              onClick={() => { resetForm(); setIsAddDialogOpen(true); }}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Address
+            </Button>
           </div>
         </div>
       </header>
@@ -291,11 +289,11 @@ const Address = () => {
             />
         </div>
 
-        <Button variant="ghost" className="w-full justify-start text-orange-500 font-semibold text-base p-0 h-auto mb-4" onClick={handleUseCurrentLocation}>
+        <Button variant="ghost" className="w-full justify-start text-quicklymart-orange-500 font-semibold text-base p-0 h-auto mb-4" onClick={handleUseCurrentLocation}>
             <Send className="w-5 h-5 mr-2" />
             Use my current location
         </Button>
-        <Button variant="ghost" className="w-full justify-start text-orange-500 font-semibold text-base p-0 h-auto" onClick={() => { resetForm(); setIsAddDialogOpen(true); }}>
+        <Button variant="ghost" className="w-full justify-start text-quicklymart-orange-500 font-semibold text-base p-0 h-auto" onClick={() => { resetForm(); setIsAddDialogOpen(true); }}>
             <Plus className="w-5 h-5 mr-2" />
             Add new address
         </Button>
@@ -309,26 +307,52 @@ const Address = () => {
             ) : (
                 <div className="space-y-4">
                 {addresses.map((address) => (
-                  <div key={address.id} className="flex items-start justify-between" onClick={() => handleSetDefault(address.id)}>
-                    <div className="flex items-start space-x-3 flex-1">
-                      <div className="mt-1">{getAddressIcon(address.type)}</div>
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <h3 className="font-bold capitalize">{address.type}</h3>
-                          {selectedAddressId === address.id && (
-                            <Badge className="bg-green-100 text-green-700 text-xs">
-                              CURRENTLY SELECTED
-                            </Badge>
-                          )}
+                  <div key={address.id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-start space-x-3 flex-1">
+                        <div className="mt-1">{getAddressIcon(address.type)}</div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <h3 className="font-bold capitalize">{address.type}</h3>
+                            {selectedAddress?.id === address.id && (
+                              <Badge className="bg-quicklymart-orange-100 text-quicklymart-orange-700 text-xs">
+                                <Check className="w-3 h-3 mr-1" />
+                                CURRENTLY SELECTED
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-gray-600 dark:text-gray-300 text-sm">
+                            {address.name}, {address.address}, {address.city}, {address.state} - {address.pincode}
+                          </p>
                         </div>
-                        <p className="text-gray-600 text-sm">
-                          {address.name}, {address.address}, {address.city}, {address.state} - {address.pincode}
-                        </p>
                       </div>
+                      <Button variant="ghost" size="icon" className="text-gray-500">
+                          <MoreVertical className="w-5 h-5" />
+                      </Button>
                     </div>
-                    <Button variant="ghost" size="icon" className="text-gray-500">
-                        <MoreVertical className="w-5 h-5" />
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleSetDefault(address.id)}
+                        className="flex-1"
+                      >
+                        Set as Default
+                      </Button>
+                      {selectedAddress?.id !== address.id && (
+                        <Button 
+                          size="sm" 
+                          onClick={() => {
+                            setSelectedAddress(address);
+                            toast.success(`Delivering to ${address.type} address`);
+                            navigate('/');
+                          }}
+                          className="flex-1 bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600 text-white"
+                        >
+                          Deliver to this Address
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -367,11 +391,12 @@ const Address = () => {
                 />
             </div>
             <div className="space-y-2">
-                <Label>Phone Number *</Label>
+                <Label className="text-white font-medium">Phone Number *</Label>
                 <Input
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 placeholder="Enter your phone number"
+                className="bg-white text-white border-white focus:border-white focus:ring-white placeholder:text-white"
                 />
             </div>
             <div className="space-y-2">
@@ -422,7 +447,7 @@ const Address = () => {
                 <Button variant="outline" onClick={() => { setIsAddDialogOpen(false); resetForm(); }} className="flex-1">
                 Cancel
                 </Button>
-                <Button onClick={handleSubmit} className="flex-1">
+                <Button onClick={handleSubmit} className="flex-1 bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600 text-white">
                 {editingAddress ? 'Update' : 'Add'} Address
                 </Button>
             </div>

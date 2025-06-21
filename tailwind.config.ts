@@ -61,6 +61,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				'quicklymart-orange': {
+					50: '#FFF5F2',
+					100: '#FFE8E0',
+					200: '#FFD1C0',
+					300: '#FFB399',
+					400: '#FF8A66',
+					500: '#FE5D26',
+					600: '#F54D1A',
+					700: '#ED3500',
+					800: '#C42D00',
+					900: '#9B2400',
+					950: '#5A1500'
 				}
 			},
 			borderRadius: {

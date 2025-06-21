@@ -224,7 +224,7 @@ const Drinks = () => {
                         </div>
                         <p className="text-gray-600 dark:text-gray-300 text-sm">{product.description}</p>
                         <Button 
-                        className="w-full mt-3 bg-orange-500 hover:bg-orange-600"
+                        className="w-full mt-3 bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600"
                         onClick={(e) => {
                             e.stopPropagation();
                             addToCart(product);

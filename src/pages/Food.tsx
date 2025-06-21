@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from '@/components/ui/sonner';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ProductQuickView from '@/components/ProductQuickView';
 import { getProductsByCategory, PRODUCT_CATEGORIES, PRODUCT_SUBCATEGORIES, type Product } from '@/lib/products';
 import { useTheme } from '@/App';
@@ -31,6 +31,7 @@ const categoryToSubcategory = {
 
 const Food = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
@@ -84,6 +85,16 @@ const Food = () => {
       setCart(JSON.parse(savedCart));
     }
   }, []);
+
+  useEffect(() => {
+    console.log('Food page useEffect triggered, location.state:', location.state);
+    if (location.state?.category) {
+        const categoryExists = foodCategories.includes(location.state.category);
+        if (categoryExists) {
+            setActiveCategory(location.state.category);
+        }
+    }
+  }, [location.state?.category]);
 
   useEffect(() => {
     // Save cart to localStorage
@@ -182,7 +193,7 @@ const Food = () => {
                         <Heart className="w-4 h-4" />
                         </Button>
                         {product.discount && (
-                        <div className="absolute top-3 left-3 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                        <div className="absolute top-3 left-3 bg-quicklymart-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold">
                             {product.discount}
                         </div>
                         )}
@@ -206,7 +217,7 @@ const Food = () => {
                         </div>
                         <p className="text-gray-600 dark:text-gray-300 text-sm">{product.description}</p>
                         <Button 
-                        className="w-full mt-3 bg-orange-500 hover:bg-orange-600"
+                        className="w-full mt-3 bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600"
                         onClick={(e) => {
                             e.stopPropagation();
                             addToCart(product);

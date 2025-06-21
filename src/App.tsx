@@ -18,6 +18,7 @@ import CurrentOrder from "./pages/CurrentOrder";
 import Settings from "./pages/Settings";
 import Address from "./pages/Address";
 import NotFound from "./pages/NotFound";
+import AllCategories from "./pages/AllCategories";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,22 @@ export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+};
+
+// Selected address context
+interface SelectedAddressContextType {
+  selectedAddress: any;
+  setSelectedAddress: (address: any) => void;
+}
+
+const SelectedAddressContext = createContext<SelectedAddressContextType | undefined>(undefined);
+
+export const useSelectedAddress = () => {
+  const context = useContext(SelectedAddressContext);
+  if (!context) {
+    throw new Error('useSelectedAddress must be used within a SelectedAddressProvider');
   }
   return context;
 };
@@ -104,6 +121,19 @@ const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App = () => {
+  const [selectedAddress, setSelectedAddress] = useState(() => {
+    const saved = localStorage.getItem('quicklymart-selected-address');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  useEffect(() => {
+    if (selectedAddress) {
+      localStorage.setItem('quicklymart-selected-address', JSON.stringify(selectedAddress));
+    } else {
+      localStorage.removeItem('quicklymart-selected-address');
+    }
+  }, [selectedAddress]);
+
   useEffect(() => {
     const handleRedirectResult = async () => {
       try {
@@ -121,30 +151,33 @@ const App = () => {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
+  <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/food" element={<Food />} />
-              <Route path="/daily-essential" element={<DailyEssential />} />
-              <Route path="/drinks" element={<Drinks />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/past-orders" element={<PastOrders />} />
-              <Route path="/current-order/:orderId" element={<CurrentOrder />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/address" element={<Address />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+        <SelectedAddressContext.Provider value={{ selectedAddress, setSelectedAddress }}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+                <Route path="/food" element={<Food />} />
+                <Route path="/daily-essential" element={<DailyEssential />} />
+                <Route path="/drinks" element={<Drinks />} />
+                <Route path="/all-categories" element={<AllCategories />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/past-orders" element={<PastOrders />} />
+                <Route path="/current-order" element={<CurrentOrder />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/address" element={<Address />} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+        </SelectedAddressContext.Provider>
       </ThemeProvider>
-    </QueryClientProvider>
-  );
+  </QueryClientProvider>
+);
 };
 
 export default App;
