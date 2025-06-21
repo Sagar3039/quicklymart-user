@@ -1,162 +1,445 @@
-
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { X, Mail, Phone, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { auth } from '@/lib/firebase';
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signInWithPhoneNumber,
+  RecaptchaVerifier,
+  PhoneAuthProvider,
+  GoogleAuthProvider,
+  signInWithRedirect
+} from 'firebase/auth';
 import { toast } from '@/components/ui/sonner';
 
-const AuthModal = ({ isOpen, onClose }) => {
-  const [phoneNumber, setPhoneNumber] = useState('');
+interface AuthModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onLoginSuccess?: () => void;
+}
+
+const AuthModal = ({ isOpen, onClose, onLoginSuccess }: AuthModalProps) => {
+  const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  
+  // Phone authentication states
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
+  const [verificationId, setVerificationId] = useState('');
   const [showOtpInput, setShowOtpInput] = useState(false);
-  const [authMethod, setAuthMethod] = useState('phone');
+  const [recaptchaVerifier, setRecaptchaVerifier] = useState<RecaptchaVerifier | null>(null);
 
-  const handleSendOtp = () => {
-    if (authMethod === 'phone' && phoneNumber.length === 10) {
-      setShowOtpInput(true);
-      toast.success('OTP sent to your phone!');
-    } else if (authMethod === 'email' && email.includes('@')) {
-      setShowOtpInput(true);
-      toast.success('OTP sent to your email!');
-    } else {
-      toast.error('Please enter valid details');
-    }
+  const resetForm = () => {
+    setEmail('');
+    setPassword('');
+    setPhoneNumber('');
+    setOtp('');
+    setVerificationId('');
+    setShowOtpInput(false);
+    setIsSignUp(false);
+    setIsLoading(false);
   };
 
-  const handleVerifyOtp = () => {
-    if (otp === '1234') { // Demo OTP
-      toast.success('Login successful!');
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      if (isSignUp) {
+        await createUserWithEmailAndPassword(auth, email, password);
+        toast.success('Account created successfully!');
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+        toast.success('Logged in successfully!');
+      }
+      resetForm();
       onClose();
-    } else {
-      toast.error('Invalid OTP');
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      }
+    } catch (error: any) {
+      console.error('Auth error:', error);
+      if (error.code === 'auth/email-already-in-use') {
+        toast.error('Email already in use. Please sign in instead.');
+      } else if (error.code === 'auth/user-not-found') {
+        toast.error('User not found. Please check your email or sign up.');
+      } else if (error.code === 'auth/wrong-password') {
+        toast.error('Incorrect password. Please try again.');
+      } else if (error.code === 'auth/weak-password') {
+        toast.error('Password is too weak. Please use a stronger password.');
+      } else {
+        toast.error('Authentication failed. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleSocialLogin = (provider) => {
-    toast.success(`${provider} login initiated!`);
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      // Add custom parameters for better UX
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+      await signInWithRedirect(auth, provider);
+      // Don't show success message here - it will be handled by redirect result
+    } catch (error: any) {
+      console.error('Google auth error:', error);
+      toast.error('Google sign-in failed. Please try again.');
+      setIsLoading(false);
+    }
+  };
+
+  const setupRecaptcha = () => {
+    if (!recaptchaVerifier) {
+      const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible',
+        'callback': () => {
+          console.log('reCAPTCHA solved');
+        }
+      });
+      setRecaptchaVerifier(verifier);
+    }
+  };
+
+  const sendOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      setupRecaptcha();
+      
+      if (!recaptchaVerifier) {
+        toast.error('reCAPTCHA not ready. Please refresh and try again.');
+        return;
+      }
+
+      // Format phone number to international format
+      const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber : `+91${phoneNumber}`;
+      
+      const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, recaptchaVerifier);
+      setVerificationId(confirmationResult.verificationId);
+      setShowOtpInput(true);
+      toast.success('OTP sent successfully!');
+    } catch (error: any) {
+      console.error('Phone auth error:', error);
+      if (error.code === 'auth/billing-not-enabled') {
+        toast.error('Phone authentication requires billing to be enabled. Please enable billing in Firebase Console.');
+      } else if (error.code === 'auth/invalid-phone-number') {
+        toast.error('Invalid phone number. Please check and try again.');
+      } else if (error.code === 'auth/too-many-requests') {
+        toast.error('Too many requests. Please try again later.');
+      } else if (error.code === 'auth/quota-exceeded') {
+        toast.error('SMS quota exceeded. Please try again later or contact support.');
+      } else {
+        toast.error('Failed to send OTP. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const verifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const credential = PhoneAuthProvider.credential(verificationId, otp);
+      await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier!);
+      toast.success('Phone number verified successfully!');
+      resetForm();
+      onClose();
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      }
+    } catch (error: any) {
+      console.error('OTP verification error:', error);
+      if (error.code === 'auth/invalid-verification-code') {
+        toast.error('Invalid OTP. Please check and try again.');
+      } else if (error.code === 'auth/code-expired') {
+        toast.error('OTP has expired. Please request a new one.');
+        setShowOtpInput(false);
+      } else {
+        toast.error('OTP verification failed. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resendOTP = async () => {
+    setIsLoading(true);
+    try {
+      await sendOTP(new Event('submit') as any);
+    } catch (error) {
+      console.error('Resend OTP error:', error);
+      toast.error('Failed to resend OTP. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    resetForm();
     onClose();
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Welcome to QuicklyMart</DialogTitle>
-          <DialogDescription>
-            Login or signup to continue shopping
-          </DialogDescription>
-        </DialogHeader>
+  if (!isOpen) return null;
 
-        <div className="space-y-4">
-          <Tabs value={authMethod} onValueChange={setAuthMethod}>
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-md bg-white">
+        <CardHeader className="relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-2"
+            onClick={handleClose}
+          >
+            <X className="w-4 h-4" />
+          </Button>
+          <CardTitle className="text-center text-2xl font-bold">
+            {isSignUp ? 'Create Account' : 'Welcome Back'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="email" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="phone">Phone</TabsTrigger>
-              <TabsTrigger value="email">Email</TabsTrigger>
+              <TabsTrigger value="email" className="flex items-center space-x-2">
+                <Mail className="w-4 h-4" />
+                <span>Email</span>
+              </TabsTrigger>
+              <TabsTrigger value="phone" className="flex items-center space-x-2">
+                <Phone className="w-4 h-4" />
+                <span>Phone</span>
+              </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="phone" className="space-y-4">
-              <div>
-                <Label htmlFor="phone">Phone Number</Label>
-                <div className="flex mt-1">
-                  <span className="inline-flex items-center px-3 text-sm bg-gray-50 border border-r-0 border-gray-300 rounded-l-md">
-                    +91
+            {/* Email Authentication */}
+            <TabsContent value="email" className="space-y-4">
+              <form onSubmit={handleEmailAuth} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10 pr-10"
+                      required
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1 top-1 h-8 w-8"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {isSignUp ? 'Creating Account...' : 'Signing In...'}
+                    </>
+                  ) : (
+                    isSignUp ? 'Create Account' : 'Sign In'
+                  )}
+                </Button>
+              </form>
+
+              <div className="text-center">
+                <Button
+                  variant="link"
+                  onClick={() => setIsSignUp(!isSignUp)}
+                  className="text-sm"
+                >
+                  {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+                </Button>
+              </div>
+
+              {/* Google Sign In */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-2 text-gray-500">
+                    Or continue with
                   </span>
-                  <Input
-                    id="phone"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="Enter phone number"
-                    className="rounded-l-none"
-                    maxLength={10}
-                  />
                 </div>
               </div>
+              
+              <Button 
+                variant="outline" 
+                onClick={handleGoogleSignIn} 
+                className="w-full"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Redirecting to Google...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                      <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Continue with Google
+                  </>
+                )}
+              </Button>
             </TabsContent>
 
-            <TabsContent value="email" className="space-y-4">
-              <div>
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter email address"
-                />
-              </div>
+            {/* Phone Authentication */}
+            <TabsContent value="phone" className="space-y-4">
+              {!showOtpInput ? (
+                <form onSubmit={sendOTP} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="Enter your phone number"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      We'll send you a verification code via SMS
+                    </p>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending OTP...
+                      </>
+                    ) : (
+                      'Send OTP'
+                    )}
+                  </Button>
+                </form>
+              ) : (
+                <form onSubmit={verifyOTP} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="otp">Verification Code</Label>
+                    <Input
+                      id="otp"
+                      type="text"
+                      placeholder="Enter 6-digit code"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      maxLength={6}
+                      className="text-center text-lg tracking-widest"
+                      required
+                    />
+                    <p className="text-xs text-gray-500">
+                      Enter the 6-digit code sent to {phoneNumber}
+                    </p>
+                  </div>
+
+                  <div className="flex space-x-2">
+                    <Button
+                      type="submit"
+                      className="flex-1"
+                      disabled={isLoading || otp.length !== 6}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Verifying...
+                        </>
+                      ) : (
+                        'Verify OTP'
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={resendOTP}
+                      disabled={isLoading}
+                    >
+                      Resend
+                    </Button>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => {
+                      setShowOtpInput(false);
+                      setOtp('');
+                      setVerificationId('');
+                    }}
+                    className="w-full"
+                  >
+                    Change Phone Number
+                  </Button>
+                </form>
+              )}
             </TabsContent>
           </Tabs>
 
-          {showOtpInput && (
-            <div>
-              <Label htmlFor="otp">Enter OTP</Label>
-              <Input
-                id="otp"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                placeholder="Enter 4-digit OTP"
-                maxLength={4}
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                Demo OTP: 1234
-              </p>
-            </div>
-          )}
-
-          <div className="space-y-2">
-            {!showOtpInput ? (
-              <Button onClick={handleSendOtp} className="w-full">
-                Send OTP
-              </Button>
-            ) : (
-              <Button onClick={handleVerifyOtp} className="w-full">
-                Verify OTP
-              </Button>
-            )}
-          </div>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
-              </span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => handleSocialLogin('Google')}
-              className="w-full"
-            >
-              <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              Google
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => handleSocialLogin('Apple')}
-              className="w-full"
-            >
-              <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12.017 0C8.396 0 8.025.044 7.333.06 4.706.272 3.033 1.496 2.197 3.374 1.439 5.106 1.928 7.482 3.251 9.126c.797 1.05 2.79 3.498 2.79 5.674 0 2.225-1.39 3.674-3.251 4.5-.372.165-.744.33-1.116.495 0 0 3.813-.362 7.478 0 .744-.165 1.116-.33 1.86-.495 1.86-.826 3.251-2.275 3.251-4.5 0-2.176 1.993-4.624 2.79-5.674 1.323-1.644 1.812-4.02 1.054-5.752C20.967 1.496 19.294.272 16.667.06 15.975.044 15.604 0 12.017 0z"/>
-              </svg>
-              Apple
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+          {/* reCAPTCHA Container */}
+          <div id="recaptcha-container" className="mt-4"></div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

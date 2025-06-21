@@ -1,0 +1,336 @@
+import { db } from './firebase';
+import { collection, addDoc, getDocs, query, where, orderBy, DocumentData } from 'firebase/firestore';
+
+// Product interface
+export interface Product {
+  id?: string;
+  name: string;
+  price: number;
+  rating: number;
+  image: string;
+  category: string;
+  subcategory: string;
+  description: string;
+  deliveryTime: string;
+  inStock: boolean;
+  discount?: string;
+  offer?: string;
+  tags: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// Product categories
+export const PRODUCT_CATEGORIES = {
+  FOOD: 'food',
+  DRINKS: 'drinks',
+  DAILY_ESSENTIAL: 'daily_essential'
+};
+
+// Product subcategories
+export const PRODUCT_SUBCATEGORIES = {
+  // Food subcategories
+  PIZZAS: 'pizzas',
+  BURGERS: 'burgers',
+  BIRYANI: 'biryani',
+  CHINESE: 'chinese',
+  INDIAN: 'indian',
+  DESSERTS: 'desserts',
+  
+  // Drinks subcategories
+  BEER: 'beer',
+  WINE: 'wine',
+  SPIRITS: 'spirits',
+  COCKTAILS: 'cocktails',
+  
+  // Daily Essential subcategories
+  STAPLES: 'staples',
+  SNACKS: 'snacks',
+  BEVERAGES: 'beverages',
+  PERSONAL_CARE: 'personal_care',
+  HOUSEHOLD: 'household'
+};
+
+// Sample product data for all categories
+export const SAMPLE_PRODUCTS: Product[] = [
+  // Food Products
+  {
+    name: "Domino's Pizza",
+    price: 250,
+    rating: 4.5,
+    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400',
+    category: PRODUCT_CATEGORIES.FOOD,
+    subcategory: PRODUCT_SUBCATEGORIES.PIZZAS,
+    description: 'Delicious pizza with fresh toppings',
+    deliveryTime: '20-25 mins',
+    inStock: true,
+    discount: '20% OFF',
+    tags: ['pizza', 'italian', 'cheese', 'tomato']
+  },
+  {
+    name: 'Spice N Ice Biryani',
+    price: 220,
+    rating: 4.3,
+    image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400',
+    category: PRODUCT_CATEGORIES.FOOD,
+    subcategory: PRODUCT_SUBCATEGORIES.BIRYANI,
+    description: 'Aromatic biryani with tender meat',
+    deliveryTime: '25-30 mins',
+    inStock: true,
+    offer: 'BUY1 GET1',
+    tags: ['biryani', 'rice', 'spicy', 'indian']
+  },
+  {
+    name: 'China Nation Noodles',
+    price: 180,
+    rating: 4.1,
+    image: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=400',
+    category: PRODUCT_CATEGORIES.FOOD,
+    subcategory: PRODUCT_SUBCATEGORIES.CHINESE,
+    description: 'Stir-fried noodles with vegetables',
+    deliveryTime: '15-20 mins',
+    inStock: true,
+    tags: ['noodles', 'chinese', 'vegetarian', 'stir-fry']
+  },
+  {
+    name: 'Classic Burger',
+    price: 150,
+    rating: 4.2,
+    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400',
+    category: PRODUCT_CATEGORIES.FOOD,
+    subcategory: PRODUCT_SUBCATEGORIES.BURGERS,
+    description: 'Juicy beef burger with fresh vegetables',
+    deliveryTime: '18-22 mins',
+    inStock: true,
+    discount: '15% OFF',
+    tags: ['burger', 'beef', 'fast-food', 'american']
+  },
+  {
+    name: 'Butter Chicken',
+    price: 280,
+    rating: 4.6,
+    image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400',
+    category: PRODUCT_CATEGORIES.FOOD,
+    subcategory: PRODUCT_SUBCATEGORIES.INDIAN,
+    description: 'Creamy butter chicken with naan',
+    deliveryTime: '30-35 mins',
+    inStock: true,
+    tags: ['chicken', 'indian', 'curry', 'butter']
+  },
+  {
+    name: 'Chocolate Cake',
+    price: 120,
+    rating: 4.4,
+    image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400',
+    category: PRODUCT_CATEGORIES.FOOD,
+    subcategory: PRODUCT_SUBCATEGORIES.DESSERTS,
+    description: 'Rich chocolate cake with cream',
+    deliveryTime: '20-25 mins',
+    inStock: true,
+    tags: ['cake', 'chocolate', 'dessert', 'sweet']
+  },
+
+  // Drinks Products
+  {
+    name: 'Heineken Beer',
+    price: 120,
+    rating: 4.3,
+    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400',
+    category: PRODUCT_CATEGORIES.DRINKS,
+    subcategory: PRODUCT_SUBCATEGORIES.BEER,
+    description: 'Premium lager beer',
+    deliveryTime: '30-45 mins',
+    inStock: true,
+    tags: ['beer', 'lager', 'alcohol', 'premium']
+  },
+  {
+    name: 'Red Wine',
+    price: 450,
+    rating: 4.5,
+    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400',
+    category: PRODUCT_CATEGORIES.DRINKS,
+    subcategory: PRODUCT_SUBCATEGORIES.WINE,
+    description: 'Smooth red wine',
+    deliveryTime: '30-45 mins',
+    inStock: true,
+    discount: '10% OFF',
+    tags: ['wine', 'red', 'alcohol', 'premium']
+  },
+  {
+    name: 'Whiskey',
+    price: 800,
+    rating: 4.7,
+    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400',
+    category: PRODUCT_CATEGORIES.DRINKS,
+    subcategory: PRODUCT_SUBCATEGORIES.SPIRITS,
+    description: 'Premium whiskey',
+    deliveryTime: '30-45 mins',
+    inStock: true,
+    tags: ['whiskey', 'spirits', 'alcohol', 'premium']
+  },
+  {
+    name: 'Mojito Cocktail',
+    price: 180,
+    rating: 4.2,
+    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400',
+    category: PRODUCT_CATEGORIES.DRINKS,
+    subcategory: PRODUCT_SUBCATEGORIES.COCKTAILS,
+    description: 'Refreshing mojito cocktail',
+    deliveryTime: '25-35 mins',
+    inStock: true,
+    tags: ['cocktail', 'mojito', 'alcohol', 'refreshing']
+  },
+
+  // Daily Essential Products
+  {
+    name: 'Basmati Rice',
+    price: 80,
+    rating: 4.4,
+    image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400',
+    category: PRODUCT_CATEGORIES.DAILY_ESSENTIAL,
+    subcategory: PRODUCT_SUBCATEGORIES.STAPLES,
+    description: 'Premium basmati rice',
+    deliveryTime: '60-90 mins',
+    inStock: true,
+    discount: '5% OFF',
+    tags: ['rice', 'basmati', 'staples', 'grocery']
+  },
+  {
+    name: 'Potato Chips',
+    price: 30,
+    rating: 4.1,
+    image: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=400',
+    category: PRODUCT_CATEGORIES.DAILY_ESSENTIAL,
+    subcategory: PRODUCT_SUBCATEGORIES.SNACKS,
+    description: 'Crispy potato chips',
+    deliveryTime: '60-90 mins',
+    inStock: true,
+    tags: ['chips', 'snacks', 'potato', 'crispy']
+  },
+  {
+    name: 'Coca Cola',
+    price: 40,
+    rating: 4.0,
+    image: 'https://images.unsplash.com/photo-1554866585-aa94861d3f78?w=400',
+    category: PRODUCT_CATEGORIES.DAILY_ESSENTIAL,
+    subcategory: PRODUCT_SUBCATEGORIES.BEVERAGES,
+    description: 'Refreshing cola drink',
+    deliveryTime: '60-90 mins',
+    inStock: true,
+    tags: ['cola', 'beverage', 'soft-drink', 'refreshing']
+  },
+  {
+    name: 'Toothpaste',
+    price: 60,
+    rating: 4.3,
+    image: 'https://images.unsplash.com/photo-1559591935-c6c92c6c2b6e?w=400',
+    category: PRODUCT_CATEGORIES.DAILY_ESSENTIAL,
+    subcategory: PRODUCT_SUBCATEGORIES.PERSONAL_CARE,
+    description: 'Fresh mint toothpaste',
+    deliveryTime: '60-90 mins',
+    inStock: true,
+    tags: ['toothpaste', 'personal-care', 'hygiene', 'mint']
+  },
+  {
+    name: 'Dish Soap',
+    price: 45,
+    rating: 4.2,
+    image: 'https://images.unsplash.com/photo-1559591935-c6c92c6c2b6e?w=400',
+    category: PRODUCT_CATEGORIES.DAILY_ESSENTIAL,
+    subcategory: PRODUCT_SUBCATEGORIES.HOUSEHOLD,
+    description: 'Effective dish cleaning soap',
+    deliveryTime: '60-90 mins',
+    inStock: true,
+    tags: ['soap', 'household', 'cleaning', 'dishes']
+  }
+];
+
+// Initialize products in Firestore
+export const initializeProducts = async () => {
+  try {
+    const productsRef = collection(db, 'products');
+    const querySnapshot = await getDocs(productsRef);
+    
+    // Only add products if the collection is empty
+    if (querySnapshot.empty) {
+      const addPromises = SAMPLE_PRODUCTS.map(product => 
+        addDoc(productsRef, {
+          ...product,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+      );
+      
+      await Promise.all(addPromises);
+      console.log('Products initialized successfully');
+    }
+  } catch (error) {
+    console.error('Error initializing products:', error);
+  }
+};
+
+// Search products
+export const searchProducts = async (searchQuery: string, category: string | null = null, subcategory: string | null = null): Promise<Product[]> => {
+  try {
+    const productsRef = collection(db, 'products');
+    let q;
+    
+    // Build query based on filters
+    if (category) {
+      q = query(productsRef, where('category', '==', category));
+    } else {
+      // Only use orderBy when not filtering by category to avoid composite index requirement
+      q = query(productsRef, orderBy('name'));
+    }
+    
+    // Add subcategory filter if specified
+    if (subcategory) {
+      if (category) {
+        q = query(q, where('subcategory', '==', subcategory));
+      } else {
+        q = query(productsRef, where('subcategory', '==', subcategory));
+      }
+    }
+    
+    const querySnapshot = await getDocs(q);
+    const products: Product[] = [];
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data() as DocumentData;
+      const product = { id: doc.id, ...data } as Product;
+      
+      // Filter by search query if provided
+      if (!searchQuery || 
+          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))) {
+        products.push(product);
+      }
+    });
+    
+    // Sort products by name if not already sorted by Firestore
+    if (category || subcategory) {
+      products.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    
+    return products;
+  } catch (error) {
+    console.error('Error searching products:', error);
+    return [];
+  }
+};
+
+// Get products by category
+export const getProductsByCategory = async (category) => {
+  return await searchProducts('', category);
+};
+
+// Get products by subcategory
+export const getProductsBySubcategory = async (category, subcategory) => {
+  return await searchProducts('', category, subcategory);
+};
+
+// Get all products
+export const getAllProducts = async () => {
+  return await searchProducts('');
+}; 
