@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
@@ -15,7 +15,9 @@ import {
   GoogleAuthProvider,
   signInWithPopup
 } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import { toast } from '@/components/ui/sonner';
+import UserOnboarding from './UserOnboarding';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -37,6 +39,10 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess }: AuthModalProps) => {
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [recaptchaVerifier, setRecaptchaVerifier] = useState<RecaptchaVerifier | null>(null);
 
+  // Onboarding state
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(false);
+
   const resetForm = () => {
     setEmail('');
     setPassword('');
@@ -46,6 +52,27 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess }: AuthModalProps) => {
     setShowOtpInput(false);
     setIsSignUp(false);
     setIsLoading(false);
+    setShowOnboarding(false);
+    setIsNewUser(false);
+  };
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    resetForm();
+    onClose();
+    if (onLoginSuccess) {
+      onLoginSuccess();
+    }
+  };
+
+  const checkIfNewUser = async (userId: string) => {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      return !userDoc.exists() || !userDoc.data()?.isOnboarded;
+    } catch (error) {
+      console.error('Error checking user status:', error);
+      return true; // Assume new user if there's an error
+    }
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
@@ -54,16 +81,26 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess }: AuthModalProps) => {
 
     try {
       if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         toast.success('Account created successfully!');
+        setIsNewUser(true);
+        setShowOnboarding(true);
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
-        toast.success('Logged in successfully!');
-      }
-      resetForm();
-      onClose();
-      if (onLoginSuccess) {
-        onLoginSuccess();
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const isNew = await checkIfNewUser(userCredential.user.uid);
+        
+        if (isNew) {
+          toast.success('Account created successfully!');
+          setIsNewUser(true);
+          setShowOnboarding(true);
+        } else {
+          toast.success('Logged in successfully!');
+          resetForm();
+          onClose();
+          if (onLoginSuccess) {
+            onLoginSuccess();
+          }
+        }
       }
     } catch (error: any) {
       console.error('Auth error:', error);
@@ -92,11 +129,21 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess }: AuthModalProps) => {
         prompt: 'select_account'
       });
       const result = await signInWithPopup(auth, provider);
-      toast.success('Successfully signed in with Google!');
-      resetForm();
-      onClose();
-      if (onLoginSuccess) {
-        onLoginSuccess();
+      
+      // Check if this is a new user by checking Firestore
+      const isNew = await checkIfNewUser(result.user.uid);
+      
+      if (isNew) {
+        toast.success('Account created successfully!');
+        setIsNewUser(true);
+        setShowOnboarding(true);
+      } else {
+        toast.success('Successfully signed in with Google!');
+        resetForm();
+        onClose();
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        }
       }
     } catch (error: any) {
       console.error('Google auth error:', error);
@@ -167,12 +214,22 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess }: AuthModalProps) => {
 
     try {
       const credential = PhoneAuthProvider.credential(verificationId, otp);
-      await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier!);
-      toast.success('Phone number verified successfully!');
-      resetForm();
-      onClose();
-      if (onLoginSuccess) {
-        onLoginSuccess();
+      const userCredential = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier!);
+      
+      // Check if this is a new user
+      const isNew = await checkIfNewUser(userCredential.user.uid);
+      
+      if (isNew) {
+        toast.success('Account created successfully!');
+        setIsNewUser(true);
+        setShowOnboarding(true);
+      } else {
+        toast.success('Phone number verified successfully!');
+        resetForm();
+        onClose();
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        }
       }
     } catch (error: any) {
       console.error('OTP verification error:', error);
@@ -181,7 +238,7 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess }: AuthModalProps) => {
       } else if (error.code === 'auth/code-expired') {
         toast.error('OTP has expired. Please request a new one.');
         setShowOtpInput(false);
-    } else {
+      } else {
         toast.error('OTP verification failed. Please try again.');
       }
     } finally {
@@ -451,7 +508,13 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess }: AuthModalProps) => {
           <div id="recaptcha-container" className="mt-4"></div>
         </CardContent>
       </Card>
-        </div>
+      
+      {/* User Onboarding Modal */}
+      <UserOnboarding 
+        isOpen={showOnboarding} 
+        onComplete={handleOnboardingComplete}
+      />
+    </div>
   );
 };
 

@@ -963,9 +963,9 @@ const QuicklyMart = () => {
             <div className="space-y-4">
               <h4 className="text-lg font-semibold text-quicklymart-orange-500">Support</h4>
               <ul className="space-y-2">
-                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={() => toast.info('Help center coming soon!')}>Help Center</Button></li>
-                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={() => toast.info('Contact us at support@quicklymart.com')}>Contact Us</Button></li>
-                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={() => toast.info('Track your order in the app!')}>Track Order</Button></li>
+                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={() => navigate('/help-center')}>Help Center</Button></li>
+                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={() => navigate('/contact-us')}>Contact Us</Button></li>
+                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={() => navigate('/track-order')}>Track Order</Button></li>
               </ul>
             </div>
 
@@ -973,9 +973,9 @@ const QuicklyMart = () => {
             <div className="space-y-4">
               <h4 className="text-lg font-semibold text-quicklymart-orange-500">Company</h4>
               <ul className="space-y-2">
-                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={() => toast.info('About QuicklyMart coming soon!')}>About Us</Button></li>
-                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={() => toast.info('Careers page coming soon!')}>Careers</Button></li>
-                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={() => toast.info('Privacy policy coming soon!')}>Privacy Policy</Button></li>
+                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={() => navigate('/about-us')}>About Us</Button></li>
+                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={() => navigate('/careers')}>Careers</Button></li>
+                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={() => navigate('/privacy-policy')}>Privacy Policy</Button></li>
               </ul>
             </div>
           </div>

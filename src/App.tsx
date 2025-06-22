@@ -19,6 +19,13 @@ import Settings from "./pages/Settings";
 import Address from "./pages/Address";
 import NotFound from "./pages/NotFound";
 import AllCategories from "./pages/AllCategories";
+import HelpCenter from "./pages/HelpCenter";
+import ContactUs from "./pages/ContactUs";
+import TrackOrder from "./pages/TrackOrder";
+import AboutUs from "./pages/AboutUs";
+import Careers from "./pages/Careers";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import UserOnboarding from "./components/UserOnboarding";
 
 const queryClient = new QueryClient();
 
@@ -125,6 +132,7 @@ const App = () => {
     const saved = localStorage.getItem('quicklymart-selected-address');
     return saved ? JSON.parse(saved) : null;
   });
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     if (selectedAddress) {
@@ -140,6 +148,8 @@ const App = () => {
         const result = await getRedirectResult(auth);
         if (result) {
           toast.success('Google sign-in successful!');
+          // Check onboarding status for new users
+          await checkUserOnboarding(result.user);
         }
       } catch (error) {
         console.error('Google sign-in redirect error:', error);
@@ -149,6 +159,34 @@ const App = () => {
 
     handleRedirectResult();
   }, []);
+
+  // Listen for auth state changes
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        await checkUserOnboarding(user);
+      } else {
+        setShowOnboarding(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const checkUserOnboarding = async (user: any) => {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (!userDoc.exists() || !userDoc.data()?.isOnboarded) {
+        setShowOnboarding(true);
+      }
+    } catch (error) {
+      console.error('Error checking user onboarding status:', error);
+    }
+  };
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+  };
 
   return (
   <QueryClientProvider client={queryClient}>
@@ -169,11 +207,23 @@ const App = () => {
                 <Route path="/current-order/:orderId" element={<CurrentOrder />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/address" element={<Address />} />
+                <Route path="/help-center" element={<HelpCenter />} />
+                <Route path="/contact-us" element={<ContactUs />} />
+                <Route path="/track-order" element={<TrackOrder />} />
+                <Route path="/about-us" element={<AboutUs />} />
+                <Route path="/careers" element={<Careers />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    
+    {/* User Onboarding Modal */}
+    <UserOnboarding 
+      isOpen={showOnboarding} 
+      onComplete={handleOnboardingComplete}
+    />
         </SelectedAddressContext.Provider>
       </ThemeProvider>
   </QueryClientProvider>
