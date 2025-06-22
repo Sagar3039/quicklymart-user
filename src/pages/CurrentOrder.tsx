@@ -353,9 +353,9 @@ const CurrentOrder = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-white text-gray-800 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
           <p>Loading order details...</p>
         </div>
       </div>
@@ -364,10 +364,10 @@ const CurrentOrder = () => {
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-white text-gray-800 flex items-center justify-center">
         <div className="text-center">
           <p>Order not found</p>
-          <Button onClick={() => navigate('/past-orders')} className="mt-4">
+          <Button onClick={() => navigate('/past-orders')} className="mt-4 bg-orange-500 hover:bg-orange-600 text-white">
             Go to Past Orders
           </Button>
         </div>
@@ -379,25 +379,25 @@ const CurrentOrder = () => {
   const stepInfo = getStepInfo(currentStep);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-gray-600 dark:text-gray-300"
+                className="text-gray-600 hover:text-orange-500"
                 onClick={() => navigate('/past-orders')}
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-gray-800 dark:text-white font-bold text-lg">Order #{order.id.slice(-6)}</h1>
+                <h1 className="text-gray-800 font-bold text-lg">Order #{order.id.slice(-6)}</h1>
                 <div className="flex items-center space-x-2 text-sm">
-                  <Timer className="w-4 h-4 text-green-400" />
-                  <span className="text-green-400 font-semibold">
+                  <Timer className="w-4 h-4 text-orange-500" />
+                  <span className="text-orange-500 font-semibold">
                     {timeLeft.minutes}m {timeLeft.seconds}s left
                   </span>
                 </div>
@@ -408,13 +408,13 @@ const CurrentOrder = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-gray-600 dark:text-gray-300"
+                className="text-gray-600 hover:text-orange-500"
                 onClick={toggleDarkMode}
                 title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
               >
                 {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </Button>
-              <Badge className="bg-green-500 text-white">
+              <Badge className="bg-orange-500 text-white">
                 <Clock className="w-4 h-4 mr-1" />
                 {distance.toFixed(1)} km away
               </Badge>
@@ -425,48 +425,48 @@ const CurrentOrder = () => {
 
       {/* Live Map */}
       <div className="container mx-auto px-4 py-4">
-        <Card className="bg-white/5 backdrop-blur-md border-gray-700 mb-6">
+        <Card className="bg-white border border-gray-200 shadow-sm mb-6">
           <CardHeader>
-            <CardTitle className="text-white flex items-center space-x-2">
-              <MapPin className="w-5 h-5" />
+            <CardTitle className="text-gray-800 flex items-center space-x-2">
+              <MapPin className="w-5 h-5 text-orange-500" />
               <span>Live Tracking</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div 
               ref={mapRef} 
-              className="w-full h-64 rounded-lg border border-gray-600"
+              className="w-full h-64 rounded-lg border border-gray-200"
               style={{ zIndex: 1 }}
             />
             <div className="mt-4 grid grid-cols-2 gap-4">
-              <div className="text-center p-3 bg-white/5 rounded-lg">
-                <p className="text-sm text-gray-300">Distance</p>
-                <p className="text-lg font-bold text-blue-400">{distance.toFixed(1)} km</p>
+              <div className="text-center p-3 bg-orange-50 rounded-lg">
+                <p className="text-sm text-gray-600">Distance</p>
+                <p className="text-lg font-bold text-orange-500">{distance.toFixed(1)} km</p>
               </div>
-              <div className="text-center p-3 bg-white/5 rounded-lg">
-                <p className="text-sm text-gray-300">Est. Time</p>
-                <p className="text-lg font-bold text-green-400">{timeLeft.minutes}m {timeLeft.seconds}s</p>
+              <div className="text-center p-3 bg-orange-50 rounded-lg">
+                <p className="text-sm text-gray-600">Est. Time</p>
+                <p className="text-lg font-bold text-orange-500">{timeLeft.minutes}m {timeLeft.seconds}s</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Order Progress */}
-        <Card className="bg-white/5 backdrop-blur-md border-gray-700 mb-6">
+        <Card className="bg-white border border-gray-200 shadow-sm mb-6">
           <CardHeader>
-            <CardTitle className="text-white flex items-center space-x-2">
+            <CardTitle className="text-gray-800 flex items-center space-x-2">
               <span className="text-2xl">{stepInfo.icon}</span>
-              <span className={stepInfo.color}>{stepInfo.title}</span>
+              <span className="text-orange-500">{stepInfo.title}</span>
             </CardTitle>
-            <p className="text-gray-300">{stepInfo.description}</p>
+            <p className="text-gray-600">{stepInfo.description}</p>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {/* Progress Bar */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-300">Progress</span>
-                  <span>{Math.round((currentStep / 5) * 100)}%</span>
+                  <span className="text-gray-600">Progress</span>
+                  <span className="text-gray-800">{Math.round((currentStep / 5) * 100)}%</span>
                 </div>
                 <Progress value={(currentStep / 5) * 100} className="h-2" />
               </div>
@@ -477,17 +477,17 @@ const CurrentOrder = () => {
                   <div
                     key={step}
                     className={`flex flex-col items-center p-2 rounded-lg transition-all duration-300 ${
-                      step <= currentStep ? 'bg-green-500/20 scale-105' : 'bg-gray-700/50'
+                      step <= currentStep ? 'bg-orange-100 scale-105' : 'bg-gray-100'
                     }`}
                   >
                     <div
                       className={`w-6 h-6 rounded-full flex items-center justify-center text-xs transition-all duration-300 ${
-                        step <= currentStep ? 'bg-green-500 shadow-lg' : 'bg-gray-600'
+                        step <= currentStep ? 'bg-orange-500 shadow-lg text-white' : 'bg-gray-300 text-gray-600'
                       }`}
                     >
                       {step < currentStep ? '✓' : step}
                     </div>
-                    <span className="text-xs mt-1 text-center">
+                    <span className="text-xs mt-1 text-center text-gray-600">
                       {getStepInfo(step).title.split(' ')[0]}
                     </span>
                   </div>
@@ -500,24 +500,24 @@ const CurrentOrder = () => {
         {/* Restaurant & Delivery Info */}
         <div className="grid gap-6 md:grid-cols-2 mb-6">
           {/* Restaurant Info */}
-          <Card className="bg-white/5 backdrop-blur-md border-gray-700">
+          <Card className="bg-white border border-gray-200 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-white flex items-center space-x-2">
+              <CardTitle className="text-gray-800 flex items-center space-x-2">
                 <span className="text-2xl">{restaurantInfo.icon}</span>
                 <span>Restaurant</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h3 className="font-semibold text-lg">{restaurantInfo.name}</h3>
-                <p className="text-gray-300">{restaurantInfo.address}</p>
+                <h3 className="font-semibold text-lg text-gray-800">{restaurantInfo.name}</h3>
+                <p className="text-gray-600">{restaurantInfo.address}</p>
               </div>
               <div className="flex space-x-2">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button variant="outline" size="sm" className="flex-1 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white">
                   <Phone className="w-4 h-4 mr-2" />
                   Call Restaurant
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button variant="outline" size="sm" className="flex-1 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white">
                   <Navigation className="w-4 h-4 mr-2" />
                   Directions
                 </Button>
@@ -526,23 +526,23 @@ const CurrentOrder = () => {
           </Card>
 
           {/* Delivery Info */}
-          <Card className="bg-white/5 backdrop-blur-md border-gray-700">
+          <Card className="bg-white border border-gray-200 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-white flex items-center space-x-2">
-                <Truck className="w-5 h-5" />
+              <CardTitle className="text-gray-800 flex items-center space-x-2">
+                <Truck className="w-5 h-5 text-orange-500" />
                 <span>Delivery Address</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="text-gray-300">{getDeliveryAddress()}</p>
+                <p className="text-gray-600">{getDeliveryAddress()}</p>
               </div>
               <div className="flex space-x-2">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button variant="outline" size="sm" className="flex-1 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white">
                   <Phone className="w-4 h-4 mr-2" />
                   Call Delivery
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button variant="outline" size="sm" className="flex-1 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white">
                   <Navigation className="w-4 h-4 mr-2" />
                   Track Order
                 </Button>
@@ -552,33 +552,33 @@ const CurrentOrder = () => {
         </div>
 
         {/* Order Items */}
-        <Card className="bg-white/5 backdrop-blur-md border-gray-700 mb-6">
+        <Card className="bg-white border border-gray-200 shadow-sm mb-6">
           <CardHeader>
-            <CardTitle className="text-white">Order Items</CardTitle>
+            <CardTitle className="text-gray-800">Order Items</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {order.items?.map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                      <span className="text-white text-sm">🍽️</span>
+                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                      <span className="text-orange-600 text-sm">🍽️</span>
                     </div>
                     <div>
-                      <p className="font-medium">{item.name}</p>
-                      <p className="text-gray-300 text-sm">Qty: {item.quantity}</p>
+                      <p className="font-medium text-gray-800">{item.name}</p>
+                      <p className="text-gray-600 text-sm">Qty: {item.quantity}</p>
                     </div>
                   </div>
-                  <p className="font-bold">₹{item.price}</p>
+                  <p className="font-bold text-gray-800">₹{item.price}</p>
                 </div>
               ))}
             </div>
             
             {/* Order Total */}
-            <div className="mt-4 pt-4 border-t border-white/10">
+            <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="flex justify-between items-center">
-                <span className="text-lg font-semibold">Total:</span>
-                <span className="text-2xl font-bold text-green-400">
+                <span className="text-lg font-semibold text-gray-800">Total:</span>
+                <span className="text-2xl font-bold text-orange-500">
                   ₹{order.totalPrice || order.total || 0}
                 </span>
               </div>
@@ -588,10 +588,10 @@ const CurrentOrder = () => {
 
         {/* Action Buttons */}
         <div className="flex space-x-3 mb-6">
-          <Button variant="outline" className="flex-1" onClick={() => navigate('/past-orders')}>
+          <Button variant="outline" className="flex-1 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white" onClick={() => navigate('/past-orders')}>
             View All Orders
           </Button>
-          <Button className="flex-1" onClick={() => navigate('/')}>
+          <Button className="flex-1 bg-orange-500 hover:bg-orange-600 text-white" onClick={() => navigate('/')}>
             Order Again
           </Button>
         </div>

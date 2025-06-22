@@ -209,9 +209,9 @@ const Careers = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-800">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'}`}>
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
+      <header className={`sticky top-0 z-50 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -219,20 +219,20 @@ const Careers = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate(-1)}
-                className="text-gray-600 hover:text-quicklymart-orange-500"
+                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-xl font-bold text-gray-800">Careers</h1>
-                <p className="text-sm text-gray-600">Join our amazing team</p>
+                <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Careers</h1>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Join our amazing team</p>
               </div>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleDarkMode}
-              className="text-gray-600 hover:text-quicklymart-orange-500"
+              className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
             >
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
@@ -243,27 +243,27 @@ const Careers = () => {
       <div className="container mx-auto px-4 py-6">
         {/* Hero Section */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
+          <h1 className={`text-4xl md:text-5xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
             Join Our Team
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Be part of a team that's revolutionizing food delivery. We're looking for 
-            passionate individuals who want to make a difference and grow with us.
+          <p className={`text-xl max-w-3xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+            Be part of a team that's revolutionizing food delivery. We're looking for passionate 
+            individuals who want to make a difference and grow with us.
           </p>
         </div>
 
-        {/* Company Culture */}
+        {/* Benefits */}
         <div className="mb-12">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">Why Work With Us?</h2>
+          <h2 className={`text-3xl font-bold text-center mb-8 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Why Work With Us</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {benefits.map((benefit, index) => (
-              <Card key={index} className="bg-white border border-gray-200 text-center">
+              <Card key={index} className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} text-center`}>
                 <CardContent className="p-6">
                   <div className={`inline-flex p-3 rounded-full mb-4 ${benefit.color}`}>
                     {benefit.icon}
                   </div>
-                  <h3 className="font-semibold mb-2 text-gray-800">{benefit.title}</h3>
-                  <p className="text-sm text-gray-600">{benefit.description}</p>
+                  <h3 className={`font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{benefit.title}</h3>
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{benefit.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -272,68 +272,43 @@ const Careers = () => {
 
         {/* Job Openings */}
         <div className="mb-12">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">Open Positions</h2>
-          <div className="space-y-6">
+          <h2 className={`text-3xl font-bold text-center mb-8 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Open Positions</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {jobOpenings.map((job) => (
-              <Card key={job.id} className="bg-white border border-gray-200">
+              <Card key={job.id} className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} hover:shadow-lg transition-shadow`}>
                 <CardHeader>
-                  <div className="flex items-start justify-between">
+                  <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-xl mb-2 text-gray-800">{job.title}</CardTitle>
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        <Badge variant="secondary" className="bg-quicklymart-orange-100 text-quicklymart-orange-800">{job.department}</Badge>
-                        <Badge variant="outline" className="border-gray-300 text-gray-700">
-                          <MapPin className="w-3 h-3 mr-1" />
-                          {job.location}
-                        </Badge>
-                        <Badge variant="outline" className="border-gray-300 text-gray-700">
-                          <Clock className="w-3 h-3 mr-1" />
-                          {job.type}
-                        </Badge>
-                        <Badge variant="outline" className="border-gray-300 text-gray-700">
-                          <Briefcase className="w-3 h-3 mr-1" />
-                          {job.experience}
-                        </Badge>
-                        <Badge variant="outline" className="border-gray-300 text-gray-700">
-                          <DollarSign className="w-3 h-3 mr-1" />
-                          {job.salary}
-                        </Badge>
-                      </div>
+                      <CardTitle className={`text-xl ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{job.title}</CardTitle>
+                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{job.department}</p>
                     </div>
-                    <Button 
-                      onClick={() => handleApply(job)}
-                      className="bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600"
-                    >
-                      Apply Now
-                    </Button>
+                    <Badge className="bg-quicklymart-orange-500">{job.type}</Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600 mb-4">{job.description}</p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h4 className="font-semibold mb-2 text-gray-800">Requirements:</h4>
-                      <ul className="text-sm text-gray-600 space-y-1">
-                        {job.requirements.map((req, index) => (
-                          <li key={index} className="flex items-start">
-                            <span className="mr-2 text-quicklymart-orange-500">•</span>
-                            {req}
-                          </li>
-                        ))}
-                      </ul>
+                  <div className="space-y-3 mb-4">
+                    <div className="flex items-center space-x-4 text-sm">
+                      <div className="flex items-center space-x-1">
+                        <MapPin className="w-4 h-4 text-gray-500" />
+                        <span className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>{job.location}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Clock className="w-4 h-4 text-gray-500" />
+                        <span className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>{job.experience}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <DollarSign className="w-4 h-4 text-gray-500" />
+                        <span className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>{job.salary}</span>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-semibold mb-2 text-gray-800">Responsibilities:</h4>
-                      <ul className="text-sm text-gray-600 space-y-1">
-                        {job.responsibilities.map((resp, index) => (
-                          <li key={index} className="flex items-start">
-                            <span className="mr-2 text-quicklymart-orange-500">•</span>
-                            {resp}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{job.description}</p>
                   </div>
+                  <Button 
+                    onClick={() => handleApply(job)}
+                    className="w-full bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600"
+                  >
+                    Apply Now
+                  </Button>
                 </CardContent>
               </Card>
             ))}

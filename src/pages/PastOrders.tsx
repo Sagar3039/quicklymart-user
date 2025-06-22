@@ -166,28 +166,29 @@ const PastOrders = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-gray-600 dark:text-gray-300"
+                className="text-gray-600 hover:text-orange-500"
                 onClick={() => navigate('/')}
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              <h1 className="text-gray-800 dark:text-white font-bold text-lg">Past Orders</h1>
+              <h1 className="text-gray-800 font-bold text-lg">Past Orders</h1>
             </div>
-            <div className="flex items-center space-x-3">
+            
+            <div className="flex items-center space-x-4">
               {/* Dark Mode Toggle */}
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-gray-600 dark:text-gray-300"
+                className="text-gray-600 hover:text-orange-500"
                 onClick={toggleDarkMode}
                 title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
               >
@@ -196,18 +197,18 @@ const PastOrders = () => {
               {/* Connection Status */}
               <div className="flex items-center space-x-2">
                 {isOnline ? (
-                  <Wifi className="w-4 h-4 text-green-400" />
+                  <Wifi className="w-4 h-4 text-orange-500" />
                 ) : (
-                  <WifiOff className="w-4 h-4 text-red-400" />
+                  <WifiOff className="w-4 h-4 text-red-500" />
                 )}
-                <span className={`text-xs ${isOnline ? 'text-green-400' : 'text-red-400'}`}>
+                <span className={`text-xs ${isOnline ? 'text-orange-500' : 'text-red-500'}`}>
                   {isOnline ? 'Online' : 'Offline'}
                 </span>
               </div>
               {orders.length === 0 && (
                 <Button
                   size="sm"
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-orange-500 hover:bg-orange-600 text-white"
                   onClick={createSampleOrder}
                 >
                   Create Sample Order
@@ -221,23 +222,23 @@ const PastOrders = () => {
       {/* Orders Content */}
       <div className="container mx-auto px-4 py-6">
         {isLoading ? (
-          <Card className="bg-white/5 backdrop-blur-md border-gray-700">
+          <Card className="bg-white border border-gray-200">
             <CardContent className="p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-              <p className="text-gray-300">Loading orders...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading orders...</p>
             </CardContent>
           </Card>
         ) : orders.length === 0 ? (
-          <Card className="bg-white/5 backdrop-blur-md border-gray-700">
+          <Card className="bg-white border border-gray-200">
             <CardContent className="p-8 text-center">
               <Package className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-xl font-bold mb-2">No Orders Yet</h3>
-              <p className="text-gray-300 mb-4">Start shopping to see your order history here</p>
+              <h3 className="text-xl font-bold mb-2 text-gray-800">No Orders Yet</h3>
+              <p className="text-gray-600 mb-4">Start shopping to see your order history here</p>
               <div className="space-y-2">
-                <Button onClick={() => navigate('/')} className="w-full">
+                <Button onClick={() => navigate('/')} className="w-full bg-orange-500 hover:bg-orange-600 text-white">
                   Start Shopping
                 </Button>
-                <Button variant="outline" onClick={createSampleOrder} className="w-full">
+                <Button variant="outline" onClick={createSampleOrder} className="w-full border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white">
                   Create Sample Order
                 </Button>
               </div>
@@ -248,7 +249,7 @@ const PastOrders = () => {
             {/* Current Orders Section */}
             {orders.filter(order => order.status !== 'delivered' && order.status !== 'cancelled').length > 0 && (
               <div className="mb-8">
-                <h2 className="text-xl font-bold mb-4 text-green-400 flex items-center">
+                <h2 className="text-xl font-bold mb-4 text-orange-500 flex items-center">
                   <Truck className="w-5 h-5 mr-2" />
                   Current Orders
                 </h2>
@@ -256,19 +257,19 @@ const PastOrders = () => {
                   {orders
                     .filter(order => order.status !== 'delivered' && order.status !== 'cancelled')
                     .map((order) => (
-                      <Card key={`current-${order.id}`} className="bg-green-500/10 backdrop-blur-md border-green-500/20">
+                      <Card key={`current-${order.id}`} className="bg-white border border-orange-200 shadow-sm">
                         <CardHeader>
                           <div className="flex items-center justify-between">
                             <div>
-                              <CardTitle className="text-white">Order #{order.id.slice(-6)}</CardTitle>
-                              <p className="text-gray-300 text-sm">
+                              <CardTitle className="text-gray-800">Order #{order.id.slice(-6)}</CardTitle>
+                              <p className="text-gray-600 text-sm">
                                 {order.createdAt?.toDate ? 
                                   order.createdAt.toDate().toLocaleDateString() : 
                                   order.date
                                 }
                               </p>
                             </div>
-                            <Badge className="bg-green-500 text-white">
+                            <Badge className="bg-orange-500 text-white">
                               <div className="flex items-center space-x-1">
                                 <Truck className="w-4 h-4" />
                                 <span className="capitalize">{order.status}</span>
@@ -276,29 +277,30 @@ const PastOrders = () => {
                             </Badge>
                           </div>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        
+                        <CardContent>
                           {/* Order Items */}
                           <div className="space-y-2">
                             {order.items.map((item, index) => (
-                              <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                 <div className="flex items-center space-x-3">
-                                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
-                                    <Package className="w-5 h-5 text-white" />
+                                  <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                                    <Package className="w-5 h-5 text-orange-600" />
                                   </div>
                                   <div>
-                                    <p className="font-medium">{item.name}</p>
-                                    <p className="text-gray-300 text-sm">Qty: {item.quantity}</p>
+                                    <p className="font-medium text-gray-800">{item.name}</p>
+                                    <p className="text-gray-600 text-sm">Qty: {item.quantity}</p>
                                   </div>
                                 </div>
-                                <p className="font-bold">₹{item.price}</p>
+                                <p className="font-bold text-gray-800">₹{item.price}</p>
                               </div>
                             ))}
                           </div>
 
                           {/* Delivery Info */}
-                          <div className="flex items-center space-x-2 p-3 bg-white/5 rounded-lg">
-                            <MapPin className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm">
+                          <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg mt-3">
+                            <MapPin className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm text-gray-600">
                               {typeof order.deliveryAddress === 'string' 
                                 ? order.deliveryAddress 
                                 : order.deliveryAddress?.address 
@@ -309,11 +311,11 @@ const PastOrders = () => {
                           </div>
 
                           {/* Order Summary */}
-                          <div className="space-y-3 p-3 bg-gradient-to-r from-green-600/20 to-blue-600/20 rounded-lg">
+                          <div className="space-y-3 p-3 bg-orange-50 rounded-lg mt-3">
                             {/* Delivery Time */}
                             <div className="flex items-center space-x-2">
-                              <Truck className="w-4 h-4 text-green-400" />
-                              <span className="text-sm text-gray-300">
+                              <Truck className="w-4 h-4 text-orange-500" />
+                              <span className="text-sm text-gray-600">
                                 Delivery Time: {order.deliveryTime || '20-25 mins'}
                               </span>
                             </div>
@@ -321,32 +323,32 @@ const PastOrders = () => {
                             {/* Payment Method */}
                             {order.paymentMethod && (
                               <div className="flex items-center space-x-2">
-                                <div className="w-4 h-4 text-green-400">💳</div>
-                                <span className="text-sm text-gray-300 capitalize">
+                                <div className="w-4 h-4 text-orange-500">💳</div>
+                                <span className="text-sm text-gray-600 capitalize">
                                   Payment: {order.paymentMethod === 'cod' ? 'Cash on Delivery' : order.paymentMethod.toUpperCase()}
                                 </span>
                               </div>
                             )}
                             
                             {/* Total */}
-                            <div className="flex justify-between items-center pt-2 border-t border-white/20">
-                              <span className="text-lg font-semibold">Total:</span>
-                              <span className="text-2xl font-bold text-green-400">
+                            <div className="flex justify-between items-center pt-2 border-t border-orange-200">
+                              <span className="text-lg font-semibold text-gray-800">Total:</span>
+                              <span className="text-2xl font-bold text-orange-500">
                                 ₹{order.totalPrice || order.total || 0}
                               </span>
                             </div>
                           </div>
 
                           {/* Action Buttons */}
-                          <div className="flex space-x-2">
+                          <div className="flex space-x-2 mt-4">
                             <Button 
-                              className="flex-1 bg-green-600 hover:bg-green-700"
+                              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
                               onClick={() => navigate(`/current-order/${order.id}`)}
                             >
                               <Truck className="w-4 h-4 mr-2" />
                               Track Order
                             </Button>
-                            <Button variant="outline" className="flex-1">
+                            <Button variant="outline" className="flex-1 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white">
                               <Phone className="w-4 h-4 mr-2" />
                               Call Support
                             </Button>
@@ -361,7 +363,7 @@ const PastOrders = () => {
             {/* Past Orders Section */}
             {orders.filter(order => order.status === 'delivered' || order.status === 'cancelled').length > 0 && (
               <div>
-                <h2 className="text-xl font-bold mb-4 text-gray-300 flex items-center">
+                <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center">
                   <Package className="w-5 h-5 mr-2" />
                   Past Orders
                 </h2>
@@ -369,12 +371,12 @@ const PastOrders = () => {
                   {orders
                     .filter(order => order.status === 'delivered' || order.status === 'cancelled')
                     .map((order) => (
-                      <Card key={order.id} className="bg-white/5 backdrop-blur-md border-gray-700">
+                      <Card key={order.id} className="bg-white border border-gray-200 shadow-sm">
                         <CardHeader>
                           <div className="flex items-center justify-between">
                             <div>
-                              <CardTitle className="text-white">Order #{order.id.slice(-6)}</CardTitle>
-                              <p className="text-gray-300 text-sm">
+                              <CardTitle className="text-gray-800">Order #{order.id.slice(-6)}</CardTitle>
+                              <p className="text-gray-600 text-sm">
                                 {order.createdAt?.toDate ? 
                                   order.createdAt.toDate().toLocaleDateString() : 
                                   order.date
@@ -389,29 +391,30 @@ const PastOrders = () => {
                             </Badge>
                           </div>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        
+                        <CardContent>
                           {/* Order Items */}
                           <div className="space-y-2">
                             {order.items.map((item, index) => (
-                              <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                 <div className="flex items-center space-x-3">
-                                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                                    <Package className="w-5 h-5 text-white" />
+                                  <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                                    <Package className="w-5 h-5 text-orange-600" />
                                   </div>
                                   <div>
-                                    <p className="font-medium">{item.name}</p>
-                                    <p className="text-gray-300 text-sm">Qty: {item.quantity}</p>
+                                    <p className="font-medium text-gray-800">{item.name}</p>
+                                    <p className="text-gray-600 text-sm">Qty: {item.quantity}</p>
                                   </div>
                                 </div>
-                                <p className="font-bold">₹{item.price}</p>
+                                <p className="font-bold text-gray-800">₹{item.price}</p>
                               </div>
                             ))}
                           </div>
 
                           {/* Delivery Info */}
-                          <div className="flex items-center space-x-2 p-3 bg-white/5 rounded-lg">
-                            <MapPin className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm">
+                          <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg mt-3">
+                            <MapPin className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm text-gray-600">
                               {typeof order.deliveryAddress === 'string' 
                                 ? order.deliveryAddress 
                                 : order.deliveryAddress?.address 
@@ -422,11 +425,11 @@ const PastOrders = () => {
                           </div>
 
                           {/* Order Summary */}
-                          <div className="space-y-3 p-3 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg">
+                          <div className="space-y-3 p-3 bg-orange-50 rounded-lg mt-3">
                             {/* Delivery Time */}
                             <div className="flex items-center space-x-2">
-                              <Truck className="w-4 h-4 text-blue-400" />
-                              <span className="text-sm text-gray-300">
+                              <Truck className="w-4 h-4 text-orange-500" />
+                              <span className="text-sm text-gray-600">
                                 Delivery Time: {order.deliveryTime || '20-25 mins'}
                               </span>
                             </div>
@@ -434,46 +437,46 @@ const PastOrders = () => {
                             {/* Payment Method */}
                             {order.paymentMethod && (
                               <div className="flex items-center space-x-2">
-                                <div className="w-4 h-4 text-green-400">💳</div>
-                                <span className="text-sm text-gray-300 capitalize">
+                                <div className="w-4 h-4 text-orange-500">💳</div>
+                                <span className="text-sm text-gray-600 capitalize">
                                   Payment: {order.paymentMethod === 'cod' ? 'Cash on Delivery' : order.paymentMethod.toUpperCase()}
                                 </span>
                               </div>
                             )}
                             
                             {/* Price Breakdown */}
-                            <div className="space-y-1 pt-2 border-t border-white/10">
+                            <div className="space-y-2">
                               {/* Subtotal */}
                               <div className="flex justify-between text-sm">
-                                <span className="text-gray-300">Subtotal:</span>
-                                <span>₹{order.totalPrice || order.total || 0}</span>
+                                <span className="text-gray-600">Subtotal:</span>
+                                <span className="text-gray-800">₹{order.totalPrice || order.total || 0}</span>
                               </div>
                               
                               {/* Tip */}
                               {order.tip && order.tip > 0 && (
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-gray-300">Tip:</span>
-                                  <span>₹{order.tip}</span>
+                                  <span className="text-gray-600">Tip:</span>
+                                  <span className="text-gray-800">₹{order.tip}</span>
                                 </div>
                               )}
                               
                               {/* Delivery Fee */}
                               {order.totalPrice && order.totalPrice > 299 ? (
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-gray-300">Delivery Fee:</span>
-                                  <span className="text-green-400">FREE</span>
+                                  <span className="text-gray-600">Delivery Fee:</span>
+                                  <span className="text-orange-500">FREE</span>
                                 </div>
                               ) : order.totalPrice && (
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-gray-300">Delivery Fee:</span>
-                                  <span>₹29</span>
+                                  <span className="text-gray-600">Delivery Fee:</span>
+                                  <span className="text-gray-800">₹29</span>
                                 </div>
                               )}
                               
                               {/* Total */}
-                              <div className="flex justify-between items-center pt-2 border-t border-white/20">
-                                <span className="text-lg font-semibold">Total:</span>
-                                <span className="text-2xl font-bold text-green-400">
+                              <div className="flex justify-between items-center pt-2 border-t border-orange-200">
+                                <span className="text-lg font-semibold text-gray-800">Total:</span>
+                                <span className="text-2xl font-bold text-orange-500">
                                   ₹{order.totalPrice || order.total || 0}
                                 </span>
                               </div>
@@ -481,22 +484,22 @@ const PastOrders = () => {
                           </div>
 
                           {/* Action Buttons */}
-                          <div className="flex space-x-2">
+                          <div className="flex space-x-2 mt-4">
                             {order.status !== 'delivered' && order.status !== 'cancelled' && (
                               <Button 
                                 variant="outline" 
-                                className="flex-1"
+                                className="flex-1 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white"
                                 onClick={() => navigate(`/current-order/${order.id}`)}
                               >
                                 <Truck className="w-4 h-4 mr-2" />
                                 Track Order
                               </Button>
                             )}
-                            <Button variant="outline" className="flex-1">
+                            <Button variant="outline" className="flex-1 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white">
                               <Star className="w-4 h-4 mr-2" />
                               Rate Order
                             </Button>
-                            <Button variant="outline" className="flex-1">
+                            <Button variant="outline" className="flex-1 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white">
                               <Package className="w-4 h-4 mr-2" />
                               Reorder
                             </Button>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Search, Package, Clock, MapPin, Truck, CheckCircle, XCircle, Moon, Sun, Phone, Mail } from 'lucide-react';
+import { ArrowLeft, Search, Package, Clock, MapPin, Truck, CheckCircle, XCircle, Moon, Sun, Phone, Mail, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -134,98 +134,76 @@ const TrackOrder = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-800">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate(-1)}
-                className="text-gray-600 hover:text-quicklymart-orange-500"
+                className="text-gray-600 hover:text-orange-500"
+                onClick={() => navigate('/')}
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              <div>
-                <h1 className="text-xl font-bold text-gray-800">Track Order</h1>
-                <p className="text-sm text-gray-600">Track your order status</p>
-              </div>
+              <h1 className="text-gray-800 font-bold text-lg">Track Order</h1>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleDarkMode}
-              className="text-gray-600 hover:text-quicklymart-orange-500"
-            >
-              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </Button>
           </div>
         </div>
       </header>
 
+      {/* Search Section */}
       <div className="container mx-auto px-4 py-6">
-        {/* Tracking Form */}
-        <Card className="bg-white border border-gray-200 mb-8">
+        <Card className="bg-white border border-gray-200 shadow-sm mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-gray-800">
-              <Search className="w-5 h-5" />
-              <span>Track Your Order</span>
-            </CardTitle>
+            <CardTitle className="text-gray-800">Track Your Order</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label className="text-gray-800 mb-3 block">Tracking Method</Label>
-              <RadioGroup value={trackingMethod} onValueChange={setTrackingMethod}>
-                <div className="flex space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="orderId" id="orderId" />
-                    <Label htmlFor="orderId" className="text-gray-800">Order ID</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="phone" id="phone" />
-                    <Label htmlFor="phone" className="text-gray-800">Phone Number</Label>
-                  </div>
+          <CardContent>
+            <form onSubmit={handleTrackOrder} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="orderId" className="text-gray-700">Order ID</Label>
+                  <Input
+                    id="orderId"
+                    type="text"
+                    placeholder="Enter order ID"
+                    value={trackingInput}
+                    onChange={(e) => setTrackingInput(e.target.value)}
+                    className="mt-1"
+                  />
                 </div>
-              </RadioGroup>
-            </div>
-
-            <div>
-              <Label htmlFor="trackingInput" className="text-gray-800">
-                {trackingMethod === 'orderId' ? 'Order ID' : 'Phone Number'}
-              </Label>
-              <div className="flex space-x-2 mt-2">
-                <Input
-                  id="trackingInput"
-                  value={trackingInput}
-                  onChange={(e) => setTrackingInput(e.target.value)}
-                  placeholder={trackingMethod === 'orderId' ? 'Enter your order ID' : 'Enter your phone number'}
-                  className="flex-1 bg-white border-gray-300 text-gray-800 placeholder-gray-500"
-                />
-                <Button 
-                  onClick={handleTrackOrder}
-                  disabled={isSearching}
-                  className="bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600"
-                >
-                  {isSearching ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Searching...
-                    </>
-                  ) : (
-                    <>
-                      <Search className="w-4 h-4 mr-2" />
-                      Track
-                    </>
-                  )}
-                </Button>
+                <div>
+                  <Label htmlFor="phone" className="text-gray-700">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="Enter phone number"
+                    value={trackingInput}
+                    onChange={(e) => setTrackingInput(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
               </div>
-            </div>
-
-            <div className="text-sm text-gray-600">
-              <p>💡 <strong>Demo:</strong> Enter "123" or "98765" to see sample tracking data</p>
-            </div>
+              <Button 
+                type="submit" 
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                disabled={isSearching}
+              >
+                {isSearching ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-4 h-4 mr-2" />
+                    Track Order
+                  </>
+                )}
+              </Button>
+            </form>
           </CardContent>
         </Card>
 
@@ -233,7 +211,7 @@ const TrackOrder = () => {
         {orderDetails && (
           <div className="space-y-6">
             {/* Order Summary */}
-            <Card className="bg-white border border-gray-200">
+            <Card className="bg-white border border-gray-200 shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between text-gray-800">
                   <span>Order #{orderDetails.id}</span>
@@ -266,32 +244,29 @@ const TrackOrder = () => {
             </Card>
 
             {/* Delivery Timeline */}
-            <Card className="bg-white border border-gray-200">
+            <Card className="bg-white border border-gray-200 shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-gray-800">
-                  <Clock className="w-5 h-5" />
-                  <span>Delivery Timeline</span>
-                </CardTitle>
+                <CardTitle className="text-gray-800">Delivery Timeline</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {orderDetails.timeline.map((step, index) => (
-                    <div key={step.step} className="flex items-start space-x-4">
-                      <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                        step.completed ? 'bg-quicklymart-orange-500' : 'bg-gray-300'
+                  {orderDetails.timeline.map((item, index) => (
+                    <div key={index} className="flex items-start space-x-4">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm ${
+                        item.completed ? 'bg-orange-500' : 'bg-gray-300'
                       }`}>
-                        <span className="text-lg">{step.icon}</span>
+                        {item.completed ? '✓' : index + 1}
                       </div>
                       <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-semibold text-gray-800">{step.title}</h4>
-                          {step.time && (
-                            <span className="text-sm text-gray-600">
-                              {step.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600">{step.description}</p>
+                        <h4 className={`font-medium ${item.completed ? 'text-gray-800' : 'text-gray-500'}`}>
+                          {item.title}
+                        </h4>
+                        <p className={`text-sm ${item.completed ? 'text-gray-600' : 'text-gray-400'}`}>
+                          {item.description}
+                        </p>
+                        {item.time && (
+                          <p className="text-xs text-gray-400 mt-1">{item.time}</p>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -299,42 +274,8 @@ const TrackOrder = () => {
               </CardContent>
             </Card>
 
-            {/* Delivery Person Info */}
-            {orderDetails.status === 'out_for_delivery' && (
-              <Card className="bg-white border border-gray-200">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2 text-gray-800">
-                    <Truck className="w-5 h-5" />
-                    <span>Delivery Partner</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-800">Name:</span>
-                      <span className="font-semibold text-gray-800">{orderDetails.deliveryPerson.name}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-800">Vehicle:</span>
-                      <span className="font-semibold text-gray-800">{orderDetails.deliveryPerson.vehicle}</span>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button className="flex-1 bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600">
-                        <Phone className="w-4 h-4 mr-2" />
-                        Call Delivery Partner
-                      </Button>
-                      <Button variant="outline" className="flex-1 border-quicklymart-orange-500 text-quicklymart-orange-500 hover:bg-quicklymart-orange-500 hover:text-white">
-                        <MapPin className="w-4 h-4 mr-2" />
-                        Track on Map
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
             {/* Order Items */}
-            <Card className="bg-white border border-gray-200">
+            <Card className="bg-white border border-gray-200 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-gray-800">Order Items</CardTitle>
               </CardHeader>
@@ -343,8 +284,8 @@ const TrackOrder = () => {
                   {orderDetails.items.map((item, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-quicklymart-orange-100 rounded-lg flex items-center justify-center">
-                          <Package className="w-5 h-5 text-quicklymart-orange-600" />
+                        <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                          <Package className="w-5 h-5 text-orange-600" />
                         </div>
                         <div>
                           <p className="font-medium text-gray-800">{item.name}</p>
@@ -359,19 +300,19 @@ const TrackOrder = () => {
             </Card>
 
             {/* Delivery Address */}
-            <Card className="bg-white border border-gray-200">
+            <Card className="bg-white border border-gray-200 shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-gray-800">
-                  <MapPin className="w-5 h-5" />
-                  <span>Delivery Address</span>
-                </CardTitle>
+                <CardTitle className="text-gray-800">Delivery Address</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <p className="font-semibold text-gray-800">{orderDetails.deliveryAddress.name}</p>
-                  <p className="text-gray-600">
-                    {orderDetails.deliveryAddress.address}, {orderDetails.deliveryAddress.city}, {orderDetails.deliveryAddress.state} - {orderDetails.deliveryAddress.pincode}
-                  </p>
+                <div className="flex items-start space-x-3">
+                  <MapPin className="w-5 h-5 text-orange-500 mt-1" />
+                  <div>
+                    <p className="text-gray-800">{orderDetails.deliveryAddress.name}</p>
+                    <p className="text-gray-600">
+                      {orderDetails.deliveryAddress.address}, {orderDetails.deliveryAddress.city}, {orderDetails.deliveryAddress.state} - {orderDetails.deliveryAddress.pincode}
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -380,12 +321,12 @@ const TrackOrder = () => {
             <div className="flex space-x-3">
               <Button 
                 onClick={() => navigate(`/current-order/${orderDetails.id}`)} 
-                className="flex-1 bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600"
+                className="flex-1 bg-orange-500 hover:bg-orange-600"
               >
                 <Truck className="w-4 h-4 mr-2" />
                 View Full Details
               </Button>
-              <Button variant="outline" className="flex-1 border-quicklymart-orange-500 text-quicklymart-orange-500 hover:bg-quicklymart-orange-500 hover:text-white">
+              <Button variant="outline" className="flex-1 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white">
                 <Mail className="w-4 h-4 mr-2" />
                 Contact Support
               </Button>
@@ -395,7 +336,7 @@ const TrackOrder = () => {
 
         {/* No Order Found */}
         {!orderDetails && !isSearching && (
-          <Card className="bg-white border border-gray-200">
+          <Card className="bg-white border border-gray-200 shadow-sm">
             <CardContent className="p-8 text-center">
               <Package className="w-16 h-16 mx-auto text-gray-400 mb-4" />
               <h3 className="text-lg font-semibold mb-2 text-gray-800">Track Your Order</h3>
@@ -403,10 +344,10 @@ const TrackOrder = () => {
                 Enter your order ID or phone number to track your order status
               </p>
               <div className="space-y-2">
-                <Button onClick={() => navigate('/past-orders')} className="w-full bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600">
+                <Button onClick={() => navigate('/past-orders')} className="w-full bg-orange-500 hover:bg-orange-600 text-white">
                   View Order History
                 </Button>
-                <Button variant="outline" onClick={() => navigate('/contact-us')} className="w-full border-quicklymart-orange-500 text-quicklymart-orange-500 hover:bg-quicklymart-orange-500 hover:text-white">
+                <Button variant="outline" onClick={() => navigate('/contact-us')} className="w-full border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white">
                   Need Help?
                 </Button>
               </div>

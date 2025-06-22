@@ -430,79 +430,82 @@ const QuicklyMart = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-white">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'}`}>
       <Toaster position="top-right" />
       {/* --- Desktop Header --- */}
-      <header className="hidden md:block sticky top-0 z-50 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
+      <header className={`hidden md:block sticky top-0 z-50 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-20">
-            <div className="flex items-center space-x-2" onClick={() => navigate('/')} role="button">
-              <img src="/favicon.ico" alt="QuicklyMart Logo" className="w-8 h-8" />
-              <h1 className="text-2xl font-bold text-quicklymart-orange-500">QuicklyMart</h1>
-            </div>
-            
+          <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <Button variant="ghost">For Business</Button>
-              <Button variant="ghost">Help</Button>
-              {isLoggedIn ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="flex items-center space-x-2"
-                    >
-                      <UserIcon className="w-5 h-5" />
-                      <span>{user?.displayName || user?.email?.split('@')[0] || 'My Account'}</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end">
-                    <DropdownMenuLabel>
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">
-                          {user?.displayName || user?.email || 'User'}
-                        </p>
-                        <p className="text-xs leading-none text-muted-foreground">
-                          {user?.email}
-                        </p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate('/profile')}>
-                      <UserIcon className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/past-orders')}>
-                      <Package className="mr-2 h-4 w-4" />
-                      <span>Past Orders</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/settings')}>
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Log out</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <Button className="bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600 text-white font-bold px-6 py-2 rounded-full" onClick={() => setIsAuthModalOpen(true)}>Sign In</Button>
-              )}
-               <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleDarkMode}
-              >
-                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </Button>
+              <div className="flex items-center space-x-2">
+                <img src="/favicon.ico" alt="QuicklyMart Logo" className="w-8 h-8" />
+                <h1 className="text-2xl font-bold text-orange-500">QuicklyMart</h1>
+              </div>
+              
+              <div className="flex items-center space-x-4">
+                <Button variant="ghost" className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}>For Business</Button>
+                <Button variant="ghost" className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}>Help</Button>
+                {isLoggedIn ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={`flex items-center space-x-2 ${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                      >
+                        <UserIcon className="w-5 h-5" />
+                        <span>{user?.displayName || user?.email?.split('@')[0] || 'My Account'}</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className={`w-56 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`} align="end">
+                      <DropdownMenuLabel>
+                        <div className="flex flex-col space-y-1">
+                          <p className={`text-sm font-medium leading-none ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                            {user?.displayName || user?.email || 'User'}
+                          </p>
+                          <p className={`text-xs leading-none ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            {user?.email}
+                          </p>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator className={isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} />
+                      <DropdownMenuItem onClick={() => navigate('/profile')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
+                        <UserIcon className="mr-2 h-4 w-4" />
+                        <span>Profile</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/past-orders')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
+                        <Package className="mr-2 h-4 w-4" />
+                        <span>Past Orders</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/settings')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Settings</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className={isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} />
+                      <DropdownMenuItem onClick={handleSignOut} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Log out</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Button className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2 rounded-full" onClick={() => setIsAuthModalOpen(true)}>Sign In</Button>
+                )}
+                 <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleDarkMode}
+                  className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}
+                >
+                  {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </header>
       
       {/* --- Mobile Header --- */}
-      <header className="md:hidden sticky top-0 z-50   dark:bg-gray-900/95 backdrop-blur-md">
+      <header className={`md:hidden sticky top-0 z-50 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
@@ -513,8 +516,7 @@ const QuicklyMart = () => {
               >
                 <MapPin className="w-7 h-7 flex-shrink-0 text-orange-500 text-bold" />
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-black font-bold text-lg truncate">{getDisplayLocation()}</h3>
-                  {/* <p className="text-gray-300 text-xs truncate">{getDisplayLocation()}</p> */}
+                  <h3 className={`font-bold text-lg truncate ${isDarkMode ? 'text-white' : 'text-black'}`}>{getDisplayLocation()}</h3>
                 </div>
               </Button>
             </div>
@@ -522,7 +524,7 @@ const QuicklyMart = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white bg-gray-800/50 rounded-full w-10 h-10"
+                className={`${isDarkMode ? 'text-gray-300 hover:text-orange-400 bg-gray-700' : 'text-gray-600 hover:text-orange-500 bg-gray-100'} rounded-full w-10 h-10`}
                 onClick={() => setIsCartOpen(true)}
               >
                <ShoppingCart className="w-5 h-5" />
@@ -534,37 +536,37 @@ const QuicklyMart = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-white bg-gray-800/50 rounded-full w-10 h-10"
+                      className={`${isDarkMode ? 'text-gray-300 hover:text-orange-400 bg-gray-700' : 'text-gray-600 hover:text-orange-500 bg-gray-100'} rounded-full w-10 h-10`}
                     >
                       <UserIcon className="w-5 h-5" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end">
+                  <DropdownMenuContent className={`w-56 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`} align="end">
                     <DropdownMenuLabel>
                       <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">
+                        <p className={`text-sm font-medium leading-none ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                           {user?.displayName || user?.email || 'User'}
                         </p>
-                        <p className="text-xs leading-none text-muted-foreground">
+                        <p className={`text-xs leading-none ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                           {user?.email}
                         </p>
                       </div>
                     </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate('/profile')}>
+                    <DropdownMenuSeparator className={isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} />
+                    <DropdownMenuItem onClick={() => navigate('/profile')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
                       <UserIcon className="mr-2 h-4 w-4" />
                       <span>Profile</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/past-orders')}>
+                    <DropdownMenuItem onClick={() => navigate('/past-orders')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
                       <Package className="mr-2 h-4 w-4" />
                       <span>Past Orders</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/settings')}>
+                    <DropdownMenuItem onClick={() => navigate('/settings')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Settings</span>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut}>
+                    <DropdownMenuSeparator className={isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} />
+                    <DropdownMenuItem onClick={handleSignOut} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Log out</span>
                     </DropdownMenuItem>
@@ -574,7 +576,7 @@ const QuicklyMart = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-white bg-gray-800/50 rounded-full w-10 h-10"
+                  className={`${isDarkMode ? 'text-gray-300 hover:text-orange-400 bg-gray-700' : 'text-gray-600 hover:text-orange-500 bg-gray-100'} rounded-full w-10 h-10`}
                   onClick={() => setIsAuthModalOpen(true)}
                 >
                   <UserIcon className="w-5 h-5" />
@@ -587,17 +589,17 @@ const QuicklyMart = () => {
 
       <main className="pb-20 md:pb-0">
         {/* --- Desktop Hero Section --- */}
-        <div className="hidden md:block bg-gray-100 dark:bg-gray-800 py-16">
+        <div className={`hidden md:block py-16 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
             <div className="container mx-auto text-center">
-                <h2 className="text-4xl font-bold mb-4 text-quicklymart-orange-500">Your daily essentials, delivered in minutes.</h2>
+                <h2 className="text-4xl font-bold mb-4 text-orange-500">Your daily essentials, delivered in minutes.</h2>
                 {selectedAddress && (
                   <div className="mb-4">
-                    <Badge className="bg-quicklymart-orange-100 text-quicklymart-orange-700 px-4 py-2 text-sm">
+                    <Badge className="bg-orange-100 text-orange-700 px-4 py-2 text-sm">
                       🎯 Delivering to: {selectedAddress.city}, {selectedAddress.state}
                     </Badge>
                   </div>
                 )}
-                <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">Order food, groceries, and more from the best places near you.</p>
+                <p className={`text-lg mb-8 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Order food, groceries, and more from the best places near you.</p>
                  <div className="flex gap-3 max-w-2xl mx-auto">
                     <div className="flex-1 relative">
                         <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -606,10 +608,10 @@ const QuicklyMart = () => {
                         value={getDisplayLocation()}
                         readOnly
                         onClick={() => navigate('/address')}
-                        className="pl-12 pr-4 h-14 text-lg bg-white dark:bg-gray-700"
+                        className={`pl-12 pr-4 h-14 text-lg ${isDarkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'}`}
                         />
                     </div>
-                    <Button size="lg" className="h-14 bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600 text-white font-bold" onClick={handleUniversalSearchOpen}>
+                    <Button size="lg" className="h-14 bg-orange-500 hover:bg-orange-600 text-white font-bold" onClick={handleUniversalSearchOpen}>
                         <Search className="w-5 h-5 mr-2" />
                         Search
                     </Button>
@@ -628,7 +630,7 @@ const QuicklyMart = () => {
                   placeholder="Search for 'Gift Hamp...'"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 pr-12 h-14 bg-white/10 backdrop-blur-md rounded-xl text-lg text-white placeholder-gray-400"
+                  className={`pl-12 pr-12 h-14 rounded-xl text-lg ${isDarkMode ? 'bg-gray-700 text-white border-gray-600 placeholder-gray-400' : 'bg-white/10 backdrop-blur-md text-white placeholder-gray-400'}`}
                   onFocus={handleUniversalSearchOpen}
             />
             <Button 
@@ -670,13 +672,13 @@ const QuicklyMart = () => {
         <div className="hidden md:block container mx-auto py-12">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Food Delivery Card */}
-                <Card className="overflow-hidden cursor-pointer group" onClick={() => handleFoodClick('all')}>
+                <Card className={`overflow-hidden cursor-pointer group ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`} onClick={() => handleFoodClick('all')}>
                     <CardHeader className="p-0">
                         <img src="https://plus.unsplash.com/premium_photo-1673108852141-e8c3c22a4a22?w=400" alt="Food Delivery" className="w-full h-56 object-cover" />
                     </CardHeader>
                     <CardContent className="p-6">
-                        <h3 className="text-2xl font-bold mb-2">Food Delivery</h3>
-                        <p className="text-gray-600 dark:text-gray-300 mb-4">From the best local restaurants</p>
+                        <h3 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Food Delivery</h3>
+                        <p className={`mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>From the best local restaurants</p>
                         <Button className="bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600 text-white font-bold px-6 py-2 rounded-full">
                             Order Now
                         </Button>
@@ -684,13 +686,13 @@ const QuicklyMart = () => {
                 </Card>
 
                 {/* Instamart / Daily Essentials Card */}
-                 <Card className="overflow-hidden cursor-pointer group" onClick={handleDailyEssentialClick}>
+                 <Card className={`overflow-hidden cursor-pointer group ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`} onClick={handleDailyEssentialClick}>
                     <CardHeader className="p-0">
                         <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=500" alt="Groceries" className="w-full h-56 object-cover" />
                     </CardHeader>
                     <CardContent className="p-6">
-                        <h3 className="text-2xl font-bold mb-2">Instamart</h3>
-                        <p className="text-gray-600 dark:text-gray-300 mb-4">Instant Grocery Delivery</p>
+                        <h3 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Instamart</h3>
+                        <p className={`mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Instant Grocery Delivery</p>
                          <Button className="bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600 text-white font-bold px-6 py-2 rounded-full">
                             Shop Now
                         </Button>
@@ -698,13 +700,13 @@ const QuicklyMart = () => {
                 </Card>
 
                 {/* Dineout / Drinks Card */}
-                 <Card className="overflow-hidden cursor-pointer group" onClick={handleWineStoreClick}>
+                 <Card className={`overflow-hidden cursor-pointer group ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`} onClick={handleWineStoreClick}>
                     <CardHeader className="p-0">
                         <img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=500" alt="Dineout" className="w-full h-56 object-cover" />
                     </CardHeader>
                     <CardContent className="p-6">
-                        <h3 className="text-2xl font-bold mb-2">Dineout & Drinks</h3>
-                        <p className="text-gray-600 dark:text-gray-300 mb-4">Eat out or get drinks delivered</p>
+                        <h3 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Dineout & Drinks</h3>
+                        <p className={`mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Eat out or get drinks delivered</p>
                         <Button className="bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600 text-white font-bold px-6 py-2 rounded-full">
                             Explore Now
                         </Button>
@@ -715,43 +717,43 @@ const QuicklyMart = () => {
 
         {/* --- Desktop Food Categories Carousel --- */}
         <div className="hidden md:block container mx-auto py-12">
-            <h2 className="text-3xl font-bold mb-6">What's on your mind?</h2>
+            <h2 className={`text-3xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>What's on your mind?</h2>
             <Carousel opts={{ align: "start", loop: true }}>
                 <CarouselContent>
                     {foodPageCategories.map((category, index) => (
                         <CarouselItem key={index} className="basis-auto">
                             <div className="text-center cursor-pointer" onClick={() => handleFoodClick(category.name)}>
                                 <img src={category.image} alt={category.name} className="w-36 h-36 object-cover rounded-full mx-auto" />
-                                <p className="mt-2 font-semibold">{category.name}</p>
+                                <p className={`mt-2 font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{category.name}</p>
                             </div>
                         </CarouselItem>
                     ))}
                 </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
+                <CarouselPrevious className={isDarkMode ? 'text-white hover:text-orange-400' : 'text-gray-900 hover:text-orange-500'} />
+                <CarouselNext className={isDarkMode ? 'text-white hover:text-orange-400' : 'text-gray-900 hover:text-orange-500'} />
             </Carousel>
         </div>
 
         {/* --- Desktop Grocery Categories Carousel --- */}
         <div className="hidden md:block container mx-auto py-12">
-            <h2 className="text-3xl font-bold mb-6">Shop groceries on Instamart</h2>
+            <h2 className={`text-3xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Shop groceries on Instamart</h2>
              <Carousel opts={{ align: "start", loop: true }}>
                 <CarouselContent>
                     {groceryCategories.map((category, index) => (
                         <CarouselItem key={index} className="basis-auto">
-                            <Card className="overflow-hidden cursor-pointer group" onClick={handleDailyEssentialClick}>
+                            <Card className={`overflow-hidden cursor-pointer group ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`} onClick={handleDailyEssentialClick}>
                                 <CardContent className="p-0">
                                     <img src={category.image} alt={category.name} className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" />
                                     <div className="p-4">
-                                        <p className="font-semibold text-center">{category.name}</p>
+                                        <p className={`font-semibold text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{category.name}</p>
                                     </div>
                                 </CardContent>
                             </Card>
                         </CarouselItem>
                     ))}
                 </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
+                <CarouselPrevious className={isDarkMode ? 'text-white hover:text-orange-400' : 'text-gray-900 hover:text-orange-500'} />
+                <CarouselNext className={isDarkMode ? 'text-white hover:text-orange-400' : 'text-gray-900 hover:text-orange-500'} />
             </Carousel>
       </div>
 
@@ -795,12 +797,12 @@ const QuicklyMart = () => {
       </div>
 
             <div className="container mx-auto px-4 mb-20">
-        <h2 className="text-white text-2xl font-bold mb-4">Fast delivery</h2>
+        <h2 className={`text-2xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Fast delivery</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {filteredProducts.map((product) => (
             <Card 
               key={product.id} 
-                    className="relative overflow-hidden bg-white/5 backdrop-blur-md rounded-2xl cursor-pointer hover:shadow-lg transition-shadow text-white border-gray-700"
+                    className={`relative overflow-hidden rounded-2xl cursor-pointer hover:shadow-lg transition-shadow border ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white/5 backdrop-blur-md text-white border-gray-700'}`}
               onClick={() => handleProductClick(product)}
             >
               <div className="relative">
@@ -855,24 +857,24 @@ const QuicklyMart = () => {
       </main>
 
       {/* Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-900/80 backdrop-blur-md border-t border-gray-700 z-50">
+      <div className={`md:hidden fixed bottom-0 left-0 right-0 backdrop-blur-md border-t z-50 ${isDarkMode ? 'bg-gray-900/80 border-gray-700' : 'bg-white/80 border-gray-200'}`}>
         <div className={`grid ${isLoggedIn ? 'grid-cols-4' : 'grid-cols-3'} h-16`}>
           <button 
-            className={`flex flex-col items-center justify-center space-y-1 ${activeBottomNav === 'food' ? 'text-quicklymart-orange-500' : 'text-gray-400 hover:text-white'}`}
+            className={`flex flex-col items-center justify-center space-y-1 ${activeBottomNav === 'food' ? 'text-quicklymart-orange-500' : isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
             onClick={() => handleFoodClick('all')}
           >
             <span className="text-2xl">🥪</span>
             <span className="text-xs font-medium">Food</span>
           </button>
           <button 
-            className={`flex flex-col items-center justify-center space-y-1 ${activeBottomNav === 'essentials' ? 'text-quicklymart-orange-500' : 'text-gray-400 hover:text-white'}`}
+            className={`flex flex-col items-center justify-center space-y-1 ${activeBottomNav === 'essentials' ? 'text-quicklymart-orange-500' : isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
             onClick={handleDailyEssentialClick}
           >
             <span className="text-2xl">🛒</span>
             <span className="text-xs font-medium">Daily Essential</span>
           </button>
           <button 
-            className={`flex flex-col items-center justify-center space-y-1 ${activeBottomNav === 'wine' ? 'text-quicklymart-orange-500' : 'text-gray-400 hover:text-white'}`}
+            className={`flex flex-col items-center justify-center space-y-1 ${activeBottomNav === 'wine' ? 'text-quicklymart-orange-500' : isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
             onClick={handleWineStoreClick}
           >
             <span className="text-2xl">🍷</span>
@@ -880,7 +882,7 @@ const QuicklyMart = () => {
           </button>
           {isLoggedIn && (
             <button 
-              className={`flex flex-col items-center justify-center space-y-1 ${activeBottomNav === 'reorder' ? 'text-quicklymart-orange-500' : 'text-gray-400 hover:text-white'}`}
+              className={`flex flex-col items-center justify-center space-y-1 ${activeBottomNav === 'reorder' ? 'text-quicklymart-orange-500' : isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
               onClick={() => navigate('/past-orders')}
             >
               <History className="w-6 h-6" />
@@ -935,7 +937,7 @@ const QuicklyMart = () => {
       />
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white mt-20">
+      <footer className={`${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'} mt-20`}>
         <div className="container mx-auto px-4 py-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Company Info */}
@@ -944,7 +946,7 @@ const QuicklyMart = () => {
                 <img src="/favicon.ico" alt="QuicklyMart Logo" className="w-8 h-8" />
                 <h3 className="text-2xl font-bold text-quicklymart-orange-500">QuicklyMart</h3>
               </div>
-              <p className="text-gray-300 text-sm">
+              <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                 Your trusted partner for quick food delivery, grocery shopping, and daily essentials.
               </p>
             </div>
@@ -953,9 +955,9 @@ const QuicklyMart = () => {
             <div className="space-y-4">
               <h4 className="text-lg font-semibold text-quicklymart-orange-500">Quick Links</h4>
               <ul className="space-y-2">
-                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={() => handleFoodClick('all')}>Food Delivery</Button></li>
-                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={handleDailyEssentialClick}>Grocery Delivery</Button></li>
-                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={handleWineStoreClick}>Wine & Drinks</Button></li>
+                <li><Button variant="ghost" className={`${isDarkMode ? 'text-gray-300 hover:text-quicklymart-orange-500' : 'text-gray-600 hover:text-quicklymart-orange-500'} p-0 h-auto justify-start`} onClick={() => handleFoodClick('all')}>Food Delivery</Button></li>
+                <li><Button variant="ghost" className={`${isDarkMode ? 'text-gray-300 hover:text-quicklymart-orange-500' : 'text-gray-600 hover:text-quicklymart-orange-500'} p-0 h-auto justify-start`} onClick={handleDailyEssentialClick}>Grocery Delivery</Button></li>
+                <li><Button variant="ghost" className={`${isDarkMode ? 'text-gray-300 hover:text-quicklymart-orange-500' : 'text-gray-600 hover:text-quicklymart-orange-500'} p-0 h-auto justify-start`} onClick={handleWineStoreClick}>Wine & Drinks</Button></li>
               </ul>
             </div>
 
@@ -963,9 +965,9 @@ const QuicklyMart = () => {
             <div className="space-y-4">
               <h4 className="text-lg font-semibold text-quicklymart-orange-500">Support</h4>
               <ul className="space-y-2">
-                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={() => navigate('/help-center')}>Help Center</Button></li>
-                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={() => navigate('/contact-us')}>Contact Us</Button></li>
-                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={() => navigate('/track-order')}>Track Order</Button></li>
+                <li><Button variant="ghost" className={`${isDarkMode ? 'text-gray-300 hover:text-quicklymart-orange-500' : 'text-gray-600 hover:text-quicklymart-orange-500'} p-0 h-auto justify-start`} onClick={() => navigate('/help-center')}>Help Center</Button></li>
+                <li><Button variant="ghost" className={`${isDarkMode ? 'text-gray-300 hover:text-quicklymart-orange-500' : 'text-gray-600 hover:text-quicklymart-orange-500'} p-0 h-auto justify-start`} onClick={() => navigate('/contact-us')}>Contact Us</Button></li>
+                <li><Button variant="ghost" className={`${isDarkMode ? 'text-gray-300 hover:text-quicklymart-orange-500' : 'text-gray-600 hover:text-quicklymart-orange-500'} p-0 h-auto justify-start`} onClick={() => navigate('/track-order')}>Track Order</Button></li>
               </ul>
             </div>
 
@@ -973,28 +975,28 @@ const QuicklyMart = () => {
             <div className="space-y-4">
               <h4 className="text-lg font-semibold text-quicklymart-orange-500">Company</h4>
               <ul className="space-y-2">
-                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={() => navigate('/about-us')}>About Us</Button></li>
-                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={() => navigate('/careers')}>Careers</Button></li>
-                <li><Button variant="ghost" className="text-gray-300 hover:text-quicklymart-orange-500 p-0 h-auto justify-start" onClick={() => navigate('/privacy-policy')}>Privacy Policy</Button></li>
+                <li><Button variant="ghost" className={`${isDarkMode ? 'text-gray-300 hover:text-quicklymart-orange-500' : 'text-gray-600 hover:text-quicklymart-orange-500'} p-0 h-auto justify-start`} onClick={() => navigate('/about-us')}>About Us</Button></li>
+                <li><Button variant="ghost" className={`${isDarkMode ? 'text-gray-300 hover:text-quicklymart-orange-500' : 'text-gray-600 hover:text-quicklymart-orange-500'} p-0 h-auto justify-start`} onClick={() => navigate('/careers')}>Careers</Button></li>
+                <li><Button variant="ghost" className={`${isDarkMode ? 'text-gray-300 hover:text-quicklymart-orange-500' : 'text-gray-600 hover:text-quicklymart-orange-500'} p-0 h-auto justify-start`} onClick={() => navigate('/privacy-policy')}>Privacy Policy</Button></li>
               </ul>
             </div>
           </div>
         </div>
 
         {/* Bottom Footer */}
-        <div className="border-t border-gray-800">
+        <div className={`border-t ${isDarkMode ? 'border-gray-800' : 'border-gray-300'}`}>
           <div className="container mx-auto px-4 py-6">
             <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
               <div className="flex items-center space-x-4">
-                <span className="text-gray-400 text-sm">© 2024 QuicklyMart. All rights reserved.</span>
-                <span className="text-gray-400 text-sm">•</span>
-                <span className="text-gray-400 text-sm">Made with ❤️ in India</span>
+                <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>© 2024 QuicklyMart. All rights reserved.</span>
+                <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>•</span>
+                <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Made with ❤️ in India</span>
               </div>
               <div className="flex items-center space-x-6">
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-quicklymart-orange-500" onClick={() => toast.info('Download our mobile app!')}>
+                <Button variant="ghost" size="sm" className={`${isDarkMode ? 'text-gray-400 hover:text-quicklymart-orange-500' : 'text-gray-600 hover:text-quicklymart-orange-500'}`} onClick={() => toast.info('Download our mobile app!')}>
                   Download App
                 </Button>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-quicklymart-orange-500" onClick={() => toast.info('Newsletter subscription coming soon!')}>
+                <Button variant="ghost" size="sm" className={`${isDarkMode ? 'text-gray-400 hover:text-quicklymart-orange-500' : 'text-gray-600 hover:text-quicklymart-orange-500'}`} onClick={() => toast.info('Newsletter subscription coming soon!')}>
                   Newsletter
                 </Button>
               </div>

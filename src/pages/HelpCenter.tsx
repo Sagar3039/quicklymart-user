@@ -142,9 +142,9 @@ const HelpCenter = () => {
   })).filter(category => category.questions.length > 0);
 
   return (
-    <div className="min-h-screen bg-white text-gray-800">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'}`}>
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
+      <header className={`sticky top-0 z-50 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -152,20 +152,20 @@ const HelpCenter = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate(-1)}
-                className="text-gray-600 hover:text-quicklymart-orange-500"
+                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-xl font-bold text-gray-800">Help Center</h1>
-                <p className="text-sm text-gray-600">Get help and support</p>
+                <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Help Center</h1>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Get help and support</p>
               </div>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleDarkMode}
-              className="text-gray-600 hover:text-quicklymart-orange-500"
+              className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
             >
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
@@ -177,26 +177,26 @@ const HelpCenter = () => {
         {/* Search Section */}
         <div className="mb-8">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`} />
             <Input
               placeholder="Search for help topics..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-white border-gray-300 text-gray-800 placeholder-gray-500"
+              className={`pl-10 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'}`}
             />
           </div>
         </div>
 
         {/* Popular Topics */}
         <div className="mb-8">
-          <h2 className="text-xl font-bold mb-4 text-gray-800">Popular Topics</h2>
+          <h2 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Popular Topics</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {popularTopics.map((topic, index) => (
-              <Card key={index} className="bg-white border border-gray-200 hover:border-quicklymart-orange-500 transition-colors cursor-pointer">
+              <Card key={index} className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} hover:border-quicklymart-orange-500 transition-colors cursor-pointer`}>
                 <CardContent className="p-4 text-center">
                   <div className="text-3xl mb-2">{topic.icon}</div>
-                  <h3 className="font-semibold mb-1 text-gray-800">{topic.title}</h3>
-                  <p className="text-sm text-gray-600">{topic.description}</p>
+                  <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{topic.title}</h3>
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{topic.description}</p>
                 </CardContent>
               </Card>
             ))}

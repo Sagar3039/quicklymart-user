@@ -256,21 +256,21 @@ const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-white">
+    <div className="min-h-screen bg-white text-gray-800">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-indigo-900/95 dark:bg-gray-900/95 backdrop-blur-md">
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white"
+                className="text-gray-600 hover:text-orange-500"
                 onClick={() => navigate('/')}
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              <h1 className="text-white font-bold text-lg">Settings</h1>
+              <h1 className="text-gray-800 font-bold text-lg">Settings</h1>
             </div>
           </div>
         </div>
@@ -279,29 +279,29 @@ const Settings = () => {
       {/* Settings Content */}
       <div className="container mx-auto px-4 py-6 space-y-6">
         {isLoading ? (
-          <Card className="bg-white/5 backdrop-blur-md border-gray-700">
+          <Card className="bg-white border border-gray-200 shadow-sm">
             <CardContent className="p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-              <p className="text-gray-300">Loading settings...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading settings...</p>
             </CardContent>
           </Card>
         ) : (
           <>
             {/* Notifications */}
-            <Card className="bg-white/5 backdrop-blur-md border-gray-700">
+            <Card className="bg-white border border-gray-200 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-white flex items-center space-x-2">
-                  <Bell className="w-5 h-5" />
+                <CardTitle className="text-gray-800 flex items-center space-x-2">
+                  <Bell className="w-5 h-5 text-orange-500" />
                   <span>Notifications</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <Bell className="w-5 h-5 text-gray-400" />
+                    <Bell className="w-5 h-5 text-gray-500" />
                     <div>
-                      <Label className="text-white">Push Notifications</Label>
-                      <p className="text-gray-300 text-sm">Receive notifications on your device</p>
+                      <Label className="text-gray-800">Push Notifications</Label>
+                      <p className="text-gray-600 text-sm">Receive notifications on your device</p>
                     </div>
                   </div>
                   <Switch
@@ -311,10 +311,10 @@ const Settings = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <Mail className="w-5 h-5 text-gray-400" />
+                    <Mail className="w-5 h-5 text-gray-500" />
                     <div>
-                      <Label className="text-white">Email Notifications</Label>
-                      <p className="text-gray-300 text-sm">Receive updates via email</p>
+                      <Label className="text-gray-800">Email Notifications</Label>
+                      <p className="text-gray-600 text-sm">Receive updates via email</p>
                     </div>
                   </div>
                   <Switch
@@ -326,20 +326,20 @@ const Settings = () => {
             </Card>
 
             {/* Appearance */}
-            <Card className="bg-white/5 backdrop-blur-md border-gray-700">
+            <Card className="bg-white border border-gray-200 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-white flex items-center space-x-2">
-                  <Moon className="w-5 h-5" />
+                <CardTitle className="text-gray-800 flex items-center space-x-2">
+                  <Moon className="w-5 h-5 text-orange-500" />
                   <span>Appearance</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    {isDarkMode ? <Moon className="w-5 h-5 text-gray-400" /> : <Sun className="w-5 h-5 text-gray-400" />}
+                    {isDarkMode ? <Moon className="w-5 h-5 text-gray-500" /> : <Sun className="w-5 h-5 text-gray-500" />}
                     <div>
-                      <Label className="text-white">Dark Mode</Label>
-                      <p className="text-gray-300 text-sm">Use dark theme</p>
+                      <Label className="text-gray-800">Dark Mode</Label>
+                      <p className="text-gray-600 text-sm">Use dark theme</p>
                     </div>
                   </div>
                   <Switch
@@ -349,14 +349,14 @@ const Settings = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <Globe className="w-5 h-5 text-gray-400" />
+                    <Globe className="w-5 h-5 text-gray-500" />
                     <div>
-                      <Label className="text-white">Language</Label>
-                      <p className="text-gray-300 text-sm">Choose your preferred language</p>
+                      <Label className="text-gray-800">Language</Label>
+                      <p className="text-gray-600 text-sm">Choose your preferred language</p>
                     </div>
                   </div>
                   <Select value={settings.language} onValueChange={(value) => handleSettingChange('language', value)}>
-                    <SelectTrigger className="w-32 bg-white/10 border-gray-600">
+                    <SelectTrigger className="w-32 bg-white border-gray-300">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -370,20 +370,20 @@ const Settings = () => {
             </Card>
 
             {/* Sound & Vibration */}
-            <Card className="bg-white/5 backdrop-blur-md border-gray-700">
+            <Card className="bg-white border border-gray-200 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-white flex items-center space-x-2">
-                  {settings.sound ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+                <CardTitle className="text-gray-800 flex items-center space-x-2">
+                  {settings.sound ? <Volume2 className="w-5 h-5 text-orange-500" /> : <VolumeX className="w-5 h-5 text-orange-500" />}
                   <span>Sound & Vibration</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <Volume2 className="w-5 h-5 text-gray-400" />
+                    <Volume2 className="w-5 h-5 text-gray-500" />
                     <div>
-                      <Label className="text-white">Sound Effects</Label>
-                      <p className="text-gray-300 text-sm">Play sounds for notifications</p>
+                      <Label className="text-gray-800">Sound Effects</Label>
+                      <p className="text-gray-600 text-sm">Play sounds for notifications</p>
                     </div>
                   </div>
                   <Switch
@@ -395,17 +395,17 @@ const Settings = () => {
             </Card>
 
             {/* Privacy & Security */}
-            <Card className="bg-white/5 backdrop-blur-md border-gray-700">
+            <Card className="bg-white border border-gray-200 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-white flex items-center space-x-2">
-                  <Shield className="w-5 h-5" />
+                <CardTitle className="text-gray-800 flex items-center space-x-2">
+                  <Shield className="w-5 h-5 text-orange-500" />
                   <span>Privacy & Security</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start"
+                  className="w-full justify-start border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white"
                   onClick={() => setShowPasswordModal(true)}
                 >
                   <Lock className="w-4 h-4 mr-2" />
@@ -413,16 +413,16 @@ const Settings = () => {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start"
+                  className="w-full justify-start border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white"
                   onClick={() => setShow2FAModal(true)}
                 >
                   <Smartphone className="w-4 h-4 mr-2" />
                   Two-Factor Authentication
-                  {twoFactorEnabled && <span className="ml-2 text-green-400">✓ Enabled</span>}
+                  {twoFactorEnabled && <span className="ml-2 text-orange-500">✓ Enabled</span>}
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start"
+                  className="w-full justify-start border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white"
                   onClick={() => setShowPrivacyModal(true)}
                 >
                   <Shield className="w-4 h-4 mr-2" />
@@ -432,27 +432,19 @@ const Settings = () => {
             </Card>
 
             {/* Account Actions */}
-            <Card className="bg-white/5 backdrop-blur-md border-gray-700">
+            <Card className="bg-white border border-gray-200 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-white">Account</CardTitle>
+                <CardTitle className="text-gray-800">Account</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start text-red-400 border-red-400 hover:bg-red-400/10"
+                  className="w-full justify-start text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
                   onClick={() => setShowDeleteModal(true)}
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete Account
                 </Button>
-              </CardContent>
-            </Card>
-
-            {/* App Info */}
-            <Card className="bg-white/5 backdrop-blur-md border-gray-700">
-              <CardContent className="p-4 text-center">
-                <p className="text-gray-300 text-sm">QuicklyMart v1.0.0</p>
-                <p className="text-gray-400 text-xs mt-1">© 2024 QuicklyMart. All rights reserved.</p>
               </CardContent>
             </Card>
           </>

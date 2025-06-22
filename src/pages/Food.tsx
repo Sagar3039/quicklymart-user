@@ -1,33 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Star, Heart, Mic, ArrowLeft, Moon, Sun } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Search, Star, Heart, Mic, ArrowLeft, Moon, Sun, ShoppingCart, Plus, Minus, Filter, MoreVertical, Trash2, Zap, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { toast } from '@/components/ui/sonner';
+import { toast, Toaster } from '@/components/ui/sonner';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ProductQuickView from '@/components/ProductQuickView';
-import { getProductsByCategory, PRODUCT_CATEGORIES, PRODUCT_SUBCATEGORIES, type Product } from '@/lib/products';
+import { getProductsByCategory, getCategoriesByProductCategory, PRODUCT_CATEGORIES, type Product, type Category } from '@/lib/products';
 import { useTheme } from '@/App';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import CheckoutModal from '@/components/CheckoutModal';
+import { addDoc, collection } from 'firebase/firestore';
+import { db, retryOperation } from '@/lib/firebase';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
-const foodCategories = ['All', 'Pizzas', 'Biryani', 'Chinese', 'Burgers', 'Indian', 'Desserts'];
-const categoryIcons = {
-    'All': '🌐',
-    'Pizzas': '🍕',
-    'Biryani': '🍛',
-    'Chinese': '🥡',
-    'Burgers': '🍔',
-    'Indian': '🍛',
-    'Desserts': '🍰'
-};
-
-const categoryToSubcategory = {
-    'Pizzas': PRODUCT_SUBCATEGORIES.PIZZAS,
-    'Biryani': PRODUCT_SUBCATEGORIES.BIRYANI,
-    'Chinese': PRODUCT_SUBCATEGORIES.CHINESE,
-    'Burgers': PRODUCT_SUBCATEGORIES.BURGERS,
-    'Indian': PRODUCT_SUBCATEGORIES.INDIAN,
-    'Desserts': PRODUCT_SUBCATEGORIES.DESSERTS
-};
+interface GeolocationPosition {
+  coords: {
+    latitude: number;
+    longitude: number;
+  };
+}
 
 const Food = () => {
   const navigate = useNavigate();
@@ -38,12 +40,61 @@ const Food = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [cart, setCart] = useState<any[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [showCart, setShowCart] = useState(false);
+  const [user, setUser] = useState(null);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [sortOption, setSortOption] = useState('relevance');
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [vegOption, setVegOption] = useState('all'); // 'all', 'veg', 'non-veg'
 
-  const filteredProducts = products.filter(product => 
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-    (activeCategory === 'All' || product.subcategory === categoryToSubcategory[activeCategory])
-  );
+  const filteredAndSortedProducts = useMemo(() => {
+    let results = [...products];
+
+    // Category filter
+    if (activeCategory !== 'All') {
+      results = results.filter(product => product.category === activeCategory);
+    }
+
+    // Search filter
+    if (searchQuery) {
+      results = results.filter(product =>
+        product.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Veg/Non-Veg filter
+    if (vegOption === 'veg') {
+      results = results.filter(product => product.isVeg === true);
+    } else if (vegOption === 'non-veg') {
+      results = results.filter(product => product.isVeg === false);
+    }
+
+    // Sorting logic
+    switch (sortOption) {
+      case 'price-asc':
+        results.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-desc':
+        results.sort((a, b) => b.price - a.price);
+        break;
+      case 'rating':
+        results.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        break;
+      default:
+        // 'relevance' or default case needs no specific sorting for now
+        break;
+    }
+
+    return results;
+  }, [products, activeCategory, searchQuery, vegOption, sortOption]);
+
+  // Calculate total items in cart
+  const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
+  const cartTotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
 
   const addToCart = (product: Product) => {
     const existingItem = cart.find(item => item.id === product.id);
@@ -59,8 +110,43 @@ const Food = () => {
     toast.success(`${product.name} added to cart!`);
   };
 
+  const removeFromCart = (productId: string) => {
+    setCart(cart.filter(item => item.id !== productId));
+    toast.success('Item removed from cart!');
+  };
+
+  const updateCartItemQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeFromCart(productId);
+      return;
+    }
+    setCart(cart.map(item => 
+      item.id === productId 
+        ? { ...item, quantity }
+        : item
+    ));
+  };
+
+  const clearCart = () => {
+    setCart([]);
+    toast.success('Cart cleared!');
+  };
+
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
+  };
+
+  const loadCategories = async () => {
+    setIsLoadingCategories(true);
+    try {
+      const foodCategories = await getCategoriesByProductCategory(PRODUCT_CATEGORIES.FOOD);
+      setCategories(foodCategories);
+    } catch (error) {
+      console.error('Error loading food categories:', error);
+      toast.error('Failed to load categories');
+    } finally {
+      setIsLoadingCategories(false);
+    }
   };
 
   const loadProducts = async () => {
@@ -77,6 +163,7 @@ const Food = () => {
   };
 
   useEffect(() => {
+    loadCategories();
     loadProducts();
     
     // Load cart from localStorage
@@ -87,157 +174,385 @@ const Food = () => {
   }, []);
 
   useEffect(() => {
-    console.log('Food page useEffect triggered, location.state:', location.state);
     if (location.state?.category) {
-        const categoryExists = foodCategories.includes(location.state.category);
+        const categoryExists = categories.some(cat => cat.name === location.state.category);
         if (categoryExists) {
             setActiveCategory(location.state.category);
         }
     }
-  }, [location.state?.category]);
+  }, [location.state?.category, categories]);
 
   useEffect(() => {
     // Save cart to localStorage
     localStorage.setItem('quicklymart-cart', JSON.stringify(cart));
   }, [cart]);
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const placeOrder = async (orderDetails) => {
+    const { address, paymentMethod, tip, finalTotal } = orderDetails;
+
+    if (!user) {
+      toast.error("Please log in to place an order.");
+      return;
+    }
+
+    // Show loading toast for location access
+    toast.loading("Getting your location for accurate delivery tracking...");
+
+    // Get user's actual GPS location
+    let userLocation = null;
+    try {
+      if (navigator.geolocation) {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 60000
+          });
+        });
+        
+        userLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+        
+        toast.dismiss();
+        toast.success("Location accessed successfully!");
+      } else {
+        throw new Error("Geolocation not supported");
+      }
+    } catch (error) {
+      console.error('Error getting location:', error);
+      toast.dismiss();
+      
+      if (error.code === 1) {
+        toast.error("Location access denied. Please enable location permissions for accurate tracking.");
+      } else if (error.code === 2) {
+        toast.error("Location unavailable. Please check your GPS settings.");
+      } else if (error.code === 3) {
+        toast.error("Location request timed out. Please try again.");
+      } else {
+        toast.error("Could not get your location. Using approximate location.");
+      }
+      
+      // Fallback to mock coordinates if location access fails
+      userLocation = {
+        lat: 22.5726 + (Math.random() - 0.5) * 0.01,
+        lng: 88.3639 + (Math.random() - 0.5) * 0.01
+      };
+    }
+
+    // Calculate estimated delivery time (25-35 minutes base + distance factor)
+    const baseTime = 25;
+    const distanceFactor = Math.random() * 10 + 5; // 5-15 minutes based on distance
+    const estimatedMinutes = Math.round(baseTime + distanceFactor);
+    const estimatedDeliveryTime = new Date(Date.now() + estimatedMinutes * 60 * 1000);
+
+    const orderData = {
+      userId: user.uid,
+      items: cart,
+      totalPrice: finalTotal,
+      tip,
+      deliveryAddress: { ...address },
+      paymentMethod,
+      status: 'pending',
+      createdAt: new Date(),
+      estimatedDeliveryTime: estimatedDeliveryTime,
+      estimatedMinutes: estimatedMinutes,
+      // Store user's actual location coordinates for map
+      userLocation: userLocation
+    };
+
+    try {
+      await retryOperation(async () => {
+        const docRef = await addDoc(collection(db, 'orders'), orderData);
+        toast.success('Order placed successfully!');
+        setCart([]);
+        setShowCheckoutModal(false);
+        // Redirect to current order page
+        navigate(`/current-order/${docRef.id}`);
+      });
+    } catch (error) {
+      console.error('Error placing order:', error);
+      if (error.code === 'permission-denied') {
+        toast.error('Access denied. Please check your permissions.');
+      } else if (error.code === 'unavailable') {
+        toast.error('Firebase service is temporarily unavailable. Please try again later.');
+      } else {
+        toast.error('Failed to place order. Please check your connection and try again.');
+      }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'}`}>
+      <Toaster position="top-right" />
+
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-            <div className='flex items-center gap-2'>
-                <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
-                    <ArrowLeft className="w-5 h-5" />
-                </Button>
-                <h1 className="text-xl font-bold text-gray-800 dark:text-white">Food</h1>
-            </div>
+      <header className={`sticky top-0 z-40 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-gray-600 dark:text-gray-300"
+                onClick={() => navigate(-1)}
+                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Offers</h1>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsSearchVisible(!isSearchVisible)}
+                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}
+              >
+                {isSearchVisible ? <X className="w-5 h-5" /> : <Search className="w-5 h-5" />}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
                   onClick={toggleDarkMode}
-                  title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}
                 >
                   {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                 </Button>
-                <Search className="w-6 h-6 text-gray-600 dark:text-gray-300" />
-                <Mic className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+            </div>
             </div>
         </div>
       </header>
 
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-28 bg-gray-50 dark:bg-gray-800 h-full fixed top-16 left-0 overflow-y-auto pb-16">
-          <nav>
-            <ul>
-              {foodCategories.map((category, index) => (
-                <li key={index}>
-                  <button
-                    onClick={() => setActiveCategory(category)}
-                    className={`w-full text-center p-3 text-sm font-medium border-l-4 ${activeCategory === category ? 'border-blue-500 bg-white dark:bg-gray-700 text-blue-500 dark:text-blue-400' : 'border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
-                  >
-                    <div className="text-2xl mb-1 mx-auto">{categoryIcons[category]}</div>
-                    {category}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </aside>
-
-        {/* Content Area */}
-        <main className="ml-28 p-4 flex-1 mb-16">
+      {isSearchVisible && (
+        <div className="container mx-auto px-4 pt-2 pb-4">
             <Input
               placeholder="Search for food..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 pr-4 h-12 bg-gray-100 dark:bg-gray-700 rounded-xl text-md w-full mb-4 dark:text-white dark:placeholder-gray-400"
-            />
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">{activeCategory}</h2>
-            
-            {isLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
-                <p className="text-gray-500 dark:text-gray-400">Loading products...</p>
+            className={`w-full ${isDarkMode ? 'bg-gray-700' : ''}`}
+          />
+        </div>
+      )}
+
+      {/* Filter Bar */}
+      <div className={`sticky top-16 z-40 py-2 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
+        <div className="container mx-auto px-4">
+          <div className="flex space-x-2 overflow-x-auto pb-2">
+            <Button variant="outline" className={`rounded-full ${isDarkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300'}`}>
+              <Filter className="w-4 h-4 mr-2" /> Filter
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className={`rounded-full ${isDarkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300'}`}>Sort by</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel>Sort Options</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setSortOption('relevance')}>Relevance</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOption('price-asc')}>Price: Low to High</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOption('price-desc')}>Price: High to Low</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOption('rating')}>Rating</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className={`rounded-full ${isDarkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300'}`}>Veg/Non-Veg</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel>Dietary</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setVegOption('all')}>All</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setVegOption('veg')}>Veg</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setVegOption('non-veg')}>Non-Veg</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button variant="outline" className={`rounded-full ${isDarkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300'}`}>Offers</Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Categories */}
+      <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'} py-3`}>
+        <div className="container mx-auto px-4">
+          <div className="flex space-x-4 overflow-x-auto pb-2">
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setActiveCategory(category.name)}
+                className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  activeCategory === category.name
+                    ? 'bg-orange-500 text-white'
+                    : isDarkMode 
+                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                      : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                {category.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <main className="container mx-auto px-4 py-6 space-y-6 pb-24">
+        {filteredAndSortedProducts.map((product) => (
+          <div key={product.id} className="flex space-x-4 group">
+            <div className="w-1/3 relative">
+              <img src={product.image} alt={product.name} className="rounded-2xl w-full h-40 object-cover" />
+              <div className="absolute top-2 right-2 bg-white/80 backdrop-blur-sm rounded-full p-1">
+                 <Heart className="w-5 h-5 text-gray-700" />
               </div>
-            ) : filteredProducts.length === 0 ? (
+              <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded-md">
+                ITEMS AT ₹{product.price}
+              </div>
+            </div>
+            <div className="w-2/3">
+              <div className="flex justify-between items-start">
+                  <h3 className={`font-bold text-lg ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{product.name}</h3>
+                  <Button variant="ghost" size="icon" className="w-8 h-8 -mr-2">
+                      <MoreVertical className="w-4 h-4" />
+                  </Button>
+              </div>
+              <div className="flex items-center space-x-1 text-sm text-gray-500">
+                <Star className="w-4 h-4 text-green-500 fill-green-500" />
+                <span>{product.rating} (500+) • 20-25 mins</span>
+              </div>
+              <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{product.description}</p>
+              <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Khaprail Bazar • 2.2 km</p>
+              <div className="mt-2">
+                <Button onClick={() => addToCart(product)} size="sm" variant="outline" className="border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600">
+                  Add to cart
+                </Button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </main>
+
+      {/* Bottom Cart View */}
+      {cart.length > 0 && (
+        <div className={`fixed bottom-0 left-0 right-0 z-50 p-4 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} border-t`}>
+          <div className="container mx-auto flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <button onClick={() => setIsCartOpen(true)} className="text-sm font-semibold text-orange-500">
+                View Cart
+              </button>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Button 
+                className="bg-green-500 hover:bg-green-600 text-white rounded-lg px-6"
+                onClick={() => setShowCheckoutModal(true)}
+              >
+                {cartItemCount} items | ₹{cartTotal.toFixed(2)} Checkout
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cart Sidebar */}
+      <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
+        <SheetContent className={`w-96 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <SheetHeader>
+            <SheetTitle className={isDarkMode ? 'text-white' : 'text-gray-900'}>Your Cart</SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto py-4">
+            {cart.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-500 dark:text-gray-400">No products found.</p>
+                <ShoppingCart className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                <p className={`text-lg font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Your cart is empty</p>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Add some delicious food to get started!</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredProducts.map((product) => (
-                    <Card 
-                    key={product.id} 
-                    className="relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl cursor-pointer hover:shadow-lg transition-shadow border dark:border-gray-700"
-                    onClick={() => handleProductClick(product)}
-                    >
-                    <div className="relative">
-                        <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-48 object-cover"
-                        />
-                        <Button 
-                        variant="ghost" 
-                        size="sm"
-                        className="absolute top-3 right-3 bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800 rounded-full p-2"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            toast.success('Added to wishlist!');
-                        }}
-                        >
-                        <Heart className="w-4 h-4" />
-                        </Button>
-                        {product.discount && (
-                        <div className="absolute top-3 left-3 bg-quicklymart-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                            {product.discount}
-                        </div>
-                        )}
-                        {product.offer && (
-                        <div className="absolute bottom-3 right-3 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold">
-                            {product.offer}
-                        </div>
-                        )}
-                        <div className="absolute bottom-3 left-3 bg-black/80 text-white px-3 py-1 rounded text-sm">
-                        ₹{product.price}
-                        </div>
+              <div className="space-y-4">
+                {cart.map((item: any) => (
+                  <div key={item.id} className={`flex items-center space-x-3 p-3 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                    <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />
+                    <div className="flex-1">
+                      <h4 className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.name}</h4>
+                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>₹{item.price}</p>
                     </div>
-                    <CardContent className="p-4">
-                        <h3 className="font-bold text-lg mb-1 text-gray-800 dark:text-white">{product.name}</h3>
-                        <div className="flex items-center space-x-2 mb-2">
-                        <div className="flex items-center space-x-1">
-                            <Star className="w-4 h-4 fill-green-500 text-green-500" />
-                            <span className="font-medium text-sm text-gray-600 dark:text-gray-300">{product.rating}</span>
-                        </div>
-                        <span className="text-gray-500 dark:text-gray-400 text-sm">• {product.deliveryTime}</span>
-                        </div>
-                        <p className="text-gray-600 dark:text-gray-300 text-sm">{product.description}</p>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateCartItemQuantity(item.id, Math.max(0, item.quantity - 1))}
+                        className={isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-600' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}
+                      >
+                        <Minus className="w-3 h-3" />
+                      </Button>
+                      <span className={`w-8 text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.quantity}</span>
                         <Button 
-                        className="w-full mt-3 bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            addToCart(product);
-                        }}
-                        >
-                        Add to Cart
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}
+                        className={isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-600' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}
+                      >
+                        <Plus className="w-3 h-3" />
                         </Button>
-                    </CardContent>
-                    </Card>
+                    </div>
+                        </div>
                 ))}
               </div>
             )}
-        </main>
+          </div>
+          {cart.length > 0 && (
+            <div className={`border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} pt-4`}>
+              <div className="flex justify-between items-center mb-4">
+                <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Total:</span>
+                <span className="text-orange-500 font-bold text-lg">₹{cartTotal.toFixed(2)}</span>
+              </div>
+              <div className="space-y-2">
+                <Button
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                  onClick={() => {
+                    if (!user) {
+                      toast.error('You must be logged in to place an order.');
+                      return;
+                    }
+                    setShowCheckoutModal(true);
+                  }}
+                >
+                  Proceed to Checkout
+                </Button>
+                <Button
+                  variant="outline"
+                  className={`w-full ${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                  onClick={clearCart}
+                >
+                  Clear Cart
+                </Button>
+              </div>
       </div>
+          )}
+        </SheetContent>
+      </Sheet>
 
+      {/* Modals will be kept as they are for now */}
+      {selectedProduct && (
       <ProductQuickView 
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}
         onAddToCart={addToCart}
       />
+      )}
+      {showCheckoutModal && (
+        <CheckoutModal
+          isOpen={showCheckoutModal}
+          onClose={() => setShowCheckoutModal(false)}
+          onPlaceOrder={placeOrder}
+          totalPrice={cartTotal}
+          user={user}
+        />
+      )}
     </div>
   );
 };

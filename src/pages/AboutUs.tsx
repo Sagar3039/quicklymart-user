@@ -122,9 +122,9 @@ const AboutUs = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-gray-800">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'}`}>
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
+      <header className={`sticky top-0 z-50 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -132,20 +132,20 @@ const AboutUs = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate(-1)}
-                className="text-gray-600 hover:text-quicklymart-orange-500"
+                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-xl font-bold text-gray-800">About Us</h1>
-                <p className="text-sm text-gray-600">Learn more about QuicklyMart</p>
+                <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>About Us</h1>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Learn more about QuicklyMart</p>
               </div>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleDarkMode}
-              className="text-gray-600 hover:text-quicklymart-orange-500"
+              className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
             >
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
@@ -156,10 +156,10 @@ const AboutUs = () => {
       <div className="container mx-auto px-4 py-6">
         {/* Hero Section */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
+          <h1 className={`text-4xl md:text-5xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
             Revolutionizing Food Delivery
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className={`text-xl max-w-3xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
             At QuicklyMart, we believe that great food should be accessible to everyone, 
             delivered fresh and fast. We're on a mission to connect people with their 
             favorite restaurants through technology and exceptional service.
@@ -169,11 +169,11 @@ const AboutUs = () => {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
           {stats.map((stat, index) => (
-            <Card key={index} className="bg-white border border-gray-200 text-center">
+            <Card key={index} className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} text-center`}>
               <CardContent className="p-6">
                 <div className="text-3xl mb-2">{stat.icon}</div>
-                <div className="text-2xl font-bold mb-1 text-gray-800">{stat.value}</div>
-                <div className="text-sm text-gray-600">{stat.label}</div>
+                <div className={`text-2xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{stat.value}</div>
+                <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{stat.label}</div>
               </CardContent>
             </Card>
           ))}
@@ -181,15 +181,15 @@ const AboutUs = () => {
 
         {/* Mission & Vision */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          <Card className="bg-white border border-gray-200">
+          <Card className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-gray-800">
+              <CardTitle className={`flex items-center space-x-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
                 <Target className="w-5 h-5" />
                 <span>Our Mission</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 leading-relaxed">
+              <p className={`leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                 To provide the fastest, most reliable food delivery service while maintaining 
                 the highest standards of food quality, customer service, and safety. We strive 
                 to make ordering food as simple as possible while ensuring every meal arrives 
@@ -198,15 +198,15 @@ const AboutUs = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white border border-gray-200">
+          <Card className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-gray-800">
+              <CardTitle className={`flex items-center space-x-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
                 <Star className="w-5 h-5" />
                 <span>Our Vision</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 leading-relaxed">
+              <p className={`leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                 To become the most trusted and preferred food delivery platform in India, 
                 known for our commitment to quality, speed, and customer satisfaction. 
                 We envision a future where everyone can enjoy their favorite food 
@@ -218,16 +218,16 @@ const AboutUs = () => {
 
         {/* Values */}
         <div className="mb-12">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">Our Values</h2>
+          <h2 className={`text-3xl font-bold text-center mb-8 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Our Values</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {values.map((value, index) => (
-              <Card key={index} className="bg-white border border-gray-200 text-center">
+              <Card key={index} className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} text-center`}>
                 <CardContent className="p-6">
                   <div className={`inline-flex p-3 rounded-full mb-4 ${value.color}`}>
                     {value.icon}
                   </div>
-                  <h3 className="font-semibold mb-2 text-gray-800">{value.title}</h3>
-                  <p className="text-sm text-gray-600">{value.description}</p>
+                  <h3 className={`font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{value.title}</h3>
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{value.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -236,15 +236,15 @@ const AboutUs = () => {
 
         {/* Team */}
         <div className="mb-12">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">Our Leadership Team</h2>
+          <h2 className={`text-3xl font-bold text-center mb-8 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Our Leadership Team</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {team.map((member, index) => (
-              <Card key={index} className="bg-white border border-gray-200 text-center">
+              <Card key={index} className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} text-center`}>
                 <CardContent className="p-6">
                   <div className="text-4xl mb-3">{member.image}</div>
-                  <h3 className="font-semibold mb-1 text-gray-800">{member.name}</h3>
+                  <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{member.name}</h3>
                   <p className="text-quicklymart-orange-500 mb-2">{member.position}</p>
-                  <p className="text-sm text-gray-600">{member.description}</p>
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{member.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -253,19 +253,19 @@ const AboutUs = () => {
 
         {/* Achievements */}
         <div className="mb-12">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">Awards & Recognition</h2>
+          <h2 className={`text-3xl font-bold text-center mb-8 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Awards & Recognition</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {achievements.map((achievement, index) => (
-              <Card key={index} className="bg-white border border-gray-200">
+              <Card key={index} className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                 <CardContent className="p-6">
                   <div className="flex items-start space-x-4">
                     <div className="text-3xl">{achievement.icon}</div>
                     <div>
                       <div className="flex items-center space-x-2 mb-2">
                         <Badge variant="secondary" className="bg-quicklymart-orange-100 text-quicklymart-orange-800">{achievement.year}</Badge>
-                        <h3 className="font-semibold text-gray-800">{achievement.title}</h3>
+                        <h3 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{achievement.title}</h3>
                       </div>
-                      <p className="text-gray-600">{achievement.description}</p>
+                      <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{achievement.description}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -276,18 +276,18 @@ const AboutUs = () => {
 
         {/* Timeline */}
         <div className="mb-12">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">Our Journey</h2>
+          <h2 className={`text-3xl font-bold text-center mb-8 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Our Journey</h2>
           <div className="space-y-6">
             {milestones.map((milestone, index) => (
-              <Card key={index} className="bg-white border border-gray-200">
+              <Card key={index} className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                 <CardContent className="p-6">
                   <div className="flex items-center space-x-4">
                     <div className="flex-shrink-0">
                       <Badge className="bg-quicklymart-orange-500">{milestone.year}</Badge>
                     </div>
                     <div>
-                      <h3 className="font-semibold mb-1 text-gray-800">{milestone.title}</h3>
-                      <p className="text-gray-600">{milestone.description}</p>
+                      <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{milestone.title}</h3>
+                      <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{milestone.description}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -297,16 +297,16 @@ const AboutUs = () => {
         </div>
 
         {/* Contact Info */}
-        <Card className="bg-white border border-gray-200">
+        <Card className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <CardHeader>
-            <CardTitle className="text-center text-gray-800">Get in Touch</CardTitle>
+            <CardTitle className={`text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Get in Touch</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
               <div>
                 <MapPin className="w-6 h-6 mx-auto mb-2 text-quicklymart-orange-500" />
-                <h3 className="font-semibold mb-1 text-gray-800">Address</h3>
-                <p className="text-sm text-gray-600">
+                <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Address</h3>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                   123 Food Street<br />
                   Park Street Area<br />
                   Kolkata, WB 700001
@@ -314,13 +314,13 @@ const AboutUs = () => {
               </div>
               <div>
                 <Phone className="w-6 h-6 mx-auto mb-2 text-quicklymart-orange-500" />
-                <h3 className="font-semibold mb-1 text-gray-800">Phone</h3>
-                <p className="text-sm text-gray-600">+91 98765 43210</p>
+                <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Phone</h3>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>+91 98765 43210</p>
               </div>
               <div>
                 <Mail className="w-6 h-6 mx-auto mb-2 text-quicklymart-orange-500" />
-                <h3 className="font-semibold mb-1 text-gray-800">Email</h3>
-                <p className="text-sm text-gray-600">hello@quicklymart.com</p>
+                <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Email</h3>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>hello@quicklymart.com</p>
               </div>
             </div>
           </CardContent>

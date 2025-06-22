@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, Filter, Star, MapPin, Clock, Moon, Sun } from 'lucide-react';
+import { Search, X, Filter, Star, MapPin, Clock, Moon, Sun, ArrowLeft, ShoppingCart } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,6 +15,37 @@ interface UniversalSearchProps {
   onClose: () => void;
   onProductSelect?: (product: Product) => void;
 }
+
+const popularSearches = [
+  "Pizza",
+  "Milk",
+  "Bread",
+  "Eggs",
+  "Coke",
+  "Biscuits",
+  "Rice",
+  "Snacks",
+  "Juice",
+  "Soap"
+];
+
+const categories = [
+  {
+    name: "food",
+    displayName: "Food",
+    icon: "🍕"
+  },
+  {
+    name: "drinks",
+    displayName: "Drinks",
+    icon: "🥤"
+  },
+  {
+    name: "daily-essential",
+    displayName: "Daily Essentials",
+    icon: "🛒"
+  }
+];
 
 const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose, onProductSelect }) => {
   const { isDarkMode, toggleDarkMode } = useTheme();
@@ -137,188 +168,178 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose, onPr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-full w-full h-full max-h-full m-0 rounded-none bg-white dark:bg-gray-800">
-        <DialogHeader className="pb-4 border-b dark:border-gray-700">
+      <DialogContent className={`max-w-full w-full h-full max-h-full m-0 rounded-none ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <DialogHeader className={`border-b pb-4 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
           <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center space-x-2 text-gray-800 dark:text-white">
-              <Search className="w-5 h-5" />
-              <span>Search All Products</span>
-            </DialogTitle>
+            <div className="flex items-center space-x-4 flex-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onClose()}
+                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <div className="relative flex-1 max-w-2xl">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Input
+                  placeholder="Search for food, drinks, groceries..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={`pl-10 pr-10 h-12 text-lg focus:border-orange-500 ${isDarkMode ? 'bg-gray-800 text-white border-gray-600 placeholder-gray-400' : 'bg-gray-50 text-gray-900 border-gray-200'}`}
+                />
+                {searchQuery && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-orange-500"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
             <Button
               variant="ghost"
               size="icon"
-              className="text-gray-600 dark:text-gray-300"
               onClick={toggleDarkMode}
-              title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}
             >
-              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </Button>
           </div>
-          <DialogDescription className="text-gray-600 dark:text-gray-400">
-            Search through all food and daily essential products. Drinks are not included in this search.
-          </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col h-full">
-          {/* Search Input */}
-          <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input
-              placeholder="Search for products, categories, or tags..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-10 h-14 text-lg"
-              autoFocus
-            />
-            {searchQuery && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
-                onClick={() => setSearchQuery('')}
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            )}
+        <div className="flex-1 overflow-y-auto p-4">
+          {/* Popular Searches */}
+          <div className="mb-6">
+            <h3 className={`text-lg font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Popular Searches</h3>
+            <div className="flex flex-wrap gap-2">
+              {popularSearches.map((search) => (
+                <Button
+                  key={search}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSearchQuery(search)}
+                  className={`${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                >
+                  {search}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Categories */}
+          <div className="mb-6">
+            <h3 className={`text-lg font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Categories</h3>
+            <div className="grid grid-cols-3 gap-3">
+              {categories.map((category) => (
+                <Button
+                  key={category.name}
+                  variant="outline"
+                  onClick={() => setSelectedCategory(category.name)}
+                  className={`h-20 flex flex-col items-center justify-center space-y-1 ${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                >
+                  <span className="text-2xl">{category.icon}</span>
+                  <span className="text-xs">{category.displayName}</span>
+                </Button>
+              ))}
+            </div>
           </div>
 
           {/* Filters */}
-          <div className="flex items-center space-x-2 mb-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center space-x-1"
-            >
-              <Filter className="w-4 h-4" />
-              <span>Filters</span>
-            </Button>
-            {(selectedCategory || selectedSubcategory) && (
-              <Button variant="ghost" size="sm" onClick={clearFilters}>
-                Clear
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Filters</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className={isDarkMode ? 'text-gray-400 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}
+              >
+                Clear All
               </Button>
-            )}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className={isDarkMode ? 'bg-gray-800 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'}>
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}>
+                  <SelectItem value="">All Categories</SelectItem>
+                  <SelectItem value={PRODUCT_CATEGORIES.FOOD}>Food</SelectItem>
+                  <SelectItem value={PRODUCT_CATEGORIES.DAILY_ESSENTIAL}>Daily Essential</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
+                <SelectTrigger className={isDarkMode ? 'bg-gray-800 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'}>
+                  <SelectValue placeholder="Subcategory" />
+                </SelectTrigger>
+                <SelectContent className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}>
+                  <SelectItem value="">All Subcategories</SelectItem>
+                  {Object.values(PRODUCT_SUBCATEGORIES).map((subcategory) => (
+                    <SelectItem key={subcategory} value={subcategory}>
+                      {getSubcategoryLabel(subcategory)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {showFilters && (
-            <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg mb-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Category</label>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Categories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">All Categories</SelectItem>
-                    <SelectItem value={PRODUCT_CATEGORIES.FOOD}>Food</SelectItem>
-                    <SelectItem value={PRODUCT_CATEGORIES.DAILY_ESSENTIAL}>Daily Essential</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Subcategory</label>
-                <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Subcategories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">All Subcategories</SelectItem>
-                    {selectedCategory === PRODUCT_CATEGORIES.FOOD && (
-                      <>
-                        <SelectItem value={PRODUCT_SUBCATEGORIES.PIZZAS}>Pizzas</SelectItem>
-                        <SelectItem value={PRODUCT_SUBCATEGORIES.BURGERS}>Burgers</SelectItem>
-                        <SelectItem value={PRODUCT_SUBCATEGORIES.BIRYANI}>Biryani</SelectItem>
-                        <SelectItem value={PRODUCT_SUBCATEGORIES.CHINESE}>Chinese</SelectItem>
-                        <SelectItem value={PRODUCT_SUBCATEGORIES.INDIAN}>Indian</SelectItem>
-                        <SelectItem value={PRODUCT_SUBCATEGORIES.DESSERTS}>Desserts</SelectItem>
-                      </>
-                    )}
-                    {selectedCategory === PRODUCT_CATEGORIES.DAILY_ESSENTIAL && (
-                      <>
-                        <SelectItem value={PRODUCT_SUBCATEGORIES.STAPLES}>Staples</SelectItem>
-                        <SelectItem value={PRODUCT_SUBCATEGORIES.SNACKS}>Snacks</SelectItem>
-                        <SelectItem value={PRODUCT_SUBCATEGORIES.BEVERAGES}>Beverages</SelectItem>
-                        <SelectItem value={PRODUCT_SUBCATEGORIES.PERSONAL_CARE}>Personal Care</SelectItem>
-                        <SelectItem value={PRODUCT_SUBCATEGORIES.HOUSEHOLD}>Household</SelectItem>
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
+          {/* Search Results */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                {isLoading ? 'Loading...' : `Search Results (${filteredProducts.length})`}
+              </h3>
             </div>
-          )}
-
-          {/* Results */}
-          <div className="overflow-y-auto flex-1">
+            
             {isLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-                <p className="text-gray-500">Loading products...</p>
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
               </div>
             ) : filteredProducts.length === 0 ? (
               <div className="text-center py-8">
-                <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">
-                  {searchQuery ? 'No products found matching your search.' : 'Start typing to search products.'}
-                </p>
+                <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className={`text-lg font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>No products found</p>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Try adjusting your search or filters</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredProducts.map((product) => (
                   <Card
                     key={product.id}
-                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    className={`cursor-pointer hover:shadow-lg transition-all duration-200 ${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-700' : 'bg-white border-gray-200 hover:bg-gray-50'}`}
                     onClick={() => handleProductClick(product)}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-center space-x-4">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="w-16 h-16 object-cover rounded-lg"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h3 className="font-semibold text-lg">{product.name}</h3>
-                              <p className="text-gray-600 text-sm">{product.description}</p>
-                              <div className="flex items-center space-x-4 mt-2">
-                                <div className="flex items-center space-x-1">
-                                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                  <span className="text-sm">{product.rating}</span>
-                                </div>
-                                <div className="flex items-center space-x-1 text-gray-500">
-                                  <Clock className="w-4 h-4" />
-                                  <span className="text-sm">{product.deliveryTime}</span>
-                                </div>
-                                <div className="flex items-center space-x-1 text-gray-500">
-                                  <MapPin className="w-4 h-4" />
-                                  <span className="text-sm">{getCategoryLabel(product.category)}</span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold text-lg">₹{product.price}</p>
-                              {product.discount && (
-                                <Badge className="bg-green-500 text-white text-xs">
-                                  {product.discount}
-                                </Badge>
-                              )}
-                              {product.offer && (
-                                <Badge className="bg-blue-500 text-white text-xs">
-                                  {product.offer}
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {product.tags.slice(0, 3).map((tag, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
+                    <div className="relative">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-48 object-cover"
+                      />
+                      {product.discount && (
+                        <div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">
+                          {product.discount}
                         </div>
+                      )}
+                    </div>
+                    <CardContent className="p-4">
+                      <h4 className={`font-semibold text-lg mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {product.name}
+                      </h4>
+                      <p className={`text-sm mb-3 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {product.description}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-orange-500 font-bold text-lg">₹{product.price}</span>
+                        </div>
+                        <Badge variant="secondary" className={isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}>
+                          {getCategoryLabel(product.category)}
+                        </Badge>
                       </div>
                     </CardContent>
                   </Card>
@@ -326,13 +347,6 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose, onPr
               </div>
             )}
           </div>
-
-          {/* Results Summary */}
-          {filteredProducts.length > 0 && (
-            <div className="text-sm text-gray-500 text-center pt-4 border-t mt-4">
-              Showing {filteredProducts.length} of {products.length} products
-            </div>
-          )}
         </div>
       </DialogContent>
     </Dialog>

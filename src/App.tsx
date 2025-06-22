@@ -8,6 +8,7 @@ import { auth, db } from "@/lib/firebase";
 import { getRedirectResult } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { toast } from "@/components/ui/sonner";
+import { initializeCategories, initializeProducts, syncMissingSubcategories } from "@/lib/products";
 import Index from "./pages/Index";
 import Food from "./pages/Food";
 import DailyEssential from "./pages/DailyEssential";
@@ -133,6 +134,22 @@ const App = () => {
     return saved ? JSON.parse(saved) : null;
   });
   const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Initialize Firebase data
+  useEffect(() => {
+    const initializeFirebaseData = async () => {
+      try {
+        await initializeCategories();
+        await initializeProducts();
+        await syncMissingSubcategories();
+        console.log('Firebase data initialized successfully');
+      } catch (error) {
+        console.error('Error initializing Firebase data:', error);
+      }
+    };
+
+    initializeFirebaseData();
+  }, []);
 
   useEffect(() => {
     if (selectedAddress) {

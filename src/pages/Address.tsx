@@ -248,213 +248,258 @@ const Address = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'}`}>
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-quicklymart-orange-500 border-b border-quicklymart-orange-600">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="text-white hover:bg-quicklymart-orange-600">
+      <header className={`sticky top-0 z-50 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate(-1)}
+                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
+              >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-xl font-bold text-white">My Addresses</h1>
+              <div>
+                <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>My Addresses</h1>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Manage your delivery addresses</p>
+              </div>
           </div>
-          <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-quicklymart-orange-600"
               onClick={toggleDarkMode}
-              title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
             >
-              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </Button>
-            <Button 
-              className="bg-white hover:bg-gray-100 text-quicklymart-orange-500 font-medium"
-              onClick={() => { resetForm(); setIsAddDialogOpen(true); }}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Address
+              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="p-4">
+      <div className="container mx-auto px-4 py-6">
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600">
+                <Plus className="w-4 h-4 mr-2" />
+                Add New Address
+              </Button>
+            </DialogTrigger>
+            <DialogContent className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+              <DialogHeader>
+                <DialogTitle className={isDarkMode ? 'text-white' : 'text-gray-900'}>
+                  {editingAddress ? 'Edit Address' : 'Add New Address'}
+                </DialogTitle>
+                <DialogDescription className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>
+                  {editingAddress ? 'Update your address details' : 'Add a new delivery address'}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="type" className={isDarkMode ? 'text-white' : 'text-gray-900'}>Address Type</Label>
+                  <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}>
+                    <SelectTrigger className={`${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className={isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'}>
+                      <SelectItem value="home">Home</SelectItem>
+                      <SelectItem value="work">Work</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="name" className={isDarkMode ? 'text-white' : 'text-gray-900'}>Full Name *</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                      className={`${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone" className={isDarkMode ? 'text-white' : 'text-gray-900'}>Phone Number *</Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                      className={`${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
+                      placeholder="Enter your phone number"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="address" className={isDarkMode ? 'text-white' : 'text-gray-900'}>Address *</Label>
+                  <Input
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                    className={`${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
+                    placeholder="Enter your address"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="city" className={isDarkMode ? 'text-white' : 'text-gray-900'}>City *</Label>
+                    <Input
+                      id="city"
+                      value={formData.city}
+                      onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                      className={`${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
+                      placeholder="Enter city"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="state" className={isDarkMode ? 'text-white' : 'text-gray-900'}>State *</Label>
+                    <Input
+                      id="state"
+                      value={formData.state}
+                      onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
+                      className={`${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
+                      placeholder="Enter state"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="pincode" className={isDarkMode ? 'text-white' : 'text-gray-900'}>Pincode *</Label>
+                    <Input
+                      id="pincode"
+                      value={formData.pincode}
+                      onChange={(e) => setFormData(prev => ({ ...prev, pincode: e.target.value }))}
+                      className={`${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
+                      placeholder="Enter pincode"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="isDefault"
+                    checked={formData.isDefault}
+                    onChange={(e) => setFormData(prev => ({ ...prev, isDefault: e.target.checked }))}
+                    className="rounded"
+                  />
+                  <Label htmlFor="isDefault" className={isDarkMode ? 'text-white' : 'text-gray-900'}>Set as default address</Label>
+                </div>
+
+                <div className="flex justify-end space-x-3">
+                  <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} className={isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSubmit} className="bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600">
+                    {editingAddress ? 'Update Address' : 'Add Address'}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Button variant="outline" onClick={handleUseCurrentLocation} className={isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}>
+            <MapPin className="w-4 h-4 mr-2" />
+            Use Current Location
+          </Button>
+        </div>
+
         <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`} />
             <Input
               placeholder="Try JP Nagar, Siri Gardenia, etc."
-              className="pl-10 h-12"
+              className={`pl-10 h-12 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
             />
         </div>
 
-        <Button variant="ghost" className="w-full justify-start text-quicklymart-orange-500 font-semibold text-base p-0 h-auto mb-4" onClick={handleUseCurrentLocation}>
-            <Send className="w-5 h-5 mr-2" />
-            Use my current location
-        </Button>
-        <Button variant="ghost" className="w-full justify-start text-quicklymart-orange-500 font-semibold text-base p-0 h-auto" onClick={() => { resetForm(); setIsAddDialogOpen(true); }}>
-            <Plus className="w-5 h-5 mr-2" />
-            Add new address
-        </Button>
-
         <div className="mt-6">
-            <h2 className="text-xs font-semibold text-gray-400 mb-2">SAVED ADDRESSES</h2>
+            <h2 className={`text-xs font-semibold mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>SAVED ADDRESSES</h2>
             {isLoading ? (
-              <p>Loading addresses...</p>
+              <p className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>Loading addresses...</p>
             ) : addresses.length === 0 ? (
-              <p>No saved addresses.</p>
+              <p className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>No saved addresses.</p>
             ) : (
                 <div className="space-y-4">
                 {addresses.map((address) => (
-                  <div key={address.id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <div key={address.id} className={`border rounded-lg p-4 transition-colors ${isDarkMode ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-50'}`}>
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-start space-x-3 flex-1">
                         <div className="mt-1">{getAddressIcon(address.type)}</div>
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-1">
-                            <h3 className="font-bold capitalize">{address.type}</h3>
+                            <h3 className={`font-bold capitalize ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{address.type}</h3>
                             {selectedAddress?.id === address.id && (
                               <Badge className="bg-quicklymart-orange-100 text-quicklymart-orange-700 text-xs">
                                 <Check className="w-3 h-3 mr-1" />
                                 CURRENTLY SELECTED
                               </Badge>
                             )}
+                            {address.isDefault && (
+                              <Badge className="bg-green-100 text-green-700 text-xs">
+                                <Star className="w-3 h-3 mr-1" />
+                                DEFAULT
+                              </Badge>
+                            )}
                           </div>
-                          <p className="text-gray-600 dark:text-gray-300 text-sm">
-                            {address.name}, {address.address}, {address.city}, {address.state} - {address.pincode}
+                          <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{address.name}</p>
+                          <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{address.phone}</p>
+                          <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                            {address.address}, {address.city}, {address.state} - {address.pincode}
                           </p>
                         </div>
                       </div>
-                      <Button variant="ghost" size="icon" className="text-gray-500">
-                          <MoreVertical className="w-5 h-5" />
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(address)}
+                          className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(address.id)}
+                          className={isDarkMode ? 'text-gray-300 hover:text-red-400' : 'text-gray-600 hover:text-red-500'}
+                        >
+                          <Trash2 className="w-4 h-4" />
                       </Button>
+                      </div>
                     </div>
-                    <div className="flex space-x-2">
+                    <div className="flex justify-end space-x-2">
+                      {!address.isDefault && (
                       <Button 
                         variant="outline" 
                         size="sm" 
                         onClick={() => handleSetDefault(address.id)}
-                        className="flex-1"
+                          className={isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}
                       >
                         Set as Default
                       </Button>
-                      {selectedAddress?.id !== address.id && (
+                      )}
                         <Button 
                           size="sm" 
                           onClick={() => {
                             setSelectedAddress(address);
-                            toast.success(`Delivering to ${address.type} address`);
-                            navigate('/');
+                          toast.success('Address selected successfully!');
                           }}
-                          className="flex-1 bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600 text-white"
+                        className="bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600"
                         >
-                          Deliver to this Address
+                        Use This Address
                         </Button>
-                      )}
                     </div>
                   </div>
                 ))}
               </div>
             )}
-        </div>
-      </main>
-
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent>
-            <DialogHeader>
-            <DialogTitle>{editingAddress ? 'Edit Address' : 'Add New Address'}</DialogTitle>
-            <DialogDescription>
-                {editingAddress ? 'Update your delivery address' : 'Add a new delivery address'}
-            </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-            <div className="space-y-2">
-                <Label>Address Type</Label>
-                <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-                <SelectTrigger>
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="home">Home</SelectItem>
-                    <SelectItem value="work">Work</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-                </Select>
-            </div>
-            <div className="space-y-2">
-                <Label>Full Name *</Label>
-                <Input
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Enter your full name"
-                />
-            </div>
-            <div className="space-y-2">
-                <Label className="text-white font-medium">Phone Number *</Label>
-                <Input
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="Enter your phone number"
-                className="bg-white text-white border-white focus:border-white focus:ring-white placeholder:text-white"
-                />
-            </div>
-            <div className="space-y-2">
-                <Label>Address *</Label>
-                <Input
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                placeholder="Enter your address"
-                />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                <Label>City *</Label>
-                <Input
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    placeholder="City"
-                />
-                </div>
-                <div className="space-y-2">
-                <Label>State *</Label>
-                <Input
-                    value={formData.state}
-                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                    placeholder="State"
-                />
-                </div>
-            </div>
-            <div className="space-y-2">
-                <Label>Pincode *</Label>
-                <Input
-                value={formData.pincode}
-                onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
-                placeholder="Enter pincode"
-                />
-            </div>
-            <div className="flex items-center space-x-2">
-                <input
-                type="checkbox"
-                id="default"
-                checked={formData.isDefault}
-                onChange={(e) => setFormData({ ...formData, isDefault: e.target.checked })}
-                className="rounded"
-                />
-                <Label htmlFor="default">Set as default address</Label>
-            </div>
-            <div className="flex space-x-2">
-                <Button variant="outline" onClick={() => { setIsAddDialogOpen(false); resetForm(); }} className="flex-1">
-                Cancel
-                </Button>
-                <Button onClick={handleSubmit} className="flex-1 bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600 text-white">
-                {editingAddress ? 'Update' : 'Add'} Address
-                </Button>
             </div>
             </div>
-        </DialogContent>
-      </Dialog>
-
     </div>
   );
 };

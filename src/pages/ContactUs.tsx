@@ -90,9 +90,9 @@ const ContactUs = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-800">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'}`}>
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
+      <header className={`sticky top-0 z-50 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -100,20 +100,20 @@ const ContactUs = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate(-1)}
-                className="text-gray-600 hover:text-quicklymart-orange-500"
+                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-xl font-bold text-gray-800">Contact Us</h1>
-                <p className="text-sm text-gray-600">Get in touch with our team</p>
+                <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Contact Us</h1>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Get in touch with our team</p>
               </div>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleDarkMode}
-              className="text-gray-600 hover:text-quicklymart-orange-500"
+              className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
             >
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
@@ -124,17 +124,17 @@ const ContactUs = () => {
       <div className="container mx-auto px-4 py-6">
         {/* Contact Information */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Get in Touch</h2>
+          <h2 className={`text-2xl font-bold mb-6 text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Get in Touch</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {contactInfo.map((info, index) => (
-              <Card key={index} className="bg-white border border-gray-200 hover:border-quicklymart-orange-500 transition-colors">
+              <Card key={index} className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} hover:border-quicklymart-orange-500 transition-colors`}>
                 <CardContent className="p-6 text-center">
                   <div className={`inline-flex p-3 rounded-full mb-4 ${info.color}`}>
                     {info.icon}
                   </div>
-                  <h3 className="font-semibold mb-2 text-gray-800">{info.title}</h3>
-                  <p className="text-sm text-gray-600 mb-3">{info.description}</p>
-                  <p className="text-sm font-medium mb-4 text-gray-800">{info.value}</p>
+                  <h3 className={`font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{info.title}</h3>
+                  <p className={`text-sm mb-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{info.description}</p>
+                  <p className={`text-sm font-medium mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{info.value}</p>
                   <Button variant="outline" className="w-full border-quicklymart-orange-500 text-quicklymart-orange-500 hover:bg-quicklymart-orange-500 hover:text-white">
                     {info.action}
                   </Button>
@@ -146,9 +146,9 @@ const ContactUs = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Contact Form */}
-          <Card className="bg-white border border-gray-200">
+          <Card className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-gray-800">
+              <CardTitle className={`flex items-center space-x-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
                 <Send className="w-5 h-5" />
                 <span>Send us a Message</span>
               </CardTitle>
@@ -157,25 +157,25 @@ const ContactUs = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="name" className="text-gray-800">Full Name *</Label>
+                    <Label htmlFor="name" className={isDarkMode ? 'text-white' : 'text-gray-800'}>Full Name *</Label>
                     <Input
                       id="name"
                       value={formData.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
                       required
-                      className="bg-white border-gray-300 text-gray-800 placeholder-gray-500"
+                      className={`${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'}`}
                       placeholder="Enter your full name"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="email" className="text-gray-800">Email Address *</Label>
+                    <Label htmlFor="email" className={isDarkMode ? 'text-white' : 'text-gray-800'}>Email Address *</Label>
                     <Input
                       id="email"
                       type="email"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       required
-                      className="bg-white border-gray-300 text-gray-800 placeholder-gray-500"
+                      className={`${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'}`}
                       placeholder="Enter your email"
                     />
                   </div>
@@ -183,20 +183,20 @@ const ContactUs = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="phone" className="text-gray-800">Phone Number</Label>
+                    <Label htmlFor="phone" className={isDarkMode ? 'text-white' : 'text-gray-800'}>Phone Number</Label>
                     <Input
                       id="phone"
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
-                      className="bg-white border-gray-300 text-gray-800 placeholder-gray-500"
+                      className={`${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'}`}
                       placeholder="Enter your phone number"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="subject" className="text-gray-800">Subject *</Label>
+                    <Label htmlFor="subject" className={isDarkMode ? 'text-white' : 'text-gray-800'}>Subject *</Label>
                     <Select value={formData.subject} onValueChange={(value) => handleInputChange('subject', value)}>
-                      <SelectTrigger className="bg-white border-gray-300 text-gray-800">
+                      <SelectTrigger className={`${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}>
                         <SelectValue placeholder="Select a subject" />
                       </SelectTrigger>
                       <SelectContent>
@@ -214,14 +214,14 @@ const ContactUs = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="message" className="text-gray-800">Message *</Label>
+                  <Label htmlFor="message" className={isDarkMode ? 'text-white' : 'text-gray-800'}>Message *</Label>
                   <Textarea
                     id="message"
                     value={formData.message}
                     onChange={(e) => handleInputChange('message', e.target.value)}
                     required
                     rows={5}
-                    className="bg-white border-gray-300 text-gray-800 placeholder-gray-500"
+                    className={`${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'}`}
                     placeholder="Tell us how we can help you..."
                   />
                 </div>
@@ -250,9 +250,9 @@ const ContactUs = () => {
           {/* Business Hours & Additional Info */}
           <div className="space-y-6">
             {/* Business Hours */}
-            <Card className="bg-white border border-gray-200">
+            <Card className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-gray-800">
+                <CardTitle className={`flex items-center space-x-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
                   <Clock className="w-5 h-5" />
                   <span>Business Hours</span>
                 </CardTitle>
@@ -261,13 +261,13 @@ const ContactUs = () => {
                 <div className="space-y-3">
                   {businessHours.map((schedule, index) => (
                     <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
-                      <span className="font-medium text-gray-800">{schedule.day}</span>
-                      <span className="text-sm text-gray-600">{schedule.hours}</span>
+                      <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{schedule.day}</span>
+                      <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{schedule.hours}</span>
                     </div>
                   ))}
                 </div>
                 <div className="mt-4 p-3 bg-quicklymart-orange-100 rounded-lg">
-                  <p className="text-sm text-quicklymart-orange-800">
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                     <strong>Note:</strong> Customer support is available 24/7 for urgent issues.
                   </p>
                 </div>
@@ -275,9 +275,9 @@ const ContactUs = () => {
             </Card>
 
             {/* Office Location */}
-            <Card className="bg-white border border-gray-200">
+            <Card className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-gray-800">
+                <CardTitle className={`flex items-center space-x-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
                   <MapPin className="w-5 h-5" />
                   <span>Office Location</span>
                 </CardTitle>
@@ -285,8 +285,8 @@ const ContactUs = () => {
               <CardContent>
                 <div className="space-y-3">
                   <div className="space-y-2">
-                    <p className="text-gray-600">
-                      <strong className="text-gray-800">QuicklyMart Headquarters</strong><br />
+                    <p className={`text-gray-600 ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>
+                      <strong className={`text-gray-800 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>QuicklyMart Headquarters</strong><br />
                       123 Food Street<br />
                       Park Street Area<br />
                       Kolkata, West Bengal 700001<br />
@@ -302,26 +302,26 @@ const ContactUs = () => {
             </Card>
 
             {/* Response Time */}
-            <Card className="bg-white border border-gray-200">
+            <Card className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
               <CardHeader>
-                <CardTitle className="text-gray-800">Response Time</CardTitle>
+                <CardTitle className={`text-gray-800 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Response Time</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-800">Phone Support</span>
+                    <span className={`text-gray-800 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Phone Support</span>
                     <Badge className="bg-green-600">Immediate</Badge>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-800">Live Chat</span>
+                    <span className={`text-gray-800 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Live Chat</span>
                     <Badge className="bg-green-600">Within 2 min</Badge>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-800">Email Support</span>
+                    <span className={`text-gray-800 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Email Support</span>
                     <Badge className="bg-yellow-600">Within 24 hours</Badge>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-800">Contact Form</span>
+                    <span className={`text-gray-800 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Contact Form</span>
                     <Badge className="bg-yellow-600">Within 24 hours</Badge>
                   </div>
                 </div>
@@ -332,18 +332,18 @@ const ContactUs = () => {
 
         {/* Emergency Contact */}
         <div className="mt-8">
-          <Card className="bg-red-50 border border-red-200">
+          <Card className={`${isDarkMode ? 'bg-red-900 border-red-800' : 'bg-red-50 border-red-200'}`}>
             <CardContent className="p-6 text-center">
-              <h3 className="text-lg font-semibold mb-2 text-red-800">Emergency Support</h3>
-              <p className="text-red-700 mb-4">
+              <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-red-800'}`}>Emergency Support</h3>
+              <p className={`text-red-700 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-4`}>
                 For urgent issues like food safety concerns or delivery emergencies
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button className="bg-red-600 hover:bg-red-700">
+                <Button className={`${isDarkMode ? 'bg-red-800 hover:bg-red-900' : 'bg-red-600 hover:bg-red-700'}`}>
                   <Phone className="w-4 h-4 mr-2" />
                   Emergency Hotline: +91 98765 43211
                 </Button>
-                <Button variant="outline" className="border-red-500 text-red-600 hover:bg-red-600 hover:text-white">
+                <Button variant="outline" className={`${isDarkMode ? 'border-red-800 text-red-800 hover:bg-red-800 hover:text-white' : 'border-red-500 text-red-600 hover:bg-red-600 hover:text-white'}`}>
                   <MessageCircle className="w-4 h-4 mr-2" />
                   Emergency Chat
                 </Button>

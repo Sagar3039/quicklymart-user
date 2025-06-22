@@ -122,28 +122,28 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-white">
+    <div className="min-h-screen bg-white text-gray-800">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-indigo-900/95 dark:bg-gray-900/95 backdrop-blur-md">
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white"
+                className="text-gray-600 hover:text-orange-500"
                 onClick={() => navigate('/')}
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              <h1 className="text-white font-bold text-lg">Profile</h1>
+              <h1 className="text-gray-800 font-bold text-lg">Profile</h1>
             </div>
             {isEditing ? (
               <div className="flex space-x-2">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-white bg-gray-800/50 rounded-full w-10 h-10"
+                  className="text-gray-600 hover:text-orange-500 bg-gray-100 rounded-full w-10 h-10"
                   onClick={toggleDarkMode}
                   title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
                 >
@@ -152,7 +152,7 @@ const Profile = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-white"
+                  className="text-gray-600 hover:text-orange-500"
                   onClick={handleCancel}
                   disabled={isLoading}
                 >
@@ -161,7 +161,7 @@ const Profile = () => {
                 </Button>
                 <Button
                   size="sm"
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-orange-500 hover:bg-orange-600 text-white"
                   onClick={handleSave}
                   disabled={isLoading}
                 >
@@ -174,7 +174,7 @@ const Profile = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-white bg-gray-800/50 rounded-full w-10 h-10"
+                  className="text-gray-600 hover:text-orange-500 bg-gray-100 rounded-full w-10 h-10"
                   onClick={toggleDarkMode}
                   title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
                 >
@@ -183,7 +183,7 @@ const Profile = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-white"
+                  className="text-gray-600 hover:text-orange-500"
                   onClick={() => setIsEditing(true)}
                 >
                   <Edit className="w-4 h-4 mr-1" />
@@ -198,157 +198,107 @@ const Profile = () => {
       {/* Profile Content */}
       <div className="container mx-auto px-4 py-6">
         {/* Profile Picture Section */}
-        <Card className="bg-white/5 backdrop-blur-md border-gray-700 mb-6">
+        <Card className="bg-white border border-gray-200 shadow-sm mb-6">
           <CardContent className="p-6">
-            <div className="flex flex-col items-center space-y-4">
-              <div className="relative">
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                  {user.displayName ? user.displayName.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase()}
-                </div>
+            <div className="flex items-center space-x-4">
+              <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center">
+                <User className="w-10 h-10 text-orange-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">{formData.displayName || 'User'}</h2>
+                <p className="text-gray-600">{formData.email}</p>
                 {isEditing && (
-                  <Button
-                    size="icon"
-                    className="absolute -bottom-2 -right-2 bg-blue-600 hover:bg-blue-700 rounded-full w-8 h-8"
-                  >
-                    <Camera className="w-4 h-4" />
+                  <Button variant="ghost" size="sm" className="mt-2 text-orange-500 hover:text-orange-600">
+                    <Camera className="w-4 h-4 mr-1" />
+                    Change Photo
                   </Button>
                 )}
-              </div>
-              <div className="text-center">
-                <h2 className="text-xl font-bold">
-                  {isEditing ? (
-                    <Input
-                      value={formData.displayName}
-                      onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                      className="text-center bg-transparent border-none text-xl font-bold"
-                      placeholder="Enter your name"
-                    />
-                  ) : (
-                    user.displayName || 'User'
-                  )}
-                </h2>
-                <p className="text-gray-300 text-sm">{user.email}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Profile Details */}
-        <Card className="bg-white/5 backdrop-blur-md border-gray-700">
+        {/* Profile Form */}
+        <Card className="bg-white border border-gray-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-white">Personal Information</CardTitle>
+            <CardTitle className="text-gray-800">Personal Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-gray-300">Full Name</Label>
-              {isEditing ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="displayName" className="text-gray-700">Full Name</Label>
                 <Input
+                  id="displayName"
                   value={formData.displayName}
                   onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                  className="bg-white/10 border-gray-600 text-white"
-                  placeholder="Enter your full name"
+                  disabled={!isEditing}
+                  className="mt-1"
                 />
-              ) : (
-                <div className="flex items-center space-x-2 p-3 bg-white/5 rounded-lg">
-                  <User className="w-4 h-4 text-gray-400" />
-                  <span>{user.displayName || 'Not set'}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-gray-300">Email</Label>
-              <div className="flex items-center space-x-2 p-3 bg-white/5 rounded-lg">
-                <Mail className="w-4 h-4 text-gray-400" />
-                <span>{user.email}</span>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-gray-300">Phone Number</Label>
-              {isEditing ? (
+              <div>
+                <Label htmlFor="email" className="text-gray-700">Email</Label>
                 <Input
+                  id="email"
+                  value={formData.email}
+                  disabled
+                  className="mt-1 bg-gray-50"
+                />
+              </div>
+              <div>
+                <Label htmlFor="phone" className="text-gray-700">Phone Number</Label>
+                <Input
+                  id="phone"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="bg-white/10 border-gray-600 text-white"
-                  placeholder="Enter your phone number"
+                  disabled={!isEditing}
+                  className="mt-1"
                 />
-              ) : (
-                <div className="flex items-center space-x-2 p-3 bg-white/5 rounded-lg">
-                  <Phone className="w-4 h-4 text-gray-400" />
-                  <span>{formData.phone || 'Not set'}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-gray-300">Address</Label>
-              {isEditing ? (
-                <Input
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="bg-white/10 border-gray-600 text-white"
-                  placeholder="Enter your address"
-                />
-              ) : (
-                <div className="flex items-center space-x-2 p-3 bg-white/5 rounded-lg">
-                  <User className="w-4 h-4 text-gray-400" />
-                  <span>{formData.address || 'Not set'}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-gray-300">City</Label>
-                {isEditing ? (
-                  <Input
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="bg-white/10 border-gray-600 text-white"
-                    placeholder="Enter your city"
-                  />
-                ) : (
-                  <div className="flex items-center space-x-2 p-3 bg-white/5 rounded-lg">
-                    <User className="w-4 h-4 text-gray-400" />
-                    <span>{formData.city || 'Not set'}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-gray-300">State</Label>
-                {isEditing ? (
-                  <Input
-                    value={formData.state}
-                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                    className="bg-white/10 border-gray-600 text-white"
-                    placeholder="Enter your state"
-                  />
-                ) : (
-                  <div className="flex items-center space-x-2 p-3 bg-white/5 rounded-lg">
-                    <User className="w-4 h-4 text-gray-400" />
-                    <span>{formData.state || 'Not set'}</span>
-                  </div>
-                )}
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-gray-300">Pincode</Label>
-              {isEditing ? (
+            <div>
+              <Label htmlFor="address" className="text-gray-700">Address</Label>
+              <Input
+                id="address"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                disabled={!isEditing}
+                className="mt-1"
+                placeholder="Street address"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="city" className="text-gray-700">City</Label>
                 <Input
+                  id="city"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  disabled={!isEditing}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="state" className="text-gray-700">State</Label>
+                <Input
+                  id="state"
+                  value={formData.state}
+                  onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                  disabled={!isEditing}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="pincode" className="text-gray-700">Pincode</Label>
+                <Input
+                  id="pincode"
                   value={formData.pincode}
                   onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
-                  className="bg-white/10 border-gray-600 text-white"
-                  placeholder="Enter your pincode"
+                  disabled={!isEditing}
+                  className="mt-1"
                 />
-              ) : (
-                <div className="flex items-center space-x-2 p-3 bg-white/5 rounded-lg">
-                  <User className="w-4 h-4 text-gray-400" />
-                  <span>{formData.pincode || 'Not set'}</span>
-                </div>
-              )}
+              </div>
             </div>
           </CardContent>
         </Card>

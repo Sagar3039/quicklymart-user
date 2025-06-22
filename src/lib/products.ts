@@ -13,9 +13,22 @@ export interface Product {
   description: string;
   deliveryTime: string;
   inStock: boolean;
+  isVeg?: boolean;
   discount?: string;
   offer?: string;
   tags: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// Category interface
+export interface Category {
+  id?: string;
+  name: string;
+  icon: string;
+  category: string; // food, drinks, daily_essential
+  subcategory: string;
+  displayName: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -51,6 +64,33 @@ export const PRODUCT_SUBCATEGORIES = {
   HOUSEHOLD: 'household'
 };
 
+// Sample categories data
+export const SAMPLE_CATEGORIES: Category[] = [
+  // Food categories
+  { name: 'All', icon: '🌐', category: PRODUCT_CATEGORIES.FOOD, subcategory: 'all', displayName: 'All' },
+  { name: 'Pizzas', icon: '🍕', category: PRODUCT_CATEGORIES.FOOD, subcategory: PRODUCT_SUBCATEGORIES.PIZZAS, displayName: 'Pizzas' },
+  { name: 'Biryani', icon: '🍛', category: PRODUCT_CATEGORIES.FOOD, subcategory: PRODUCT_SUBCATEGORIES.BIRYANI, displayName: 'Biryani' },
+  { name: 'Chinese', icon: '🥡', category: PRODUCT_CATEGORIES.FOOD, subcategory: PRODUCT_SUBCATEGORIES.CHINESE, displayName: 'Chinese' },
+  { name: 'Burgers', icon: '🍔', category: PRODUCT_CATEGORIES.FOOD, subcategory: PRODUCT_SUBCATEGORIES.BURGERS, displayName: 'Burgers' },
+  { name: 'Indian', icon: '🍛', category: PRODUCT_CATEGORIES.FOOD, subcategory: PRODUCT_SUBCATEGORIES.INDIAN, displayName: 'Indian' },
+  { name: 'Desserts', icon: '🍰', category: PRODUCT_CATEGORIES.FOOD, subcategory: PRODUCT_SUBCATEGORIES.DESSERTS, displayName: 'Desserts' },
+  
+  // Drinks categories
+  { name: 'All', icon: '🌐', category: PRODUCT_CATEGORIES.DRINKS, subcategory: 'all', displayName: 'All' },
+  { name: 'Beer', icon: '🍺', category: PRODUCT_CATEGORIES.DRINKS, subcategory: PRODUCT_SUBCATEGORIES.BEER, displayName: 'Beer' },
+  { name: 'Wine', icon: '🍷', category: PRODUCT_CATEGORIES.DRINKS, subcategory: PRODUCT_SUBCATEGORIES.WINE, displayName: 'Wine' },
+  { name: 'Spirits', icon: '🥃', category: PRODUCT_CATEGORIES.DRINKS, subcategory: PRODUCT_SUBCATEGORIES.SPIRITS, displayName: 'Spirits' },
+  { name: 'Cocktails', icon: '🍹', category: PRODUCT_CATEGORIES.DRINKS, subcategory: PRODUCT_SUBCATEGORIES.COCKTAILS, displayName: 'Cocktails' },
+  
+  // Daily Essential categories
+  { name: 'All', icon: '🌐', category: PRODUCT_CATEGORIES.DAILY_ESSENTIAL, subcategory: 'all', displayName: 'All' },
+  { name: 'Staples', icon: '🛒', category: PRODUCT_CATEGORIES.DAILY_ESSENTIAL, subcategory: PRODUCT_SUBCATEGORIES.STAPLES, displayName: 'Staples' },
+  { name: 'Snacks', icon: '🍿', category: PRODUCT_CATEGORIES.DAILY_ESSENTIAL, subcategory: PRODUCT_SUBCATEGORIES.SNACKS, displayName: 'Snacks' },
+  { name: 'Beverages', icon: '🥤', category: PRODUCT_CATEGORIES.DAILY_ESSENTIAL, subcategory: PRODUCT_SUBCATEGORIES.BEVERAGES, displayName: 'Beverages' },
+  { name: 'Personal Care', icon: '🧴', category: PRODUCT_CATEGORIES.DAILY_ESSENTIAL, subcategory: PRODUCT_SUBCATEGORIES.PERSONAL_CARE, displayName: 'Personal Care' },
+  { name: 'Household', icon: '🏠', category: PRODUCT_CATEGORIES.DAILY_ESSENTIAL, subcategory: PRODUCT_SUBCATEGORIES.HOUSEHOLD, displayName: 'Household' }
+];
+
 // Sample product data for all categories
 export const SAMPLE_PRODUCTS: Product[] = [
   // Food Products
@@ -64,6 +104,7 @@ export const SAMPLE_PRODUCTS: Product[] = [
     description: 'Delicious pizza with fresh toppings',
     deliveryTime: '20-25 mins',
     inStock: true,
+    isVeg: false,
     discount: '20% OFF',
     tags: ['pizza', 'italian', 'cheese', 'tomato']
   },
@@ -77,6 +118,7 @@ export const SAMPLE_PRODUCTS: Product[] = [
     description: 'Aromatic biryani with tender meat',
     deliveryTime: '25-30 mins',
     inStock: true,
+    isVeg: false,
     offer: 'BUY1 GET1',
     tags: ['biryani', 'rice', 'spicy', 'indian']
   },
@@ -90,6 +132,7 @@ export const SAMPLE_PRODUCTS: Product[] = [
     description: 'Stir-fried noodles with vegetables',
     deliveryTime: '15-20 mins',
     inStock: true,
+    isVeg: true,
     tags: ['noodles', 'chinese', 'vegetarian', 'stir-fry']
   },
   {
@@ -102,6 +145,7 @@ export const SAMPLE_PRODUCTS: Product[] = [
     description: 'Juicy beef burger with fresh vegetables',
     deliveryTime: '18-22 mins',
     inStock: true,
+    isVeg: false,
     discount: '15% OFF',
     tags: ['burger', 'beef', 'fast-food', 'american']
   },
@@ -115,6 +159,7 @@ export const SAMPLE_PRODUCTS: Product[] = [
     description: 'Creamy butter chicken with naan',
     deliveryTime: '30-35 mins',
     inStock: true,
+    isVeg: false,
     tags: ['chicken', 'indian', 'curry', 'butter']
   },
   {
@@ -127,6 +172,7 @@ export const SAMPLE_PRODUCTS: Product[] = [
     description: 'Rich chocolate cake with cream',
     deliveryTime: '20-25 mins',
     inStock: true,
+    isVeg: true,
     tags: ['cake', 'chocolate', 'dessert', 'sweet']
   },
 
@@ -245,6 +291,55 @@ export const SAMPLE_PRODUCTS: Product[] = [
   }
 ];
 
+// Initialize categories in Firestore
+export const initializeCategories = async () => {
+  try {
+    const categoriesRef = collection(db, 'categories');
+    const querySnapshot = await getDocs(categoriesRef);
+    
+    // Only add categories if the collection is empty
+    if (querySnapshot.empty) {
+      const addPromises = SAMPLE_CATEGORIES.map(category => 
+        addDoc(categoriesRef, {
+          ...category,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+      );
+      
+      await Promise.all(addPromises);
+      console.log('Categories initialized successfully');
+    }
+  } catch (error) {
+    console.error('Error initializing categories:', error);
+  }
+};
+
+// Get categories by product category (food, drinks, daily_essential)
+export const getCategoriesByProductCategory = async (productCategory: string): Promise<Category[]> => {
+  try {
+    const categoriesRef = collection(db, 'categories');
+    const q = query(categoriesRef, where('category', '==', productCategory));
+    const querySnapshot = await getDocs(q);
+    
+    const categories: Category[] = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data() as DocumentData;
+      const category = { id: doc.id, ...data } as Category;
+      categories.push(category);
+    });
+    
+    // Sort categories by name in JavaScript instead of Firestore
+    categories.sort((a, b) => a.name.localeCompare(b.name));
+    
+    return categories;
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    // Fallback to sample categories if Firebase fails
+    return SAMPLE_CATEGORIES.filter(cat => cat.category === productCategory);
+  }
+};
+
 // Initialize products in Firestore
 export const initializeProducts = async () => {
   try {
@@ -333,4 +428,128 @@ export const getProductsBySubcategory = async (category, subcategory) => {
 // Get all products
 export const getAllProducts = async () => {
   return await searchProducts('');
+};
+
+// Sync missing subcategories from products to categories collection
+export const syncMissingSubcategories = async () => {
+  try {
+    // Get all products
+    const productsRef = collection(db, 'products');
+    const productsSnapshot = await getDocs(productsRef);
+    
+    // Get all categories
+    const categoriesRef = collection(db, 'categories');
+    const categoriesSnapshot = await getDocs(categoriesRef);
+    
+    // Create a map of existing categories using a more robust key
+    const existingCategories = new Map();
+    categoriesSnapshot.forEach((doc) => {
+      const data = doc.data();
+      // Use a case-insensitive key to prevent duplicates
+      const key = `${data.category?.toLowerCase()}-${data.subcategory?.toLowerCase()}`;
+      existingCategories.set(key, data);
+    });
+    
+    // Find missing subcategories
+    const missingSubcategories: any[] = [];
+    const subcategoryIcons: { [key: string]: string } = {
+      // Food subcategories
+      'pizzas': '🍕',
+      'burgers': '🍔',
+      'biryani': '🍛',
+      'chinese': '🥡',
+      'indian': '🍛',
+      'desserts': '🍰',
+      'momo': '🥟',
+      'vindi': '🥦',
+      'sandwiches': '🥪',
+      'noodles': '🍜',
+      'rice': '🍚',
+      'curry': '🍛',
+      'breads': '🥖',
+      'soups': '🍲',
+      'salads': '🥗',
+      'wraps': '🌯',
+      'tacos': '🌮',
+      'sushi': '🍣',
+      'pasta': '🍝',
+      
+      // Drinks subcategories
+      'beer': '🍺',
+      'wine': '🍷',
+      'spirits': '🥃',
+      'cocktails': '🍹',
+      'juice': '🧃',
+      'soda': '🥤',
+      'coffee': '☕',
+      'tea': '🫖',
+      'smoothies': '🥤',
+      'milkshakes': '🥤',
+      'energy_drinks': '⚡',
+      
+      // Daily Essential subcategories
+      'staples': '🛒',
+      'snacks': '🍿',
+      'beverages': '🥤',
+      'personal_care': '🧴',
+      'personal care': '🧴',
+      'household': '🏠',
+      'fruits': '🍎',
+      'vegetables': '🥬',
+      'dairy': '🥛',
+      'meat': '🥩',
+      'frozen': '🧊',
+      'canned': '🥫',
+      'bakery': '🥖',
+      'condiments': '🧂',
+      'spices': '🌶️',
+      'oils': '🫗',
+      'grains': '🌾',
+      'pulses': '🫘',
+      'nuts': '🥜',
+      'chocolates': '🍫',
+      'candies': '🍬'
+    };
+    
+    productsSnapshot.forEach((doc) => {
+      const product = doc.data();
+      if (!product.subcategory || product.subcategory === 'all') return;
+      
+      // Use case-insensitive key
+      const key = `${product.category?.toLowerCase()}-${product.subcategory?.toLowerCase()}`;
+      
+      if (!existingCategories.has(key)) {
+        const icon = subcategoryIcons[product.subcategory.toLowerCase()] || '📦';
+        const displayName = product.subcategory.charAt(0).toUpperCase() + product.subcategory.slice(1);
+        
+        missingSubcategories.push({
+          name: displayName,
+          icon: icon,
+          category: product.category,
+          subcategory: product.subcategory.toLowerCase(),
+          displayName: displayName,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      }
+    });
+    
+    // Add missing subcategories to Firestore
+    if (missingSubcategories.length > 0) {
+      console.log('Adding missing subcategories:', missingSubcategories);
+      const addPromises = missingSubcategories.map(subcategory => 
+        addDoc(categoriesRef, subcategory)
+      );
+      
+      await Promise.all(addPromises);
+      console.log(`Added ${missingSubcategories.length} missing subcategories to Firestore`);
+    } else {
+      console.log('No missing subcategories found');
+    }
+    
+    return missingSubcategories;
+  } catch (error) {
+    console.error('Error syncing missing subcategories:', error);
+    return [];
+  }
 }; 

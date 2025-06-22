@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Home, Briefcase, Send, CreditCard, Landmark, Wallet, ArrowLeft, ArrowRight, Moon, Sun } from 'lucide-react';
+import { Home, Briefcase, Send, CreditCard, Landmark, Wallet, ArrowLeft, ArrowRight, Moon, Sun, X } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, DocumentData } from 'firebase/firestore';
 import { toast } from '@/components/ui/sonner';
@@ -136,29 +136,29 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
         return (
           <div className="space-y-4">
             <div className="text-center">
-              <DialogTitle className="text-xl font-bold mb-2 text-gray-800 dark:text-white">Select Delivery Address</DialogTitle>
-              <DialogDescription className="text-gray-600 dark:text-gray-400">Choose where you'd like your order delivered</DialogDescription>
+              <DialogTitle className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Select Delivery Address</DialogTitle>
+              <DialogDescription className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Choose where you'd like your order delivered</DialogDescription>
             </div>
             
             {isLoading ? (
               <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
               </div>
             ) : (
               <RadioGroup value={selectedAddress?.id} onValueChange={(id) => setSelectedAddress(addresses.find(a => a.id === id) || null)}>
                 <div className="space-y-3 max-h-80 overflow-y-auto">
                   {addresses.map(address => (
-                    <Label key={address.id} htmlFor={address.id} className="flex items-start space-x-3 p-4 border dark:border-gray-700 rounded-xl cursor-pointer hover:border-green-500 transition-colors bg-white dark:bg-gray-700">
+                    <Label key={address.id} htmlFor={address.id} className={`flex items-start space-x-3 p-4 border rounded-xl cursor-pointer hover:border-orange-500 transition-colors ${isDarkMode ? 'border-gray-700 bg-gray-700' : 'border-gray-200 bg-white'}`}>
                       <RadioGroupItem value={address.id} id={address.id} className="mt-1" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-2">
                           {getAddressIcon(address.type)}
-                          <h3 className="font-semibold capitalize text-gray-900 dark:text-white">{address.type}</h3>
+                          <h3 className={`font-semibold capitalize ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{address.type}</h3>
                           {address.isDefault && (
-                            <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs px-2 py-1 rounded-full">Default</span>
+                            <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">Default</span>
                           )}
                         </div>
-                        <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">{`${address.name}, ${address.address}, ${address.city}, ${address.state} - ${address.pincode}`}</p>
+                        <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{`${address.name}, ${address.address}, ${address.city}, ${address.state} - ${address.pincode}`}</p>
                       </div>
                     </Label>
                   ))}
@@ -168,8 +168,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
             
             {addresses.length === 0 && !isLoading && (
               <div className="text-center py-8">
-                <p className="text-gray-500 dark:text-gray-400 mb-4">No addresses found</p>
-                <Button variant="outline" onClick={() => window.location.href = '/address'}>
+                <p className={`mb-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>No addresses found</p>
+                <Button variant="outline" onClick={() => window.location.href = '/address'} className="border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white">
                   Add New Address
                 </Button>
               </div>
@@ -180,37 +180,37 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <DialogTitle className="text-xl font-bold mb-2 text-gray-800 dark:text-white">Payment & Tip</DialogTitle>
-              <DialogDescription className="text-gray-600 dark:text-gray-400">Choose your payment method and add a tip</DialogDescription>
+              <DialogTitle className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Payment & Tip</DialogTitle>
+              <DialogDescription className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Choose your payment method and add a tip</DialogDescription>
             </div>
             
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-3 text-lg">Payment Method</h4>
+                <h4 className={`font-semibold mb-3 text-lg ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Payment Method</h4>
                 <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
                   <div className="space-y-3">
-                    <Label htmlFor="cod" className="flex items-center space-x-4 p-4 border dark:border-gray-700 rounded-xl cursor-pointer hover:border-green-500 transition-colors bg-white dark:bg-gray-700">
+                    <Label htmlFor="cod" className={`flex items-center space-x-4 p-4 border rounded-xl cursor-pointer hover:border-orange-500 transition-colors ${isDarkMode ? 'border-gray-700 bg-gray-700' : 'border-gray-200 bg-white'}`}>
                       <RadioGroupItem value="cod" id="cod" />
-                      <Wallet className="w-6 h-6 text-green-600" />
+                      <Wallet className="w-6 h-6 text-orange-500" />
                       <div>
-                        <span className="font-medium text-gray-800 dark:text-white">Cash on Delivery</span>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Pay when you receive your order</p>
+                        <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Cash on Delivery</span>
+                        <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Pay when you receive your order</p>
                       </div>
                     </Label>
-                    <Label htmlFor="upi" className="flex items-center space-x-4 p-4 border dark:border-gray-700 rounded-xl cursor-pointer hover:border-green-500 transition-colors bg-white dark:bg-gray-700">
+                    <Label htmlFor="upi" className={`flex items-center space-x-4 p-4 border rounded-xl cursor-pointer hover:border-orange-500 transition-colors ${isDarkMode ? 'border-gray-700 bg-gray-700' : 'border-gray-200 bg-white'}`}>
                       <RadioGroupItem value="upi" id="upi" />
-                      <Landmark className="w-6 h-6 text-blue-600" />
+                      <Landmark className="w-6 h-6 text-orange-500" />
                       <div>
-                        <span className="font-medium text-gray-800 dark:text-white">UPI</span>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Pay using UPI apps</p>
+                        <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>UPI</span>
+                        <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Pay using UPI apps</p>
                       </div>
                     </Label>
-                    <Label htmlFor="card" className="flex items-center space-x-4 p-4 border dark:border-gray-700 rounded-xl cursor-pointer hover:border-green-500 transition-colors bg-white dark:bg-gray-700">
+                    <Label htmlFor="card" className={`flex items-center space-x-4 p-4 border rounded-xl cursor-pointer hover:border-orange-500 transition-colors ${isDarkMode ? 'border-gray-700 bg-gray-700' : 'border-gray-200 bg-white'}`}>
                       <RadioGroupItem value="card" id="card" />
-                      <CreditCard className="w-6 h-6 text-purple-600" />
+                      <CreditCard className="w-6 h-6 text-orange-500" />
                       <div>
-                        <span className="font-medium text-gray-800 dark:text-white">Credit/Debit Card</span>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Pay with your card</p>
+                        <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Credit/Debit Card</span>
+                        <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Pay with your card</p>
                       </div>
                     </Label>
                   </div>
@@ -218,15 +218,15 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
               </div>
               
               <div className="space-y-3">
-                <h4 className="font-semibold text-gray-900 dark:text-white text-lg">Add a Tip</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Show appreciation to your delivery partner</p>
+                <h4 className={`font-semibold text-lg ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Add a Tip</h4>
+                <p className={`text-sm mb-3 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Show appreciation to your delivery partner</p>
                 <div className="grid grid-cols-3 gap-3 mb-3">
                   {[10, 20, 50].map(amount => (
                     <Button 
                       key={amount} 
                       variant={tip === amount ? 'default' : 'outline'} 
                       onClick={() => handleTipSelect(amount)}
-                      className="h-12 text-base"
+                      className={`h-12 text-base ${tip === amount ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white'}`}
                     >
                       ₹{amount}
                     </Button>
@@ -238,9 +238,9 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
                     placeholder="Custom amount"
                     value={customTip}
                     onChange={handleCustomTipChange}
-                    className="flex-1 h-12 text-base dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                    className={`flex-1 h-12 text-base ${isDarkMode ? 'bg-gray-700 text-white border-gray-600 placeholder-gray-400' : 'bg-white text-gray-900 border-gray-300'}`}
                   />
-                  <span className="text-gray-500 dark:text-gray-400 text-sm">₹</span>
+                  <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>₹</span>
                 </div>
               </div>
             </div>
@@ -253,71 +253,65 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md w-[95vw] max-h-[90vh] p-0 sm:p-6 bg-white dark:bg-gray-800">
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <DialogHeader className="px-4 pt-4 pb-2 sm:px-0 sm:pt-0 sm:pb-4 border-b dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={onClose}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 sm:hidden"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <DialogDescription className="text-center flex-1 sm:text-left text-gray-600 dark:text-gray-400">Complete your order</DialogDescription>
-              <div className="w-10 sm:hidden"></div>
+      <DialogContent className={`max-w-2xl ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <DialogHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                Checkout
+              </DialogTitle>
+              <DialogDescription className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
+                Step {step} of 2
+              </DialogDescription>
             </div>
-          </DialogHeader>
-
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto px-4 sm:px-0">
-            {renderStepContent()}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleDarkMode}
+              className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}
+            >
+              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </Button>
           </div>
+        </DialogHeader>
 
-          {/* Footer */}
-          <div className="border-t dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-4 sm:px-0 sm:py-0 sm:border-t-0 sm:mt-6">
-            <div className="flex flex-col space-y-4 sm:flex-row sm:justify-between sm:items-center sm:space-y-0">
-              <div className="text-center sm:text-left">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total Amount</p>
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400">₹{finalTotal.toFixed(2)}</p>
-                {deliveryFee > 0 && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Includes ₹{deliveryFee} delivery fee</p>
-                )}
-              </div>
-              
-              <div className="flex space-x-3">
-                {step === 1 && (
-                  <Button 
-                    onClick={() => setStep(2)} 
-                    disabled={!selectedAddress}
-                    className="flex-1 sm:flex-none"
-                    size="lg"
-                  >
-                    Next
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                )}
-                {step === 2 && (
-                  <>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setStep(1)}
-                      className="flex-1 sm:flex-none"
-                      size="lg"
-                    >
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Back
-                    </Button>
-                    <Button 
-                      onClick={handleConfirmOrder}
-                      className="flex-1 sm:flex-none"
-                      size="lg"
-                    >
-                      Confirm Order
-                    </Button>
-                  </>
-                )}
-              </div>
+        <div className="py-6">
+          {renderStepContent()}
+        </div>
+
+        <div className={`border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} pt-4`}>
+          <div className="flex justify-between items-center">
+            <div className="text-right">
+              <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total: <span className="text-orange-500 font-bold text-lg">₹{finalTotal.toFixed(2)}</span></p>
+            </div>
+            <div className="flex space-x-3">
+              {step > 1 && (
+                <Button
+                  variant="outline"
+                  onClick={() => setStep(step - 1)}
+                  className={`${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+              )}
+              {step < 2 ? (
+                <Button
+                  onClick={() => setStep(step + 1)}
+                  disabled={!selectedAddress}
+                  className="bg-orange-500 hover:bg-orange-600 text-white"
+                >
+                  Continue
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleConfirmOrder}
+                  className="bg-orange-500 hover:bg-orange-600 text-white"
+                >
+                  Place Order
+                </Button>
+              )}
             </div>
           </div>
         </div>
