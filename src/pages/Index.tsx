@@ -502,7 +502,7 @@ const QuicklyMart = () => {
       </header>
       
       {/* --- Mobile Header --- */}
-      <header className="md:hidden sticky top-0 z-50 bg-indigo-900/95 dark:bg-gray-900/95 backdrop-blur-md">
+      <header className="md:hidden sticky top-0 z-50   dark:bg-gray-900/95 backdrop-blur-md">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
@@ -511,10 +511,10 @@ const QuicklyMart = () => {
                 className="flex items-center space-x-2 text-left h-auto p-1 rounded-md max-w-[200px] sm:max-w-[250px]"
                 onClick={() => navigate('/address')}
               >
-                <MapPin className="w-6 h-6 flex-shrink-0 text-white" />
+                <MapPin className="w-7 h-7 flex-shrink-0 text-orange-500 text-bold" />
                 <div className="min-w-0 flex-1">
-                  <h1 className="text-white font-bold text-lg truncate">Your Location</h1>
-                  <p className="text-gray-300 text-xs truncate">{getDisplayLocation()}</p>
+                  <h3 className="text-black font-bold text-lg truncate">{getDisplayLocation()}</h3>
+                  {/* <p className="text-gray-300 text-xs truncate">{getDisplayLocation()}</p> */}
                 </div>
               </Button>
             </div>
@@ -861,7 +861,7 @@ const QuicklyMart = () => {
             className={`flex flex-col items-center justify-center space-y-1 ${activeBottomNav === 'food' ? 'text-quicklymart-orange-500' : 'text-gray-400 hover:text-white'}`}
             onClick={() => handleFoodClick('all')}
           >
-            <span className="text-2xl">🍜</span>
+            <span className="text-2xl">🥪</span>
             <span className="text-xs font-medium">Food</span>
           </button>
           <button 
