@@ -341,28 +341,28 @@ export const getCategoriesByProductCategory = async (productCategory: string): P
 };
 
 // Initialize products in Firestore
-// export const initializeProducts = async () => {
-//   try {
-//     const productsRef = collection(db, 'products');
-//     const querySnapshot = await getDocs(productsRef);
+export const initializeProducts = async () => {
+  try {
+    const productsRef = collection(db, 'products');
+    const querySnapshot = await getDocs(productsRef);
     
-//     // Only add products if the collection is empty
-//     if (querySnapshot.empty) {
-//       const addPromises = SAMPLE_PRODUCTS.map(product => 
-//         addDoc(productsRef, {
-//           ...product,
-//           createdAt: new Date(),
-//           updatedAt: new Date()
-//         })
-//       );
+    // Only add products if the collection is empty
+    if (querySnapshot.empty) {
+      const addPromises = SAMPLE_PRODUCTS.map(product => 
+        addDoc(productsRef, {
+          ...product,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+      );
       
-//       await Promise.all(addPromises);
-//       console.log('Products initialized successfully');
-//     }
-//   } catch (error) {
-//     console.error('Error initializing products:', error);
-//   }
-// };
+      await Promise.all(addPromises);
+      console.log('Products initialized successfully');
+    }
+  } catch (error) {
+    console.error('Error initializing products:', error);
+  }
+};
 
 // Search products
 export const searchProducts = async (searchQuery: string, category: string | null = null, subcategory: string | null = null): Promise<Product[]> => {
@@ -398,7 +398,7 @@ export const searchProducts = async (searchQuery: string, category: string | nul
       if (!searchQuery || 
           product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))) {
+          (product.tags && product.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))) {
         products.push(product);
       }
     });
@@ -586,5 +586,77 @@ export const getTopBoughtProducts = async (topN = 4) => {
   } catch (error) {
     console.error('Error fetching top bought products:', error);
     return [];
+  }
+};
+
+// Check if products exist and initialize if needed
+export const checkAndInitializeProducts = async () => {
+  try {
+    console.log('Checking if products exist in database...');
+    const productsRef = collection(db, 'products');
+    const snapshot = await getDocs(productsRef);
+    
+    if (snapshot.empty) {
+      console.log('No products found in database, initializing...');
+      await initializeProducts();
+    } else {
+      console.log('Found', snapshot.size, 'products in database');
+    }
+  } catch (error) {
+    console.error('Error checking products:', error);
+  }
+};
+
+// Test function to verify search functionality
+export const testSearchFunctionality = async () => {
+  try {
+    console.log('Testing search functionality...');
+    
+    // Test 1: Search with empty query
+    const allProducts = await searchProducts('');
+    console.log('Test 1 - Empty query results:', allProducts.length);
+    
+    // Test 2: Search for food category
+    const foodProducts = await searchProducts('', PRODUCT_CATEGORIES.FOOD);
+    console.log('Test 2 - Food category results:', foodProducts.length);
+    
+    // Test 3: Search with text query
+    const pizzaProducts = await searchProducts('pizza');
+    console.log('Test 3 - Pizza search results:', pizzaProducts.length);
+    
+    // Test 4: Search with category and text
+    const foodPizzaProducts = await searchProducts('pizza', PRODUCT_CATEGORIES.FOOD);
+    console.log('Test 4 - Food + pizza search results:', foodPizzaProducts.length);
+    
+    return {
+      allProducts: allProducts.length,
+      foodProducts: foodProducts.length,
+      pizzaProducts: pizzaProducts.length,
+      foodPizzaProducts: foodPizzaProducts.length
+    };
+  } catch (error) {
+    console.error('Test search functionality error:', error);
+    return null;
+  }
+};
+
+// Test Firebase connection
+export const testFirebaseConnection = async () => {
+  try {
+    console.log('Testing Firebase connection...');
+    const productsRef = collection(db, 'products');
+    const snapshot = await getDocs(productsRef);
+    console.log('Firebase connection successful. Products in database:', snapshot.size);
+    return {
+      success: true,
+      productCount: snapshot.size,
+      empty: snapshot.empty
+    };
+  } catch (error) {
+    console.error('Firebase connection test failed:', error);
+    return {
+      success: false,
+      error: error.message
+    };
   }
 }; 

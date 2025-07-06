@@ -1,18 +1,20 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Star, Heart, Mic, ArrowLeft, Moon, Sun, ShoppingCart, Filter, Plus, Minus, MoreVertical, Trash2, X } from 'lucide-react';
+import { Search, Star, Heart, Mic, ArrowLeft, Moon, Sun, ShoppingCart, Filter, Plus, Minus, MoreVertical, Trash2, X, MapPin, Menu, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { toast, Toaster } from 'sonner';
+import { toast } from '@/components/ui/sonner';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ProductQuickView from '@/components/ProductQuickView';
 import AgeVerificationModal from '@/components/AgeVerificationModal';
 import { getProductsByCategory, getCategoriesByProductCategory, PRODUCT_CATEGORIES, type Product, type Category } from '@/lib/products';
 import { useTheme } from '@/App';
+import { useCart } from '@/contexts/CartContext';
+import CartPopup from '@/components/CartPopup';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import CheckoutModal from '@/components/CheckoutModal';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, getDoc, doc, updateDoc } from 'firebase/firestore';
 import { db, retryOperation } from '@/lib/firebase';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +27,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import CartBar from '@/components/CartBar';
+import UniversalSearch from '@/components/UniversalSearch';
+import LocationPicker from '@/components/LocationPicker';
+import { useBanCheck } from '@/hooks/useBanCheck';
 
 interface CartItem extends Product {
   quantity: number;
@@ -55,7 +60,8 @@ const Drinks = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [cart, setCart] = useState<any[]>([]);
+  const { cart, addToCart, updateCartQuantity, removeFromCart, clearCart, getTotalItems, getTotalPrice, isCartPopupOpen, setIsCartPopupOpen } = useCart();
+  const { banStatus } = useBanCheck();
   const [isAgeVerified, setIsAgeVerified] = useState(false);
   const [showAgeModal, setShowAgeModal] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -67,6 +73,10 @@ const Drinks = () => {
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [sortOption, setSortOption] = useState('relevance');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number; address: string } | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
   const filteredAndSortedProducts = useMemo(() => {
     let results = [...products];
@@ -117,48 +127,12 @@ const Drinks = () => {
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
   const cartTotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
 
-  const addToCart = (product: Product) => {
+  const handleAddToCart = (product: Product) => {
     if (!isAgeVerified) {
       setShowAgeModal(true);
       return;
     }
-    setCart(prevCart => {
-      const existingIndex = prevCart.findIndex(item => item.id === product.id);
-      if (existingIndex !== -1) {
-        // Increment quantity
-        return prevCart.map((item, idx) =>
-          idx === existingIndex
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-        );
-    } else {
-        // Add new item
-        return [...prevCart, { ...product, quantity: 1 }];
-    }
-    });
-    toast.success(`${product.name} added to cart!`);
-  };
-
-  const removeFromCart = (productId: string) => {
-    setCart(cart.filter(item => item.id !== productId));
-    toast.success('Item removed from cart!');
-  };
-
-  const updateCartItemQuantity = (productId: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(productId);
-      return;
-    }
-    setCart(cart.map(item => 
-      item.id === productId 
-        ? { ...item, quantity }
-        : item
-    ));
-  };
-
-  const clearCart = () => {
-    setCart([]);
-    toast.success('Cart cleared!');
+    addToCart(product);
   };
 
   const handleProductClick = (product: Product) => {
@@ -199,11 +173,7 @@ const Drinks = () => {
     loadCategories();
     loadProducts();
     
-    // Load cart from localStorage
-    const savedCart = localStorage.getItem('pickngo-cart');
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
-    }
+    // Cart is now managed by context
 
     // Check age verification status
     const ageVerified = localStorage.getItem('pickngo-age-verified');
@@ -225,85 +195,120 @@ const Drinks = () => {
   }, [cart]);
 
   const placeOrder = async (orderDetails) => {
-    const { address, paymentMethod, tip, finalTotal } = orderDetails;
+    const { address, paymentMethod, tip, finalTotal, location } = orderDetails;
+
+    // Check if user is banned
+    if (banStatus.isBanned) {
+      toast.error('Your account has been suspended. You cannot place orders.');
+      setShowCheckoutModal(false);
+      return;
+    }
 
     if (!user) {
       toast.error("Please log in to place an order.");
       return;
     }
 
-    // Show loading toast for location access
-    toast.loading("Getting your location for accurate delivery tracking...");
+    // Check for phone number in address
+    if (!address.phone || address.phone.trim() === "") {
+      toast.error("Please add a phone number to your address before placing the order.");
+      return;
+    }
 
-    // Get user's actual GPS location
+    // Use the selected location from the map or fallback to GPS
     let userLocation = null;
-    try {
-      if (navigator.geolocation) {
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 60000
-          });
-        });
-        
-        userLocation = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        };
-        
-        toast.dismiss();
-        toast.success("Location accessed successfully!");
-      } else {
-        throw new Error("Geolocation not supported");
-      }
-    } catch (error) {
-      console.error('Error getting location:', error);
-      toast.dismiss();
-      
-      if (error.code === 1) {
-        toast.error("Location access denied. Please enable location permissions for accurate tracking.");
-      } else if (error.code === 2) {
-        toast.error("Location unavailable. Please check your GPS settings.");
-      } else if (error.code === 3) {
-        toast.error("Location request timed out. Please try again.");
-      } else {
-        toast.error("Could not get your location. Using approximate location.");
-      }
-      
-      // Fallback to mock coordinates if location access fails
+    
+    if (location) {
+      // Use the location selected from the map
       userLocation = {
-        lat: 22.5726 + (Math.random() - 0.5) * 0.01,
-        lng: 88.3639 + (Math.random() - 0.5) * 0.01
+        lat: location.lat,
+        lng: location.lng
       };
+      toast.success("Using selected delivery location!");
+    } else {
+      // Fallback to GPS location if no map location was selected
+      toast.loading("Getting your location for accurate delivery tracking...");
+      
+      try {
+        if (navigator.geolocation) {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 60000
+            });
+          });
+          
+          userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          
+          toast.dismiss();
+          toast.success("Location accessed successfully!");
+        } else {
+          throw new Error("Geolocation not supported");
+        }
+      } catch (error) {
+        console.error('Error getting location:', error);
+        toast.dismiss();
+        
+        if (error.code === 1) {
+          toast.error("Location access denied. Please enable location permissions for accurate tracking.");
+        } else if (error.code === 2) {
+          toast.error("Location unavailable. Please check your GPS settings.");
+        } else if (error.code === 3) {
+          toast.error("Location request timed out. Please try again.");
+        } else {
+          toast.error("Could not get your location. Using approximate location.");
+        }
+        
+        // Fallback to mock coordinates if location access fails
+        userLocation = {
+          lat: 22.5726 + (Math.random() - 0.5) * 0.01,
+          lng: 88.3639 + (Math.random() - 0.5) * 0.01
+        };
+      }
     }
 
     // Calculate estimated delivery time (25-35 minutes base + distance factor)
     const baseTime = 25;
-    const distanceFactor = Math.random() * 10 + 5; // 5-15 minutes based on distance
+    const distanceFactor = Math.random() * 10 + 5;
     const estimatedMinutes = Math.round(baseTime + distanceFactor);
     const estimatedDeliveryTime = new Date(Date.now() + estimatedMinutes * 60 * 1000);
 
+    // Use name, email, phone from address
+    const userData = {
+      name: address.name || user.displayName || 'User',
+      email: address.email || user.email || '',
+      phone: address.phone
+    };
+
     const orderData = {
       userId: user.uid,
+      userInfo: userData, // Use address info
       items: cart,
       totalPrice: finalTotal,
       tip,
-      deliveryAddress: { ...address },
+      deliveryAddress: Object.fromEntries(
+        Object.entries(address).filter(([_, value]) => value !== undefined && value !== null)
+      ),
       paymentMethod,
       status: 'pending',
       createdAt: new Date(),
       estimatedDeliveryTime: estimatedDeliveryTime,
       estimatedMinutes: estimatedMinutes,
-      // Store user's actual location coordinates for map
-      userLocation: userLocation
+      userLocation: userLocation,
+      selectedLocationAddress: location?.address || null
     };
 
     try {
       await retryOperation(async () => {
         const docRef = await addDoc(collection(db, 'orders'), orderData);
+        // Add the generated orderId to the order document
+        await updateDoc(doc(db, 'orders', docRef.id), { orderId: docRef.id });
         toast.success('Order placed successfully!');
-        setCart([]);
+        clearCart();
         setShowCheckoutModal(false);
         // Redirect to current order page
         navigate(`/current-order/${docRef.id}`);
@@ -325,9 +330,18 @@ const Drinks = () => {
     console.log('Categories:', categories);
   }, [categories]);
 
+  const handleLocationSelect = (location: { lat: number; lng: number; address: string }) => {
+    setSelectedLocation(location);
+    setShowLocationPicker(false);
+  };
+
+  const filteredProducts = selectedCategory === 'All' 
+    ? products 
+    : products.filter(product => product.subcategory === selectedCategory);
+
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'}`}>
-      <Toaster position="top-right" />
+
 
       {/* Header */}
       <header className={`sticky top-0 z-40 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
@@ -344,22 +358,61 @@ const Drinks = () => {
               </Button>
               <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Drinks</h1>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
+              {/* Location Picker */}
               <Button
+                onClick={() => setShowLocationPicker(true)}
+                variant="outline"
+                size="sm"
+                className={`${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+              >
+                <MapPin className="w-4 h-4 mr-1" />
+                {selectedLocation ? 'Location Set' : 'Set Location'}
+              </Button>
+
+              {/* Search */}
+              <Button
+                onClick={() => setIsSearchVisible(!isSearchVisible)}
                 variant="ghost"
                 size="icon"
                 className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}
               >
                 <Search className="w-5 h-5" />
               </Button>
+
+              {/* Cart */}
+              <Button
+                onClick={() => setIsCartPopupOpen(true)}
+                variant="ghost"
+                size="icon"
+                className="relative"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {cartItemCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                    {cartItemCount}
+                  </Badge>
+                )}
+              </Button>
+
+              {/* Profile */}
               <Button
                 variant="ghost"
                 size="icon"
-                  onClick={toggleDarkMode}
                 className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}
-                >
-                  {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                </Button>
+              >
+                <User className="w-5 h-5" />
+              </Button>
+
+              {/* Mobile Menu Button */}
+              <Button
+                onClick={() => setShowCart(true)}
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+              >
+                <Menu className="w-5 h-5" />
+              </Button>
             </div>
             </div>
         </div>
@@ -407,6 +460,13 @@ const Drinks = () => {
           {(() => {
             const seen = new Set();
             const uniqueCategories = categories.filter(cat => {
+              // Filter out categories with malformed data
+              if (!cat.name || cat.name.trim() === '' || 
+                  cat.name === '🥐' || cat.name === '📦' ||
+                  cat.name.includes('http') || cat.name.includes('unsplash')) {
+                return false;
+              }
+              
               const key = cat.subcategory || cat.id || cat.name;
               if (seen.has(key)) return false;
               seen.add(key);
@@ -414,19 +474,22 @@ const Drinks = () => {
             });
             return (uniqueCategories as CategoryWithImage[]).map((cat) => {
               let visual = null;
+              
+              // Handle icon display - only use database categories
               if (cat.image) {
                 visual = <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />;
               } else if (cat.logo) {
                 visual = <img src={cat.logo} alt={cat.name} className="w-full h-full object-cover" />;
-              } else if (cat.icon) {
+              } else if (cat.icon && typeof cat.icon === 'string' && !cat.icon.startsWith('http')) {
+                // Only show valid emoji icons from database
                 visual = <span className="text-4xl flex items-center justify-center w-full h-full">{cat.icon}</span>;
-              } else if (categoryImages[cat.name]) {
-                visual = <img src={categoryImages[cat.name]} alt={cat.name} className="w-full h-full object-cover" />;
               } else {
-                visual = <img src={defaultImage} alt={cat.name} className="w-full h-full object-cover" />;
+                // Skip categories without proper icons
+                return null;
               }
+              
               return (
-              <button
+                <button
                   key={cat.id || cat.name}
                   onClick={() => setActiveCategory(cat.subcategory)}
                   className="flex flex-col items-center focus:outline-none"
@@ -437,7 +500,7 @@ const Drinks = () => {
                     {visual}
                   </div>
                   <span className="mt-2 text-sm md:text-base font-medium text-center whitespace-nowrap">{cat.name}</span>
-              </button>
+                </button>
               );
             });
           })()}
@@ -474,7 +537,7 @@ const Drinks = () => {
               <div className="mt-2">
                   <div className={`font-bold text-lg mb-1 ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`}>₹{product.price}</div>
                   <Button
-                    onClick={() => addToCart(product)}
+                    onClick={() => handleAddToCart(product)}
                     size="sm"
                     className={
                       isDarkMode
@@ -521,7 +584,7 @@ const Drinks = () => {
                 <p className={`text-sm mb-2 truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Khaprail Bazar • 2.2 km</p>
                 <div className={`font-bold text-lg mb-2 ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`}>₹{product.price}</div>
               <Button 
-                  onClick={() => addToCart(product)}
+                  onClick={() => handleAddToCart(product)}
                   size="sm"
                   className={
                     isDarkMode
@@ -543,7 +606,7 @@ const Drinks = () => {
         cart={cart}
         totalPrice={cartTotal}
         onCheckout={() => setShowCart(true)}
-        onDelete={() => { setCart([]); toast.success('Cart cleared!'); }}
+        onDelete={() => { clearCart(); toast.success('Cart cleared!'); }}
         onViewMenu={() => setShowCart(true)}
         isDarkMode={isDarkMode}
         buttonLabel="Checkout"
@@ -576,7 +639,7 @@ const Drinks = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => updateCartItemQuantity(item.id, Math.max(0, item.quantity - 1))}
+                        onClick={() => updateCartQuantity(item.id, Math.max(0, item.quantity - 1))}
                         className={isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-600' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}
                       >
                         <Minus className="w-3 h-3" />
@@ -585,7 +648,7 @@ const Drinks = () => {
                         <Button 
                         variant="outline"
                         size="sm"
-                        onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}
+                        onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
                         className={isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-600' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}
                       >
                         <Plus className="w-3 h-3" />
@@ -645,14 +708,31 @@ const Drinks = () => {
           user={user}
         />
       )}
+
+      <CartPopup
+        isOpen={isCartPopupOpen}
+        onClose={() => setIsCartPopupOpen(false)}
+        cart={cart}
+        onUpdateQuantity={updateCartQuantity}
+        onRemoveItem={removeFromCart}
+        onProceedToCheckout={() => setShowCheckoutModal(true)}
+        isDarkMode={isDarkMode}
+      />
+
       <AgeVerificationModal 
         isOpen={showAgeModal}
         onClose={() => setShowAgeModal(false)}
-        onVerify={() => {
+        onVerified={() => {
           setIsAgeVerified(true);
           setShowAgeModal(false);
           localStorage.setItem('pickngo-age-verified', 'true');
         }}
+      />
+
+      <LocationPicker
+        isOpen={showLocationPicker}
+        onClose={() => setShowLocationPicker(false)}
+        onLocationSelect={handleLocationSelect}
       />
     </div>
   );

@@ -15,6 +15,7 @@ import AgeVerificationModal from '@/components/AgeVerificationModal';
 import ProductQuickView from '@/components/ProductQuickView';
 import Cart from '@/components/Cart';
 import UniversalSearch from '@/components/UniversalSearch';
+import { useCart } from '@/contexts/CartContext';
 import { auth, db, retryOperation } from '@/lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import {
@@ -25,9 +26,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getProductsByCategory, PRODUCT_CATEGORIES, SAMPLE_CATEGORIES, getCategoriesByProductCategory, getTopBoughtProducts } from '@/lib/products';
-import { addDoc, collection } from 'firebase/firestore';
-import { Toaster } from '@/components/ui/sonner';
+import { getProductsByCategory, PRODUCT_CATEGORIES, SAMPLE_CATEGORIES, getCategoriesByProductCategory, getTopBoughtProducts, checkAndInitializeProducts } from '@/lib/products';
+import { addDoc, collection, getDoc, doc, updateDoc } from 'firebase/firestore';
+import { Link } from 'react-router-dom';
+import LocationPicker from '@/components/LocationPicker';
+import { useBanCheck } from '@/hooks/useBanCheck';
+
 import CheckoutModal from '@/components/CheckoutModal';
 import { useTheme } from '@/App';
 import {
@@ -55,20 +59,23 @@ const PickNGo = () => {
   const navigate = useNavigate();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { selectedAddress } = useSelectedAddress();
+  const { cart, addToCart, updateCartQuantity, removeFromCart, clearCart, getTotalItems, getTotalPrice, isCartPopupOpen, setIsCartPopupOpen } = useCart();
+  const { banStatus } = useBanCheck();
   const [activeBottomNav, setActiveBottomNav] = useState('food');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('grid');
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [selectedLocation, setSelectedLocation] = useState('Fetching location...');
-  const [cart, setCart] = useState([]);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+
   const [showAgeModal, setShowAgeModal] = useState(false);
-  const [isUniversalSearchOpen, setIsUniversalSearchOpen] = useState(false);
+
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [showCartBar, setShowCartBar] = useState(true);
 
@@ -177,34 +184,6 @@ const PickNGo = () => {
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const addToCart = (product) => {
-    setCart(prevCart => {
-      const existingProduct = prevCart.find(item => item.id === product.id);
-      if (existingProduct) {
-        return prevCart.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-    } else {
-        return [...prevCart, { ...product, quantity: 1 }];
-    }
-    });
-    toast.success(`${product.name} added to cart!`);
-  };
-
-  const updateCartQuantity = (productId, newQuantity) => {
-    setCart(prevCart => {
-      if (newQuantity <= 0) {
-        return prevCart.filter(item => item.id !== productId);
-      }
-      return prevCart.map(item =>
-        item.id === productId ? { ...item, quantity: newQuantity } : item
-      );
-    });
-  };
-
-  const getTotalItems = () => cart.reduce((sum, item) => sum + item.quantity, 0);
-  const getTotalPrice = () => cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
   const handleOrderNow = () => {
     toast.success('Redirecting to orders...');
   };
@@ -243,7 +222,14 @@ const PickNGo = () => {
   };
 
   const placeOrder = async (orderDetails) => {
-    const { address, paymentMethod, tip, finalTotal } = orderDetails;
+    const { address, paymentMethod, tip, finalTotal, location } = orderDetails;
+
+    // Check if user is banned
+    if (banStatus.isBanned) {
+      toast.error('Your account has been suspended. You cannot place orders.');
+      setIsCheckoutModalOpen(false);
+      return;
+    }
 
     if (!user) {
       toast.error("Please log in to place an order.");
@@ -251,78 +237,106 @@ const PickNGo = () => {
       return;
     }
 
-    // Show loading toast for location access
-    toast.loading("Getting your location for accurate delivery tracking...");
+    // Check for phone number in address
+    if (!address.phone || address.phone.trim() === "") {
+      toast.error("Please add a phone number to your address before placing the order.");
+      return;
+    }
 
-    // Get user's actual GPS location
+    // Use the selected location from the map or fallback to GPS
     let userLocation = null;
-    try {
-      if (navigator.geolocation) {
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 60000
-          });
-        });
-        
-        userLocation = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        };
-        
-        toast.dismiss();
-        toast.success("Location accessed successfully!");
-      } else {
-        throw new Error("Geolocation not supported");
-      }
-    } catch (error: any) {
-      console.error('Error getting location:', error);
-      toast.dismiss();
-      
-      if (error.code === 1) {
-        toast.error("Location access denied. Please enable location permissions for accurate tracking.");
-      } else if (error.code === 2) {
-        toast.error("Location unavailable. Please check your GPS settings.");
-      } else if (error.code === 3) {
-        toast.error("Location request timed out. Please try again.");
-      } else {
-        toast.error("Could not get your location. Using approximate location.");
-      }
-      
-      // Fallback to mock coordinates if location access fails
+    
+    if (location) {
+      // Use the location selected from the map
       userLocation = {
-        lat: 22.5726 + (Math.random() - 0.5) * 0.01,
-        lng: 88.3639 + (Math.random() - 0.5) * 0.01
+        lat: location.lat,
+        lng: location.lng
       };
+      toast.success("Using selected delivery location!");
+    } else {
+      // Fallback to GPS location if no map location was selected
+      toast.loading("Getting your location for accurate delivery tracking...");
+      
+      try {
+        if (navigator.geolocation) {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 60000
+            });
+          });
+          
+          userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          
+          toast.dismiss();
+          toast.success("Location accessed successfully!");
+        } else {
+          throw new Error("Geolocation not supported");
+        }
+      } catch (error) {
+        console.error('Error getting location:', error);
+        toast.dismiss();
+        
+        if (error.code === 1) {
+          toast.error("Location access denied. Please enable location permissions for accurate tracking.");
+        } else if (error.code === 2) {
+          toast.error("Location unavailable. Please check your GPS settings.");
+        } else if (error.code === 3) {
+          toast.error("Location request timed out. Please try again.");
+        } else {
+          toast.error("Could not get your location. Using approximate location.");
+        }
+        
+        // Fallback to mock coordinates if location access fails
+        userLocation = {
+          lat: 22.5726 + (Math.random() - 0.5) * 0.01,
+          lng: 88.3639 + (Math.random() - 0.5) * 0.01
+        };
+      }
     }
 
     // Calculate estimated delivery time (25-35 minutes base + distance factor)
     const baseTime = 25;
-    const distanceFactor = Math.random() * 10 + 5; // 5-15 minutes based on distance
+    const distanceFactor = Math.random() * 10 + 5;
     const estimatedMinutes = Math.round(baseTime + distanceFactor);
     const estimatedDeliveryTime = new Date(Date.now() + estimatedMinutes * 60 * 1000);
 
+    // Use name, email, phone from address
+    const userData = {
+      name: address.name || user.displayName || 'User',
+      email: address.email || user.email || '',
+      phone: address.phone
+    };
+
     const orderData = {
       userId: user.uid,
+      userInfo: userData, // Use address info
       items: cart,
       totalPrice: finalTotal,
       tip,
-      deliveryAddress: { ...address },
+      deliveryAddress: Object.fromEntries(
+        Object.entries(address).filter(([_, value]) => value !== undefined && value !== null)
+      ),
       paymentMethod,
       status: 'pending',
       createdAt: new Date(),
       estimatedDeliveryTime: estimatedDeliveryTime,
       estimatedMinutes: estimatedMinutes,
-      // Store user's actual location coordinates for map
-      userLocation: userLocation
+      userLocation: userLocation,
+      selectedLocationAddress: location?.address || null
     };
 
     try {
       await retryOperation(async () => {
         const docRef = await addDoc(collection(db, 'orders'), orderData);
+        // Add the generated orderId to the order document
+        await updateDoc(doc(db, 'orders', docRef.id), { orderId: docRef.id });
         toast.success('Order placed successfully!');
-        setCart([]);
+        clearCart();
         setIsCheckoutModalOpen(false);
         // Redirect to current order page
         navigate(`/current-order/${docRef.id}`);
@@ -337,10 +351,6 @@ const PickNGo = () => {
         toast.error('Failed to place order. Please check your connection and try again.');
       }
     }
-  };
-
-  const handleUniversalSearchOpen = () => {
-    setIsUniversalSearchOpen(true);
   };
 
   const handleProductSelect = (product) => {
@@ -392,7 +402,7 @@ const PickNGo = () => {
     // Load cart from localStorage
     const savedCart = localStorage.getItem('pickngo-cart');
     if (savedCart) {
-      setCart(JSON.parse(savedCart));
+              // Cart is now managed by context, no need to load from localStorage here
     }
 
     // Check age verification status
@@ -417,6 +427,9 @@ const PickNGo = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
+      // Check and initialize products if needed
+      await checkAndInitializeProducts();
+      
       setFoodItems(await getProductsByCategory('Food'));
       setDrinkItems(await getProductsByCategory('Drinks'));
       setEssentialItems(await getProductsByCategory('Daily Essential'));
@@ -447,76 +460,199 @@ const PickNGo = () => {
     setIsCheckoutModalOpen(true);
   };
 
+  const handleLocationSelect = (location: { lat: number; lng: number; address: string }) => {
+    setSelectedLocation(location.address);
+    setShowLocationPicker(false);
+    toast.success('Location selected successfully!');
+  };
+
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'}`}>
-      <Toaster position="top-right" />
+
       {/* --- Desktop Header --- */}
       <header className={`hidden md:block sticky top-0 z-50 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
+            {/* Left Section - Logo & Location */}
+            <div className="flex items-center space-x-6">
               <div className="flex items-center space-x-2">
-                <img src="/favicon.ico" alt="PickNGo Logo" className="w-8 h-8" />
-                <h1 className="text-2xl font-bold text-orange-500">PickNGo</h1>
+                <img src="/logo.jpg" alt="PickNGo Logo" className="h-12 w-auto object-contain" />
               </div>
               
-              <div className="flex items-center space-x-4">
-                <Button variant="ghost" className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}>For Business</Button>
-                <Button variant="ghost" className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}>Help</Button>
-                {isLoggedIn ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={`flex items-center space-x-2 ${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-                      >
-                        <UserIcon className="w-5 h-5" />
-                        <span>{user?.displayName || user?.email?.split('@')[0] || 'My Account'}</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className={`w-56 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`} align="end">
-                      <DropdownMenuLabel>
-                        <div className="flex flex-col space-y-1">
-                          <p className={`text-sm font-medium leading-none ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                            {user?.displayName || user?.email || 'User'}
-                          </p>
-                          <p className={`text-xs leading-none ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                            {user?.email}
-                          </p>
-                        </div>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator className={isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} />
-                      <DropdownMenuItem onClick={() => navigate('/profile')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
-                        <UserIcon className="mr-2 h-4 w-4" />
-                        <span>Profile</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate('/past-orders')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
-                        <Package className="mr-2 h-4 w-4" />
-                        <span>Past Orders</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate('/settings')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Settings</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator className={isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} />
-                      <DropdownMenuItem onClick={handleSignOut} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Log out</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : (
-                  <Button className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2 rounded-full" onClick={() => setIsAuthModalOpen(true)}>Sign In</Button>
-                )}
-                 <Button
+              {/* Location Bar */}
+              <div className="flex items-center space-x-2">
+                <MapPin className="w-5 h-5 text-orange-500" />
+                <Button
                   variant="ghost"
-                  size="icon"
-                  onClick={toggleDarkMode}
-                  className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}
+                  className="flex items-center space-x-2 text-left h-auto p-1"
+                  onClick={() => setShowLocationPicker(true)}
                 >
-                  {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                  <div className="min-w-0">
+                    <h3 className={`font-medium text-sm truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {selectedAddress?.city || 'Select Location'}
+                    </h3>
+                  </div>
                 </Button>
               </div>
+            </div>
+            
+            {/* Center Section - Navigation */}
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}>For Business</Button>
+              <Button variant="ghost" className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}>Help</Button>
+            </div>
+            
+            {/* Right Section - Cart, Profile & Theme */}
+            <div className="flex items-center space-x-3">
+              {/* Cart Section */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={`flex items-center space-x-2 relative ${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    {getTotalItems() > 0 && (
+                      <Badge className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        {getTotalItems()}
+                      </Badge>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className={`w-80 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`} align="end">
+                  <DropdownMenuLabel>
+                    <div className="flex items-center justify-between">
+                      <p className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Shopping Cart</p>
+                      <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{getTotalItems()} items</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className={isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} />
+                  
+                  {cart.length === 0 ? (
+                    <div className="p-4 text-center">
+                      <ShoppingCart className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Your cart is empty</p>
+                    </div>
+                  ) : (
+                    <div className="max-h-60 overflow-y-auto">
+                      {cart.map((item) => (
+                        <div key={item.id} className="flex items-center space-x-3 p-3 border-b border-gray-100 dark:border-gray-700">
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-12 h-12 object-cover rounded"
+                            onError={(e) => {
+                              e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yNCAyOEMyNi4yMDkxIDI4IDI4IDI2LjIwOTEgMjggMjRDMjggMjEuNzkwOSAyNi4yMDkxIDIwIDI0IDIwQzIxLjc5MDkgMjAgMjAgMjEuNzkwOSAyMCAyNEMyMCAyNi4yMDkxIDIxLjc5MDkgMjggMjQgMjhaIiBmaWxsPSIjOUI5QkEwIi8+CjxwYXRoIGQ9Ik0yNCAzMkMyNi4yMDkxIDMyIDI4IDMwLjIwOTEgMjggMjhDMjggMjUuNzkwOSAyNi4yMDkxIDI0IDI0IDI0QzIxLjc5MDkgMjQgMjAgMjUuNzkwOSAyMCAyOEMyMCAzMC4yMDkxIDIxLjc5MDkgMzIgMjQgMzJaIiBmaWxsPSIjOUI5QkEwIi8+Cjwvc3ZnPgo=';
+                            }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h4 className={`font-medium text-sm truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                              {item.name}
+                            </h4>
+                            <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                              ₹{item.price} × {item.quantity}
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => updateCartQuantity(item.id, Math.max(0, item.quantity - 1))}
+                              className="w-6 h-6 p-0"
+                            >
+                              -
+                            </Button>
+                            <span className={`text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.quantity}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
+                              className="w-6 h-6 p-0"
+                            >
+                              +
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {cart.length > 0 && (
+                    <>
+                      <DropdownMenuSeparator className={isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} />
+                      <div className="p-3">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Total:</span>
+                          <span className={`text-lg font-bold text-orange-500`}>₹{getTotalPrice()}</span>
+                        </div>
+                        <Button
+                          className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold"
+                          onClick={handleProceedToCheckout}
+                        >
+                          Place Order
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              {/* Profile Section */}
+              {isLoggedIn ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={`flex items-center space-x-2 ${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      <UserIcon className="w-5 h-5" />
+                      <span>{user?.displayName || user?.email?.split('@')[0] || 'My Account'}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className={`w-56 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`} align="end">
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col space-y-1">
+                        <p className={`text-sm font-medium leading-none ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                          {user?.displayName || user?.email || 'User'}
+                        </p>
+                        <p className={`text-xs leading-none ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          {user?.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator className={isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} />
+                    <DropdownMenuItem onClick={() => navigate('/profile')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
+                      <UserIcon className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/past-orders')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
+                      <Package className="mr-2 h-4 w-4" />
+                      <span>Past Orders</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/settings')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className={isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} />
+                    <DropdownMenuItem onClick={handleSignOut} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2 rounded-full" onClick={() => setIsAuthModalOpen(true)}>Sign In</Button>
+              )}
+              
+              {/* Theme Toggle */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleDarkMode}
+                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}
+              >
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </Button>
             </div>
           </div>
         </div>
@@ -526,19 +662,126 @@ const PickNGo = () => {
       <header className={`md:hidden sticky top-0 z-50 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                className="flex items-center space-x-2 text-left h-auto p-1 rounded-md max-w-[200px] sm:max-w-[250px]"
-                onClick={() => navigate('/address')}
-              >
-                <MapPin className="w-7 h-7 flex-shrink-0 text-orange-500 text-bold" />
-                <div className="min-w-0 flex-1">
-                  <h3 className={`font-bold text-lg truncate ${isDarkMode ? 'text-white' : 'text-black'}`}>{getDisplayLocation()}</h3>
-                </div>
-              </Button>
-            </div>
+            {/* Left Section - Logo & Location */}
             <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <img src="/logo.jpg" alt="PickNGo Logo" className="h-10 w-auto object-contain" />
+              </div>
+              
+              {/* Location Bar */}
+              <div className="flex items-center space-x-1">
+                <MapPin className="w-4 h-4 text-orange-500" />
+                <Button
+                  variant="ghost"
+                  className="flex items-center space-x-1 text-left h-auto p-1 rounded-md max-w-[100px] sm:max-w-[120px]"
+                  onClick={() => setShowLocationPicker(true)}
+                >
+                  <div className="min-w-0 flex-1">
+                    <h3 className={`font-medium text-xs truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {selectedAddress?.city || 'Location'}
+                    </h3>
+                  </div>
+                </Button>
+              </div>
+            </div>
+            
+            {/* Right Section - Cart & Profile */}
+            <div className="flex items-center space-x-2">
+              {/* Cart Button */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={`relative ${isDarkMode ? 'text-gray-300 hover:text-orange-400 bg-gray-700' : 'text-gray-600 hover:text-orange-500 bg-gray-100'} rounded-full w-10 h-10`}
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    {getTotalItems() > 0 && (
+                      <Badge className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                        {getTotalItems()}
+                      </Badge>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className={`w-72 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`} align="end">
+                  <DropdownMenuLabel>
+                    <div className="flex items-center justify-between">
+                      <p className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Cart</p>
+                      <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{getTotalItems()} items</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className={isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} />
+                  
+                  {cart.length === 0 ? (
+                    <div className="p-4 text-center">
+                      <ShoppingCart className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Your cart is empty</p>
+                    </div>
+                  ) : (
+                    <div className="max-h-48 overflow-y-auto">
+                      {cart.map((item) => (
+                        <div key={item.id} className="flex items-center space-x-3 p-3 border-b border-gray-100 dark:border-gray-700">
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-10 h-10 object-cover rounded"
+                            onError={(e) => {
+                              e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yNCAyOEMyNi4yMDkxIDI4IDI4IDI2LjIwOTEgMjggMjRDMjggMjEuNzkwOSAyNi4yMDkxIDIwIDI0IDIwQzIxLjc5MDkgMjAgMjAgMjEuNzkwOSAyMCAyNEMyMCAyNi4yMDkxIDIxLjc5MDkgMjggMjQgMjhaIiBmaWxsPSIjOUI5QkEwIi8+CjxwYXRoIGQ9Ik0yNCAzMkMyNi4yMDkxIDMyIDI4IDMwLjIwOTEgMjggMjhDMjggMjUuNzkwOSAyNi4yMDkxIDI0IDI0IDI0QzIxLjc5MDkgMjQgMjAgMjUuNzkwOSAyMCAyOEMyMCAzMC4yMDkxIDIxLjc5MDkgMzIgMjQgMzJaIiBmaWxsPSIjOUI5QkEwIi8+Cjwvc3ZnPgo=';
+                            }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h4 className={`font-medium text-sm truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                              {item.name}
+                            </h4>
+                            <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                              ₹{item.price} × {item.quantity}
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => updateCartQuantity(item.id, Math.max(0, item.quantity - 1))}
+                              className="w-5 h-5 p-0"
+                            >
+                              -
+                            </Button>
+                            <span className={`text-xs ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.quantity}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
+                              className="w-5 h-5 p-0"
+                            >
+                              +
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {cart.length > 0 && (
+                    <>
+                      <DropdownMenuSeparator className={isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} />
+                      <div className="p-3">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Total:</span>
+                          <span className={`text-lg font-bold text-orange-500`}>₹{getTotalPrice()}</span>
+                        </div>
+                        <Button
+                          className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold"
+                          onClick={handleProceedToCheckout}
+                        >
+                          Place Order
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              {/* Profile Button */}
               {isLoggedIn ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -605,21 +848,16 @@ const PickNGo = () => {
                   </div>
                 )}
                 <p className={`text-lg mb-8 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Order food, groceries, and more from the best places near you.</p>
-                 <div className="flex gap-3 max-w-2xl mx-auto">
-                    <div className="flex-1 relative">
-                        <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        <Input
-                        placeholder="Enter your delivery location"
-                        value={getDisplayLocation()}
-                        readOnly
-                        onClick={() => navigate('/address')}
-                        className={`pl-12 pr-4 h-14 text-lg ${isDarkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'}`}
+                <div className="flex justify-center">
+                    <div className="w-full max-w-md">
+                        <UniversalSearch 
+                            isOpen={true}
+                            onClose={() => {}}
+                            onProductSelect={handleProductSelect}
+                            onAddToCart={addToCart}
+                            cart={cart}
                         />
                     </div>
-                    <Button size="lg" className="h-14 bg-orange-500 hover:bg-orange-600 text-white font-bold" onClick={handleUniversalSearchOpen}>
-                        <Search className="w-5 h-5 mr-2" />
-                        Search
-                    </Button>
                 </div>
             </div>
         </div>
@@ -629,24 +867,21 @@ const PickNGo = () => {
       {/* Search Bar */}
       <div className="container mx-auto px-4 py-4">
         <div className="flex gap-3">
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input
-                  placeholder="Search for 'Gift Hamp...'"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`pl-12 pr-12 h-14 rounded-xl text-lg ${isDarkMode ? 'bg-gray-700 text-white border-gray-600 placeholder-gray-400' : 'bg-white/10 backdrop-blur-md text-white placeholder-gray-400'}`}
-                  onFocus={handleUniversalSearchOpen}
-            />
-            <Button 
-              variant="ghost" 
-              size="sm"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-pickngo-orange-500"
-              onClick={() => toast.success('Voice search activated!')}
-            >
-              <Mic className="w-5 h-5" />
-            </Button>
-          </div>
+          <UniversalSearch 
+              isOpen={true}
+              onClose={() => {}}
+              onProductSelect={handleProductSelect}
+              onAddToCart={addToCart}
+              cart={cart}
+          />
+          <Button 
+            variant="ghost" 
+            size="sm"
+                className="text-pickngo-orange-500"
+            onClick={() => toast.success('Voice search activated!')}
+          >
+            <Mic className="w-5 h-5" />
+          </Button>
         </div>
       </div>
 
@@ -959,7 +1194,7 @@ const PickNGo = () => {
         cart={cart}
         totalPrice={getTotalPrice()}
         onCheckout={() => setIsCartOpen(true)}
-        onDelete={() => setCart([])}
+        onDelete={() => clearCart()}
         onViewMenu={() => setIsCartOpen(true)}
         isDarkMode={isDarkMode}
         buttonLabel="Checkout"
@@ -996,12 +1231,6 @@ const PickNGo = () => {
         onProceedToCheckout={handleProceedToCheckout}
       />
 
-      <UniversalSearch 
-        isOpen={isUniversalSearchOpen}
-        onClose={() => setIsUniversalSearchOpen(false)}
-        onProductSelect={handleProductSelect}
-      />
-
       <CheckoutModal
         isOpen={isCheckoutModalOpen}
         onClose={() => setIsCheckoutModalOpen(false)}
@@ -1017,7 +1246,6 @@ const PickNGo = () => {
             {/* Company Info */}
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
-                <img src="/favicon.ico" alt="PickNGo Logo" className="w-8 h-8" />
                 <h3 className="text-2xl font-bold text-pickngo-orange-500">PickNGo</h3>
               </div>
               <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -1078,6 +1306,13 @@ const PickNGo = () => {
           </div>
         </div>
       </footer>
+
+      {/* Location Picker */}
+              <LocationPicker
+          isOpen={showLocationPicker}
+          onClose={() => setShowLocationPicker(false)}
+          onLocationSelect={handleLocationSelect}
+        />
     </div>
   );
 };
