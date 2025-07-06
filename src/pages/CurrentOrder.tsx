@@ -323,7 +323,7 @@ const CurrentOrder = () => {
       { title: 'Order Placed', description: 'Your order has been received', icon: '📋', color: 'text-blue-400' },
       { title: 'Order Confirmed', description: 'Restaurant has confirmed your order', icon: '✅', color: 'text-green-400' },
       { title: 'Preparing', description: 'Your food is being prepared', icon: '👨‍🍳', color: 'text-yellow-400' },
-      { title: 'Out for Delivery', description: 'Your order is on the way', icon: '🚚', color: 'text-quicklymart-orange-400' },
+      { title: 'Out for Delivery', description: 'Your order is on the way', icon: '🚚', color: 'text-pickngo-orange-400' },
       { title: 'Delivered', description: 'Enjoy your meal!', icon: '🎉', color: 'text-green-500' }
     ];
     return steps[step - 1] || steps[0];

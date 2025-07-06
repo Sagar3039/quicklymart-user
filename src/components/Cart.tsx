@@ -12,6 +12,18 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, totalPrice, onProceedToCh
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [couponCode, setCouponCode] = useState('');
 
+  // Group cart items by id and sum quantities
+  const groupedCart = Object.values(
+    cart.reduce((acc, item) => {
+      if (!acc[item.id]) {
+        acc[item.id] = { ...item };
+      } else {
+        acc[item.id].quantity += item.quantity;
+      }
+      return acc;
+    }, {})
+  ) as any[];
+
   const deliveryFee = totalPrice > 299 ? 0 : 29;
   const finalTotal = totalPrice + deliveryFee;
 
@@ -21,12 +33,12 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, totalPrice, onProceedToCh
         <SheetHeader>
           <SheetTitle className={isDarkMode ? 'text-white' : 'text-gray-800'}>Shopping Cart</SheetTitle>
           <SheetDescription className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
-            {cart.length === 0 ? 'Your cart is empty' : `${cart.length} item${cart.length === 1 ? '' : 's'} in your cart`}
+            {groupedCart.length === 0 ? 'Your cart is empty' : `${groupedCart.length} item${groupedCart.length === 1 ? '' : 's'} in your cart`}
           </SheetDescription>
         </SheetHeader>
         
         <div className="flex-1 overflow-y-auto py-4">
-          {cart.length === 0 ? (
+          {groupedCart.length === 0 ? (
             <div className="text-center py-8">
               <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <p className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>Your cart is empty</p>
@@ -39,7 +51,7 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, totalPrice, onProceedToCh
             </div>
           ) : (
             <div className="space-y-4">
-              {cart.map((item) => (
+              {groupedCart.map((item) => (
                 <div key={item.id} className={`flex items-center space-x-3 p-3 border rounded-lg ${isDarkMode ? 'border-gray-700 bg-gray-700' : 'border-gray-200 bg-white'}`}>
                   <img
                     src={item.image}
@@ -83,7 +95,7 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, totalPrice, onProceedToCh
           )}
         </div>
         
-        {cart.length > 0 && (
+        {groupedCart.length > 0 && (
           <div className={`border-t pt-4 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
             <div className="space-y-4">
               <div className="flex items-center space-x-2">

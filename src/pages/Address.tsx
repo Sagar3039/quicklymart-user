@@ -258,7 +258,7 @@ const Address = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate(-1)}
-                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
+                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-pickngo-orange-500'}
               >
               <ArrowLeft className="w-5 h-5" />
             </Button>
@@ -271,7 +271,7 @@ const Address = () => {
               variant="ghost"
               size="icon"
               onClick={toggleDarkMode}
-              className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
+              className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-pickngo-orange-500'}
             >
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
@@ -284,7 +284,7 @@ const Address = () => {
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600">
+              <Button className="bg-pickngo-orange-500 hover:bg-pickngo-orange-600">
                 <Plus className="w-4 h-4 mr-2" />
                 Add New Address
               </Button>
@@ -395,7 +395,7 @@ const Address = () => {
                   <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} className={isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}>
                     Cancel
                   </Button>
-                  <Button onClick={handleSubmit} className="bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600">
+                  <Button onClick={handleSubmit} className="bg-pickngo-orange-500 hover:bg-pickngo-orange-600">
                     {editingAddress ? 'Update Address' : 'Add Address'}
                   </Button>
                 </div>
@@ -434,7 +434,7 @@ const Address = () => {
                           <div className="flex items-center space-x-2 mb-1">
                             <h3 className={`font-bold capitalize ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{address.type}</h3>
                             {selectedAddress?.id === address.id && (
-                              <Badge className="bg-quicklymart-orange-100 text-quicklymart-orange-700 text-xs">
+                              <Badge className="bg-pickngo-orange-100 text-pickngo-orange-700 text-xs">
                                 <Check className="w-3 h-3 mr-1" />
                                 CURRENTLY SELECTED
                               </Badge>
@@ -489,7 +489,7 @@ const Address = () => {
                             setSelectedAddress(address);
                           toast.success('Address selected successfully!');
                           }}
-                        className="bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600"
+                        className="bg-pickngo-orange-500 hover:bg-pickngo-orange-600"
                         >
                         Use This Address
                         </Button>

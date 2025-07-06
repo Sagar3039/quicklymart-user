@@ -234,4 +234,4 @@ If you want to test phone auth without billing:
 5. **Configure reCAPTCHA** settings
 6. **Test the complete flow**
 
-The phone authentication is now fully integrated into your QuicklyMart app! 🎉 
+The phone authentication is now fully integrated into your PickNGo app! 🎉 

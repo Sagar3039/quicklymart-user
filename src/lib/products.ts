@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { collection, addDoc, getDocs, query, where, orderBy, DocumentData } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, orderBy, DocumentData, limit } from 'firebase/firestore';
 
 // Product interface
 export interface Product {
@@ -341,28 +341,28 @@ export const getCategoriesByProductCategory = async (productCategory: string): P
 };
 
 // Initialize products in Firestore
-export const initializeProducts = async () => {
-  try {
-    const productsRef = collection(db, 'products');
-    const querySnapshot = await getDocs(productsRef);
+// export const initializeProducts = async () => {
+//   try {
+//     const productsRef = collection(db, 'products');
+//     const querySnapshot = await getDocs(productsRef);
     
-    // Only add products if the collection is empty
-    if (querySnapshot.empty) {
-      const addPromises = SAMPLE_PRODUCTS.map(product => 
-        addDoc(productsRef, {
-          ...product,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        })
-      );
+//     // Only add products if the collection is empty
+//     if (querySnapshot.empty) {
+//       const addPromises = SAMPLE_PRODUCTS.map(product => 
+//         addDoc(productsRef, {
+//           ...product,
+//           createdAt: new Date(),
+//           updatedAt: new Date()
+//         })
+//       );
       
-      await Promise.all(addPromises);
-      console.log('Products initialized successfully');
-    }
-  } catch (error) {
-    console.error('Error initializing products:', error);
-  }
-};
+//       await Promise.all(addPromises);
+//       console.log('Products initialized successfully');
+//     }
+//   } catch (error) {
+//     console.error('Error initializing products:', error);
+//   }
+// };
 
 // Search products
 export const searchProducts = async (searchQuery: string, category: string | null = null, subcategory: string | null = null): Promise<Product[]> => {
@@ -550,6 +550,41 @@ export const syncMissingSubcategories = async () => {
     return missingSubcategories;
   } catch (error) {
     console.error('Error syncing missing subcategories:', error);
+    return [];
+  }
+};
+
+// Get top bought products of all time by all users
+export const getTopBoughtProducts = async (topN = 4) => {
+  try {
+    // Fetch all orders
+    const ordersRef = collection(db, 'orders');
+    const ordersSnapshot = await getDocs(ordersRef);
+    const productCount: Record<string, { count: number, product: any }> = {};
+
+    // Aggregate product quantities
+    ordersSnapshot.forEach((doc) => {
+      const order = doc.data();
+      if (Array.isArray(order.items)) {
+        order.items.forEach((item) => {
+          if (!item.id) return;
+          if (!productCount[item.id]) {
+            productCount[item.id] = { count: 0, product: item };
+          }
+          productCount[item.id].count += item.quantity || 1;
+        });
+      }
+    });
+
+    // Sort by count and get top N
+    const topProducts = Object.values(productCount)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, topN)
+      .map(entry => ({ ...entry.product, totalBought: entry.count }));
+
+    return topProducts;
+  } catch (error) {
+    console.error('Error fetching top bought products:', error);
     return [];
   }
 }; 

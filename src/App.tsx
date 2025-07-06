@@ -8,7 +8,7 @@ import { auth, db } from "@/lib/firebase";
 import { getRedirectResult } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { toast } from "@/components/ui/sonner";
-import { initializeCategories, initializeProducts, syncMissingSubcategories } from "@/lib/products";
+import { initializeCategories, syncMissingSubcategories } from "@/lib/products";
 import Index from "./pages/Index";
 import Food from "./pages/Food";
 import DailyEssential from "./pages/DailyEssential";
@@ -130,7 +130,7 @@ const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => {
   const [selectedAddress, setSelectedAddress] = useState(() => {
-    const saved = localStorage.getItem('quicklymart-selected-address');
+    const saved = localStorage.getItem('pickngo-selected-address');
     return saved ? JSON.parse(saved) : null;
   });
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -140,7 +140,6 @@ const App = () => {
     const initializeFirebaseData = async () => {
       try {
         await initializeCategories();
-        await initializeProducts();
         await syncMissingSubcategories();
         console.log('Firebase data initialized successfully');
       } catch (error) {
@@ -153,9 +152,9 @@ const App = () => {
 
   useEffect(() => {
     if (selectedAddress) {
-      localStorage.setItem('quicklymart-selected-address', JSON.stringify(selectedAddress));
+      localStorage.setItem('pickngo-selected-address', JSON.stringify(selectedAddress));
     } else {
-      localStorage.removeItem('quicklymart-selected-address');
+      localStorage.removeItem('pickngo-selected-address');
     }
   }, [selectedAddress]);
 

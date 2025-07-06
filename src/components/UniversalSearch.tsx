@@ -166,6 +166,16 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose, onPr
     }
   };
 
+  // Compute valid subcategories for the dropdown
+  const validSubcategories = Object.values(PRODUCT_SUBCATEGORIES)
+    .filter(subcategory => typeof subcategory === 'string' && subcategory.trim() !== '')
+    .filter((subcategory, index, array) => array.indexOf(subcategory) === index);
+
+  // Ensure selectedSubcategory is always valid
+  const safeSelectedSubcategory = selectedSubcategory === '' || validSubcategories.includes(selectedSubcategory)
+    ? selectedSubcategory
+    : '';
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={`max-w-full w-full h-full max-h-full m-0 rounded-none ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
@@ -272,17 +282,26 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose, onPr
                   <SelectItem value={PRODUCT_CATEGORIES.DAILY_ESSENTIAL}>Daily Essential</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
+              <Select value={safeSelectedSubcategory} onValueChange={setSelectedSubcategory}>
                 <SelectTrigger className={isDarkMode ? 'bg-gray-800 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'}>
                   <SelectValue placeholder="Subcategory" />
                 </SelectTrigger>
                 <SelectContent className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}>
                   <SelectItem value="">All Subcategories</SelectItem>
-                  {Object.values(PRODUCT_SUBCATEGORIES).map((subcategory) => (
-                    <SelectItem key={subcategory} value={subcategory}>
-                      {getSubcategoryLabel(subcategory)}
-                    </SelectItem>
-                  ))}
+                  {validSubcategories.map((subcategory) => {
+                    if (typeof subcategory !== 'string' || subcategory.trim() === '') {
+                      // eslint-disable-next-line no-console
+                      console.error('Skipping invalid subcategory value for SelectItem:', subcategory);
+                      return null;
+                    }
+                    // eslint-disable-next-line no-console
+                    console.log('Rendering SelectItem for subcategory:', subcategory);
+                    return (
+                      <SelectItem key={subcategory} value={subcategory}>
+                        {getSubcategoryLabel(subcategory)}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>

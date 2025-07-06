@@ -224,7 +224,7 @@ const UserOnboarding = ({ isOpen, onComplete }: UserOnboardingProps) => {
             {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600"
+              className="w-full bg-pickngo-orange-500 hover:bg-pickngo-orange-600"
               disabled={isLoading}
             >
               {isLoading ? (

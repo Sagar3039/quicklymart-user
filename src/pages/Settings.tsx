@@ -562,9 +562,9 @@ const Settings = () => {
             <DialogTitle className="text-gray-900">Privacy Policy</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 text-gray-700">
-            <h3 className="font-semibold text-gray-900">QuicklyMart Privacy Policy</h3>
+            <h3 className="font-semibold text-gray-900">PickNGo Privacy Policy</h3>
             <p className="text-sm">
-              This Privacy Policy describes how QuicklyMart collects, uses, and protects your personal information.
+              This Privacy Policy describes how PickNGo collects, uses, and protects your personal information.
             </p>
             
             <h4 className="font-semibold text-gray-900">Information We Collect</h4>

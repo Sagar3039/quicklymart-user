@@ -62,7 +62,7 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				'quicklymart-orange': {
+				      'pickngo-orange': {
 					50: '#FFF5F2',
 					100: '#FFE8E0',
 					200: '#FFD1C0',

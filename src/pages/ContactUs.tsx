@@ -36,7 +36,7 @@ const ContactUs = () => {
       title: 'Email Support',
       description: 'Get help via email',
       icon: <Mail className="w-6 h-6" />,
-      value: 'support@quicklymart.com',
+      value: 'support@pickngo.com',
       action: 'Send Email',
       color: 'bg-blue-600'
     },
@@ -100,7 +100,7 @@ const ContactUs = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate(-1)}
-                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
+                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-pickngo-orange-500'}
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
@@ -113,7 +113,7 @@ const ContactUs = () => {
               variant="ghost"
               size="icon"
               onClick={toggleDarkMode}
-              className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
+              className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-pickngo-orange-500'}
             >
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
@@ -127,7 +127,7 @@ const ContactUs = () => {
           <h2 className={`text-2xl font-bold mb-6 text-center ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Get in Touch</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {contactInfo.map((info, index) => (
-              <Card key={index} className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} hover:border-quicklymart-orange-500 transition-colors`}>
+              <Card key={index} className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} hover:border-pickngo-orange-500 transition-colors`}>
                 <CardContent className="p-6 text-center">
                   <div className={`inline-flex p-3 rounded-full mb-4 ${info.color}`}>
                     {info.icon}
@@ -135,7 +135,7 @@ const ContactUs = () => {
                   <h3 className={`font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{info.title}</h3>
                   <p className={`text-sm mb-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{info.description}</p>
                   <p className={`text-sm font-medium mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{info.value}</p>
-                  <Button variant="outline" className="w-full border-quicklymart-orange-500 text-quicklymart-orange-500 hover:bg-quicklymart-orange-500 hover:text-white">
+                  <Button variant="outline" className="w-full border-pickngo-orange-500 text-pickngo-orange-500 hover:bg-pickngo-orange-500 hover:text-white">
                     {info.action}
                   </Button>
                 </CardContent>
@@ -228,7 +228,7 @@ const ContactUs = () => {
 
                 <Button 
                   type="submit" 
-                  className="w-full bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600" 
+                  className="w-full bg-pickngo-orange-500 hover:bg-pickngo-orange-600" 
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
@@ -266,7 +266,7 @@ const ContactUs = () => {
                     </div>
                   ))}
                 </div>
-                <div className="mt-4 p-3 bg-quicklymart-orange-100 rounded-lg">
+                <div className="mt-4 p-3 bg-pickngo-orange-100 rounded-lg">
                   <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                     <strong>Note:</strong> Customer support is available 24/7 for urgent issues.
                   </p>
@@ -286,14 +286,14 @@ const ContactUs = () => {
                 <div className="space-y-3">
                   <div className="space-y-2">
                     <p className={`text-gray-600 ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>
-                      <strong className={`text-gray-800 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>QuicklyMart Headquarters</strong><br />
+                      <strong className={`text-gray-800 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>PickNGo Headquarters</strong><br />
                       123 Food Street<br />
                       Park Street Area<br />
                       Kolkata, West Bengal 700001<br />
                       India
                     </p>
                   </div>
-                  <Button variant="outline" className="w-full border-quicklymart-orange-500 text-quicklymart-orange-500 hover:bg-quicklymart-orange-500 hover:text-white">
+                  <Button variant="outline" className="w-full border-pickngo-orange-500 text-pickngo-orange-500 hover:bg-pickngo-orange-500 hover:text-white">
                     <MapPin className="w-4 h-4 mr-2" />
                     Get Directions
                   </Button>

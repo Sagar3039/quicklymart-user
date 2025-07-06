@@ -132,20 +132,20 @@ const AboutUs = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate(-1)}
-                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
+                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-pickngo-orange-500'}
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
                 <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>About Us</h1>
-                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Learn more about QuicklyMart</p>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Learn more about PickNGo</p>
               </div>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleDarkMode}
-              className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
+              className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-pickngo-orange-500'}
             >
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
@@ -160,7 +160,7 @@ const AboutUs = () => {
             Revolutionizing Food Delivery
           </h1>
           <p className={`text-xl max-w-3xl mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            At QuicklyMart, we believe that great food should be accessible to everyone, 
+            At PickNGo, we believe that great food should be accessible to everyone, 
             delivered fresh and fast. We're on a mission to connect people with their 
             favorite restaurants through technology and exceptional service.
           </p>
@@ -243,7 +243,7 @@ const AboutUs = () => {
                 <CardContent className="p-6">
                   <div className="text-4xl mb-3">{member.image}</div>
                   <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{member.name}</h3>
-                  <p className="text-quicklymart-orange-500 mb-2">{member.position}</p>
+                  <p className="text-pickngo-orange-500 mb-2">{member.position}</p>
                   <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{member.description}</p>
                 </CardContent>
               </Card>
@@ -262,7 +262,7 @@ const AboutUs = () => {
                     <div className="text-3xl">{achievement.icon}</div>
                     <div>
                       <div className="flex items-center space-x-2 mb-2">
-                        <Badge variant="secondary" className="bg-quicklymart-orange-100 text-quicklymart-orange-800">{achievement.year}</Badge>
+                        <Badge variant="secondary" className="bg-pickngo-orange-100 text-pickngo-orange-800">{achievement.year}</Badge>
                         <h3 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{achievement.title}</h3>
                       </div>
                       <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{achievement.description}</p>
@@ -283,7 +283,7 @@ const AboutUs = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center space-x-4">
                     <div className="flex-shrink-0">
-                      <Badge className="bg-quicklymart-orange-500">{milestone.year}</Badge>
+                      <Badge className="bg-pickngo-orange-500">{milestone.year}</Badge>
                     </div>
                     <div>
                       <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{milestone.title}</h3>
@@ -304,7 +304,7 @@ const AboutUs = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
               <div>
-                <MapPin className="w-6 h-6 mx-auto mb-2 text-quicklymart-orange-500" />
+                <MapPin className="w-6 h-6 mx-auto mb-2 text-pickngo-orange-500" />
                 <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Address</h3>
                 <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                   123 Food Street<br />
@@ -313,14 +313,14 @@ const AboutUs = () => {
                 </p>
               </div>
               <div>
-                <Phone className="w-6 h-6 mx-auto mb-2 text-quicklymart-orange-500" />
+                <Phone className="w-6 h-6 mx-auto mb-2 text-pickngo-orange-500" />
                 <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Phone</h3>
                 <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>+91 98765 43210</p>
               </div>
               <div>
-                <Mail className="w-6 h-6 mx-auto mb-2 text-quicklymart-orange-500" />
+                <Mail className="w-6 h-6 mx-auto mb-2 text-pickngo-orange-500" />
                 <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Email</h3>
-                <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>hello@quicklymart.com</p>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>hello@pickngo.com</p>
               </div>
             </div>
           </CardContent>
@@ -330,7 +330,7 @@ const AboutUs = () => {
         <div className="text-center mt-8">
           <Button 
             onClick={() => navigate('/')} 
-            className="bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600 text-lg px-8 py-3"
+            className="bg-pickngo-orange-500 hover:bg-pickngo-orange-600 text-lg px-8 py-3"
           >
             Start Ordering Now
           </Button>

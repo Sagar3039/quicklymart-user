@@ -24,7 +24,7 @@ const PrivacyPolicy = () => {
     overview: {
       title: 'Privacy Policy Overview',
       content: `
-        <p>At QuicklyMart, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our food delivery service.</p>
+        <p>At PickNGo, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our food delivery service.</p>
         
         <h3>Last Updated: December 2024</h3>
         
@@ -117,7 +117,7 @@ const PrivacyPolicy = () => {
       title: 'Information Sharing and Disclosure',
       content: `
         <h3>We Do Not Sell Your Data</h3>
-        <p>QuicklyMart does not sell, rent, or trade your personal information to third parties for marketing purposes.</p>
+        <p>PickNGo does not sell, rent, or trade your personal information to third parties for marketing purposes.</p>
 
         <h3>Service Providers</h3>
         <p>We share information with trusted service providers who help us operate our services:</p>
@@ -208,7 +208,7 @@ const PrivacyPolicy = () => {
         <h3>How to Exercise Your Rights</h3>
         <p>To exercise your privacy rights:</p>
         <ul>
-          <li>Contact us at privacy@quicklymart.com</li>
+          <li>Contact us at privacy@pickngo.com</li>
           <li>Use the privacy settings in our app</li>
           <li>Submit a request through our support team</li>
           <li>We will respond within 30 days</li>
@@ -228,7 +228,7 @@ const PrivacyPolicy = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate(-1)}
-                className="text-gray-600 hover:text-quicklymart-orange-500"
+                className="text-gray-600 hover:text-pickngo-orange-500"
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
@@ -241,7 +241,7 @@ const PrivacyPolicy = () => {
               variant="ghost"
               size="icon"
               onClick={toggleDarkMode}
-              className="text-gray-600 hover:text-quicklymart-orange-500"
+              className="text-gray-600 hover:text-pickngo-orange-500"
             >
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
@@ -251,10 +251,10 @@ const PrivacyPolicy = () => {
 
       <div className="container mx-auto px-4 py-6 max-w-4xl">
         {/* Last Updated */}
-        <div className="mb-6 p-4 bg-quicklymart-orange-50 border border-quicklymart-orange-200 rounded-lg">
+        <div className="mb-6 p-4 bg-pickngo-orange-50 border border-pickngo-orange-200 rounded-lg">
           <div className="flex items-center space-x-2">
-            <Calendar className="w-5 h-5 text-quicklymart-orange-600" />
-            <span className="text-sm font-medium text-quicklymart-orange-800">
+            <Calendar className="w-5 h-5 text-pickngo-orange-600" />
+            <span className="text-sm font-medium text-pickngo-orange-800">
               Last updated: December 15, 2024
             </span>
           </div>
@@ -265,7 +265,7 @@ const PrivacyPolicy = () => {
           <CardContent className="p-6">
             <h2 className="text-2xl font-bold mb-4 text-gray-800">Introduction</h2>
             <p className="text-gray-600 mb-4">
-              At QuicklyMart Instant Grub, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our food delivery service.
+              At PickNGo Instant Grub, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our food delivery service.
             </p>
             <p className="text-gray-600">
               By using our service, you agree to the collection and use of information in accordance with this policy.
@@ -281,7 +281,7 @@ const PrivacyPolicy = () => {
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold mb-3 text-gray-800 flex items-center">
-                  <User className="w-5 h-5 mr-2 text-quicklymart-orange-500" />
+                  <User className="w-5 h-5 mr-2 text-pickngo-orange-500" />
                   Personal Information
                 </h3>
                 <ul className="list-disc list-inside space-y-2 text-gray-600 ml-6">
@@ -294,7 +294,7 @@ const PrivacyPolicy = () => {
 
               <div>
                 <h3 className="text-lg font-semibold mb-3 text-gray-800 flex items-center">
-                  <Smartphone className="w-5 h-5 mr-2 text-quicklymart-orange-500" />
+                  <Smartphone className="w-5 h-5 mr-2 text-pickngo-orange-500" />
                   Device and Usage Information
                 </h3>
                 <ul className="list-disc list-inside space-y-2 text-gray-600 ml-6">
@@ -307,7 +307,7 @@ const PrivacyPolicy = () => {
 
               <div>
                 <h3 className="text-lg font-semibold mb-3 text-gray-800 flex items-center">
-                  <MapPin className="w-5 h-5 mr-2 text-quicklymart-orange-500" />
+                  <MapPin className="w-5 h-5 mr-2 text-pickngo-orange-500" />
                   Location Information
                 </h3>
                 <ul className="list-disc list-inside space-y-2 text-gray-600 ml-6">
@@ -328,8 +328,8 @@ const PrivacyPolicy = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div className="flex items-start space-x-3">
-                  <div className="p-2 bg-quicklymart-orange-100 rounded-full">
-                    <Truck className="w-4 h-4 text-quicklymart-orange-600" />
+                  <div className="p-2 bg-pickngo-orange-100 rounded-full">
+                    <Truck className="w-4 h-4 text-pickngo-orange-600" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-800">Service Delivery</h4>
@@ -338,8 +338,8 @@ const PrivacyPolicy = () => {
                 </div>
 
                 <div className="flex items-start space-x-3">
-                  <div className="p-2 bg-quicklymart-orange-100 rounded-full">
-                    <Shield className="w-4 h-4 text-quicklymart-orange-600" />
+                  <div className="p-2 bg-pickngo-orange-100 rounded-full">
+                    <Shield className="w-4 h-4 text-pickngo-orange-600" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-800">Security</h4>
@@ -348,8 +348,8 @@ const PrivacyPolicy = () => {
                 </div>
 
                 <div className="flex items-start space-x-3">
-                  <div className="p-2 bg-quicklymart-orange-100 rounded-full">
-                    <MessageSquare className="w-4 h-4 text-quicklymart-orange-600" />
+                  <div className="p-2 bg-pickngo-orange-100 rounded-full">
+                    <MessageSquare className="w-4 h-4 text-pickngo-orange-600" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-800">Communication</h4>
@@ -360,8 +360,8 @@ const PrivacyPolicy = () => {
 
               <div className="space-y-4">
                 <div className="flex items-start space-x-3">
-                  <div className="p-2 bg-quicklymart-orange-100 rounded-full">
-                    <BarChart3 className="w-4 h-4 text-quicklymart-orange-600" />
+                  <div className="p-2 bg-pickngo-orange-100 rounded-full">
+                    <BarChart3 className="w-4 h-4 text-pickngo-orange-600" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-800">Analytics</h4>
@@ -370,8 +370,8 @@ const PrivacyPolicy = () => {
                 </div>
 
                 <div className="flex items-start space-x-3">
-                  <div className="p-2 bg-quicklymart-orange-100 rounded-full">
-                    <Gift className="w-4 h-4 text-quicklymart-orange-600" />
+                  <div className="p-2 bg-pickngo-orange-100 rounded-full">
+                    <Gift className="w-4 h-4 text-pickngo-orange-600" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-800">Personalization</h4>
@@ -380,8 +380,8 @@ const PrivacyPolicy = () => {
                 </div>
 
                 <div className="flex items-start space-x-3">
-                  <div className="p-2 bg-quicklymart-orange-100 rounded-full">
-                    <Settings className="w-4 h-4 text-quicklymart-orange-600" />
+                  <div className="p-2 bg-pickngo-orange-100 rounded-full">
+                    <Settings className="w-4 h-4 text-pickngo-orange-600" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-800">Account Management</h4>
@@ -403,8 +403,8 @@ const PrivacyPolicy = () => {
             
             <div className="space-y-4">
               <div className="flex items-start space-x-3">
-                <div className="p-2 bg-quicklymart-orange-100 rounded-full mt-1">
-                  <Building className="w-4 h-4 text-quicklymart-orange-600" />
+                <div className="p-2 bg-pickngo-orange-100 rounded-full mt-1">
+                  <Building className="w-4 h-4 text-pickngo-orange-600" />
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-800">Restaurant Partners</h4>
@@ -413,8 +413,8 @@ const PrivacyPolicy = () => {
               </div>
 
               <div className="flex items-start space-x-3">
-                <div className="p-2 bg-quicklymart-orange-100 rounded-full mt-1">
-                  <Truck className="w-4 h-4 text-quicklymart-orange-600" />
+                <div className="p-2 bg-pickngo-orange-100 rounded-full mt-1">
+                  <Truck className="w-4 h-4 text-pickngo-orange-600" />
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-800">Delivery Partners</h4>
@@ -423,8 +423,8 @@ const PrivacyPolicy = () => {
               </div>
 
               <div className="flex items-start space-x-3">
-                <div className="p-2 bg-quicklymart-orange-100 rounded-full mt-1">
-                  <Shield className="w-4 h-4 text-quicklymart-orange-600" />
+                <div className="p-2 bg-pickngo-orange-100 rounded-full mt-1">
+                  <Shield className="w-4 h-4 text-pickngo-orange-600" />
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-800">Legal Requirements</h4>
@@ -445,19 +445,19 @@ const PrivacyPolicy = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center space-x-3">
-                <CheckCircle className="w-5 h-5 text-quicklymart-orange-500" />
+                <CheckCircle className="w-5 h-5 text-pickngo-orange-500" />
                 <span className="text-gray-700">SSL encryption for data transmission</span>
               </div>
               <div className="flex items-center space-x-3">
-                <CheckCircle className="w-5 h-5 text-quicklymart-orange-500" />
+                <CheckCircle className="w-5 h-5 text-pickngo-orange-500" />
                 <span className="text-gray-700">Secure payment processing</span>
               </div>
               <div className="flex items-center space-x-3">
-                <CheckCircle className="w-5 h-5 text-quicklymart-orange-500" />
+                <CheckCircle className="w-5 h-5 text-pickngo-orange-500" />
                 <span className="text-gray-700">Regular security audits</span>
               </div>
               <div className="flex items-center space-x-3">
-                <CheckCircle className="w-5 h-5 text-quicklymart-orange-500" />
+                <CheckCircle className="w-5 h-5 text-pickngo-orange-500" />
                 <span className="text-gray-700">Access controls and authentication</span>
               </div>
             </div>
@@ -474,8 +474,8 @@ const PrivacyPolicy = () => {
             
             <div className="space-y-4">
               <div className="flex items-start space-x-3">
-                <div className="p-2 bg-quicklymart-orange-100 rounded-full">
-                  <Eye className="w-4 h-4 text-quicklymart-orange-600" />
+                <div className="p-2 bg-pickngo-orange-100 rounded-full">
+                  <Eye className="w-4 h-4 text-pickngo-orange-600" />
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-800">Access</h4>
@@ -484,8 +484,8 @@ const PrivacyPolicy = () => {
               </div>
 
               <div className="flex items-start space-x-3">
-                <div className="p-2 bg-quicklymart-orange-100 rounded-full">
-                  <Edit className="w-4 h-4 text-quicklymart-orange-600" />
+                <div className="p-2 bg-pickngo-orange-100 rounded-full">
+                  <Edit className="w-4 h-4 text-pickngo-orange-600" />
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-800">Correction</h4>
@@ -494,8 +494,8 @@ const PrivacyPolicy = () => {
               </div>
 
               <div className="flex items-start space-x-3">
-                <div className="p-2 bg-quicklymart-orange-100 rounded-full">
-                  <Trash2 className="w-4 h-4 text-quicklymart-orange-600" />
+                <div className="p-2 bg-pickngo-orange-100 rounded-full">
+                  <Trash2 className="w-4 h-4 text-pickngo-orange-600" />
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-800">Deletion</h4>
@@ -504,8 +504,8 @@ const PrivacyPolicy = () => {
               </div>
 
               <div className="flex items-start space-x-3">
-                <div className="p-2 bg-quicklymart-orange-100 rounded-full">
-                  <Ban className="w-4 h-4 text-quicklymart-orange-600" />
+                <div className="p-2 bg-pickngo-orange-100 rounded-full">
+                  <Ban className="w-4 h-4 text-pickngo-orange-600" />
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-800">Objection</h4>
@@ -526,15 +526,15 @@ const PrivacyPolicy = () => {
             
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
-                <Mail className="w-5 h-5 text-quicklymart-orange-500" />
-                <span className="text-gray-700">privacy@quicklymart.com</span>
+                <Mail className="w-5 h-5 text-pickngo-orange-500" />
+                <span className="text-gray-700">privacy@pickngo.com</span>
               </div>
               <div className="flex items-center space-x-3">
-                <Phone className="w-5 h-5 text-quicklymart-orange-500" />
+                <Phone className="w-5 h-5 text-pickngo-orange-500" />
                 <span className="text-gray-700">+1 (555) 123-4567</span>
               </div>
               <div className="flex items-center space-x-3">
-                <MapPin className="w-5 h-5 text-quicklymart-orange-500" />
+                <MapPin className="w-5 h-5 text-pickngo-orange-500" />
                 <span className="text-gray-700">123 Food Street, Delivery City, DC 12345</span>
               </div>
             </div>

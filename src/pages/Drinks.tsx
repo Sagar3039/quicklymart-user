@@ -24,6 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import CartBar from '@/components/CartBar';
 
 interface CartItem extends Product {
   quantity: number;
@@ -35,6 +36,18 @@ interface GeolocationPosition {
     longitude: number;
   };
 }
+
+// Allow admin-provided image/logo on Category
+type CategoryWithImage = Category & { image?: string; logo?: string };
+
+const categoryImages = {
+  Beer: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200&h=200&fit=crop',
+  Wine: 'https://images.unsplash.com/photo-1504674900247-ec6b0b1b798e?w=200&h=200&fit=crop',
+  Spirits: 'https://images.unsplash.com/photo-1519864600265-abb23847ef2c?w=200&h=200&fit=crop',
+  Cocktails: 'https://images.unsplash.com/photo-1505250469679-203ad9ced0cb?w=200&h=200&fit=crop',
+  // Add more as needed
+};
+const defaultImage = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200&h=200&fit=crop';
 
 const Drinks = () => {
   const navigate = useNavigate();
@@ -59,8 +72,8 @@ const Drinks = () => {
     let results = [...products];
 
     // Category filter
-    if (activeCategory !== 'All') {
-      results = results.filter(product => product.category === activeCategory);
+    if (activeCategory !== 'all' && activeCategory !== 'All') {
+      results = results.filter(product => product.subcategory === activeCategory);
     }
 
     // Search filter
@@ -88,6 +101,18 @@ const Drinks = () => {
     return results;
   }, [products, activeCategory, searchQuery, sortOption]);
 
+  // Add uniqueProducts logic (deduplicate by name and price)
+  const uniqueProducts = useMemo(() => {
+    const seen = new Map();
+    for (const product of filteredAndSortedProducts) {
+      const key = `${product.name}-${product.price}`;
+      if (!seen.has(key)) {
+        seen.set(key, product);
+      }
+    }
+    return Array.from(seen.values());
+  }, [filteredAndSortedProducts]);
+
   // Calculate total items in cart
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
   const cartTotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -97,17 +122,20 @@ const Drinks = () => {
       setShowAgeModal(true);
       return;
     }
-    
-    const existingItem = cart.find(item => item.id === product.id);
-    if (existingItem) {
-      setCart(cart.map(item => 
-        item.id === product.id 
+    setCart(prevCart => {
+      const existingIndex = prevCart.findIndex(item => item.id === product.id);
+      if (existingIndex !== -1) {
+        // Increment quantity
+        return prevCart.map((item, idx) =>
+          idx === existingIndex
           ? { ...item, quantity: item.quantity + 1 }
           : item
-      ));
+        );
     } else {
-      setCart([...cart, { ...product, quantity: 1 }]);
+        // Add new item
+        return [...prevCart, { ...product, quantity: 1 }];
     }
+    });
     toast.success(`${product.name} added to cart!`);
   };
 
@@ -172,13 +200,13 @@ const Drinks = () => {
     loadProducts();
     
     // Load cart from localStorage
-    const savedCart = localStorage.getItem('quicklymart-cart');
+    const savedCart = localStorage.getItem('pickngo-cart');
     if (savedCart) {
       setCart(JSON.parse(savedCart));
     }
 
     // Check age verification status
-    const ageVerified = localStorage.getItem('quicklymart-age-verified');
+    const ageVerified = localStorage.getItem('pickngo-age-verified');
     if (ageVerified) {
       setIsAgeVerified(true);
     } else {
@@ -193,7 +221,7 @@ const Drinks = () => {
 
   useEffect(() => {
     // Save cart to localStorage
-    localStorage.setItem('quicklymart-cart', JSON.stringify(cart));
+    localStorage.setItem('pickngo-cart', JSON.stringify(cart));
   }, [cart]);
 
   const placeOrder = async (orderDetails) => {
@@ -292,6 +320,11 @@ const Drinks = () => {
     }
   };
 
+  // Debug: Log categories to check for image/logo property
+  useEffect(() => {
+    console.log('Categories:', categories);
+  }, [categories]);
+
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'}`}>
       <Toaster position="top-right" />
@@ -368,31 +401,53 @@ const Drinks = () => {
         </div>
       </div>
 
-      {/* Categories */}
-      <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'} py-3`}>
-        <div className="container mx-auto px-4">
-          <div className="flex space-x-4 overflow-x-auto pb-2">
-            {categories.map((category) => (
+      {/* Categories - new image style, now dynamic and flexible */}
+      <div className="py-4">
+        <div className="flex space-x-4 overflow-x-auto px-2 md:justify-center md:space-x-8">
+          {(() => {
+            const seen = new Set();
+            const uniqueCategories = categories.filter(cat => {
+              const key = cat.subcategory || cat.id || cat.name;
+              if (seen.has(key)) return false;
+              seen.add(key);
+              return true;
+            });
+            return (uniqueCategories as CategoryWithImage[]).map((cat) => {
+              let visual = null;
+              if (cat.image) {
+                visual = <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />;
+              } else if (cat.logo) {
+                visual = <img src={cat.logo} alt={cat.name} className="w-full h-full object-cover" />;
+              } else if (cat.icon) {
+                visual = <span className="text-4xl flex items-center justify-center w-full h-full">{cat.icon}</span>;
+              } else if (categoryImages[cat.name]) {
+                visual = <img src={categoryImages[cat.name]} alt={cat.name} className="w-full h-full object-cover" />;
+              } else {
+                visual = <img src={defaultImage} alt={cat.name} className="w-full h-full object-cover" />;
+              }
+              return (
               <button
-                key={category.id}
-                onClick={() => setActiveCategory(category.name)}
-                className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  activeCategory === category.name
-                    ? 'bg-orange-500 text-white'
-                    : isDarkMode 
-                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                      : 'bg-white text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                {category.name}
+                  key={cat.id || cat.name}
+                  onClick={() => setActiveCategory(cat.subcategory)}
+                  className="flex flex-col items-center focus:outline-none"
+                >
+                  <div className={`w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-4 transition-all duration-200 ${activeCategory === cat.subcategory ? 'border-orange-500 shadow-lg' : 'border-transparent'}`}
+                    style={{ boxShadow: activeCategory === cat.subcategory ? '0 0 0 4px rgba(255, 115, 0, 0.2)' : undefined }}
+                  >
+                    {visual}
+                  </div>
+                  <span className="mt-2 text-sm md:text-base font-medium text-center whitespace-nowrap">{cat.name}</span>
               </button>
-            ))}
-          </div>
+              );
+            });
+          })()}
         </div>
       </div>
 
       <main className="container mx-auto px-4 py-6 space-y-6 pb-24">
-        {filteredAndSortedProducts.map((product) => (
+        {/* Mobile: original flex row card list */}
+        <div className="block md:hidden space-y-4">
+          {uniqueProducts.map((product) => (
           <div key={product.id} className="flex space-x-4 group">
             <div className="w-1/3 relative">
               <img src={product.image} alt={product.name} className="rounded-2xl w-full h-40 object-cover" />
@@ -412,40 +467,88 @@ const Drinks = () => {
               </div>
               <div className="flex items-center space-x-1 text-sm text-gray-500">
                 <Star className="w-4 h-4 text-green-500 fill-green-500" />
-                <span>{product.rating} (50+) • 10-15 mins</span>
+                  <span>{product.rating} (500+) • 20-25 mins</span>
               </div>
               <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{product.description}</p>
-              <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Local Bar • 3.5 km</p>
+                <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Khaprail Bazar • 2.2 km</p>
               <div className="mt-2">
-                <Button onClick={() => addToCart(product)} size="sm" variant="outline" className="border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600">
+                  <div className={`font-bold text-lg mb-1 ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`}>₹{product.price}</div>
+                  <Button
+                    onClick={() => addToCart(product)}
+                    size="sm"
+                    className={
+                      isDarkMode
+                        ? 'bg-orange-500 hover:bg-orange-600 text-white w-full'
+                        : 'border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600 w-full'
+                    }
+                    variant={isDarkMode ? 'default' : 'outline'}
+                  >
                   Add to cart
                 </Button>
               </div>
             </div>
           </div>
         ))}
-      </main>
-
-      {/* Bottom Cart View */}
-      {cart.length > 0 && (
-        <div className={`fixed bottom-0 left-0 right-0 z-50 p-4 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} border-t`}>
-          <div className="container mx-auto flex items-center justify-between">
-             <div className="flex items-center space-x-3">
-               <button onClick={() => setShowCart(true)} className="text-sm font-semibold text-orange-500">
-                View Cart
-              </button>
+        </div>
+        {/* Desktop: new grid card layout */}
+        <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {uniqueProducts.map((product) => (
+            <div
+              key={product.id}
+              className={`rounded-2xl shadow-lg overflow-hidden bg-white dark:bg-gray-800 flex flex-col h-full transition-transform hover:scale-[1.02] ${isDarkMode ? 'border border-gray-700' : 'border border-gray-200'}`}
+            >
+              <div className="relative">
+                <img src={product.image} alt={product.name} className="w-full h-48 object-cover" />
+                <div className="absolute top-2 right-2 bg-white/80 backdrop-blur-sm rounded-full p-1">
+                  <Heart className="w-5 h-5 text-gray-700" />
+                </div>
+                <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded-md">
+                  ITEMS AT ₹{product.price}
+                </div>
+              </div>
+              <div className="flex-1 flex flex-col p-4">
+                <div className="flex justify-between items-start mb-1">
+                  <h3 className={`font-bold text-lg truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{product.name}</h3>
+                  <Button variant="ghost" size="icon" className="w-8 h-8 -mr-2">
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </div>
+                <div className="flex items-center space-x-1 text-sm text-gray-500 mb-1">
+                  <Star className="w-4 h-4 text-green-500 fill-green-500" />
+                  <span>{product.rating} (500+) • 20-25 mins</span>
             </div>
-            <div className="flex items-center space-x-3">
+                <p className={`text-sm mb-1 truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{product.description}</p>
+                <p className={`text-sm mb-2 truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Khaprail Bazar • 2.2 km</p>
+                <div className={`font-bold text-lg mb-2 ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`}>₹{product.price}</div>
               <Button 
-                className="bg-green-500 hover:bg-green-600 text-white rounded-lg px-6"
-                onClick={() => setShowCheckoutModal(true)}
-              >
-                {cartItemCount} items | ₹{cartTotal.toFixed(2)} Checkout
+                  onClick={() => addToCart(product)}
+                  size="sm"
+                  className={
+                    isDarkMode
+                      ? 'bg-orange-500 hover:bg-orange-600 text-white w-full'
+                      : 'border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600 w-full'
+                  }
+                  variant={isDarkMode ? 'default' : 'outline'}
+                >
+                  Add to cart
               </Button>
             </div>
           </div>
+          ))}
         </div>
-      )}
+      </main>
+
+      {/* Bottom Cart Bar (Mobile Only, Shared, Fixed Bottom) */}
+      <CartBar
+        cart={cart}
+        totalPrice={cartTotal}
+        onCheckout={() => setShowCart(true)}
+        onDelete={() => { setCart([]); toast.success('Cart cleared!'); }}
+        onViewMenu={() => setShowCart(true)}
+        isDarkMode={isDarkMode}
+        buttonLabel="Checkout"
+        className="!bottom-0"
+      />
 
        {/* Cart Sidebar */}
       <Sheet open={showCart} onOpenChange={setShowCart}>
@@ -548,7 +651,7 @@ const Drinks = () => {
         onVerify={() => {
           setIsAgeVerified(true);
           setShowAgeModal(false);
-          localStorage.setItem('quicklymart-age-verified', 'true');
+          localStorage.setItem('pickngo-age-verified', 'true');
         }}
       />
     </div>

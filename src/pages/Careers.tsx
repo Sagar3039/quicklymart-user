@@ -219,7 +219,7 @@ const Careers = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate(-1)}
-                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
+                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-pickngo-orange-500'}
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
@@ -232,7 +232,7 @@ const Careers = () => {
               variant="ghost"
               size="icon"
               onClick={toggleDarkMode}
-              className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
+              className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-pickngo-orange-500'}
             >
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
@@ -282,7 +282,7 @@ const Careers = () => {
                       <CardTitle className={`text-xl ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{job.title}</CardTitle>
                       <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{job.department}</p>
                     </div>
-                    <Badge className="bg-quicklymart-orange-500">{job.type}</Badge>
+                    <Badge className="bg-pickngo-orange-500">{job.type}</Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -305,7 +305,7 @@ const Careers = () => {
                   </div>
                   <Button 
                     onClick={() => handleApply(job)}
-                    className="w-full bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600"
+                    className="w-full bg-pickngo-orange-500 hover:bg-pickngo-orange-600"
                   >
                     Apply Now
                   </Button>
@@ -326,7 +326,7 @@ const Careers = () => {
                     variant="ghost"
                     size="icon"
                     onClick={() => setShowApplicationForm(false)}
-                    className="text-gray-600 hover:text-quicklymart-orange-500"
+                    className="text-gray-600 hover:text-pickngo-orange-500"
                   >
                     ✕
                   </Button>
@@ -411,7 +411,7 @@ const Careers = () => {
                       accept=".pdf,.doc,.docx"
                       onChange={(e) => handleInputChange('resume', e.target.files[0])}
                       required
-                      className="bg-white border-gray-300 text-gray-800 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-quicklymart-orange-500 file:text-white hover:file:bg-quicklymart-orange-600"
+                      className="bg-white border-gray-300 text-gray-800 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-pickngo-orange-500 file:text-white hover:file:bg-pickngo-orange-600"
                     />
                     <p className="text-xs text-gray-500 mt-1">Accepted formats: PDF, DOC, DOCX (Max 5MB)</p>
                   </div>
@@ -419,7 +419,7 @@ const Careers = () => {
                   <div className="flex space-x-3 pt-4">
                     <Button 
                       type="submit" 
-                      className="flex-1 bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600"
+                      className="flex-1 bg-pickngo-orange-500 hover:bg-pickngo-orange-600"
                     >
                       Submit Application
                     </Button>
@@ -447,11 +447,11 @@ const Careers = () => {
               Send us your resume and we'll keep you in mind for future opportunities.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button className="bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600">
+              <Button className="bg-pickngo-orange-500 hover:bg-pickngo-orange-600">
                 <Mail className="w-4 h-4 mr-2" />
                 Send Resume
               </Button>
-              <Button variant="outline" className="border-quicklymart-orange-500 text-quicklymart-orange-500 hover:bg-quicklymart-orange-500 hover:text-white">
+              <Button variant="outline" className="border-pickngo-orange-500 text-pickngo-orange-500 hover:bg-pickngo-orange-500 hover:text-white">
                 <Phone className="w-4 h-4 mr-2" />
                 Contact HR
               </Button>

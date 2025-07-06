@@ -4,9 +4,9 @@ const { getFirestore, collection, getDocs, deleteDoc, doc } = require('firebase/
 
 const firebaseConfig = {
   apiKey: "AIzaSyBvOkJgJgJgJgJgJgJgJgJgJgJgJgJgJgJg",
-  authDomain: "quicklymart-user.firebaseapp.com",
-  projectId: "quicklymart-user",
-  storageBucket: "quicklymart-user.appspot.com",
+  authDomain: "pickngo-user.firebaseapp.com",
+projectId: "pickngo-user",
+storageBucket: "pickngo-user.appspot.com",
   messagingSenderId: "123456789",
   appId: "1:123456789:web:abcdefghijklmnop"
 };

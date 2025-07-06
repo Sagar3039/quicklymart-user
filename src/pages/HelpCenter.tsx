@@ -122,7 +122,7 @@ const HelpCenter = () => {
       description: 'Get help via email',
       icon: <Mail className="w-6 h-6" />,
       action: 'Send Email',
-      value: 'support@quicklymart.com'
+      value: 'support@pickngo.com'
     },
     {
       title: 'Live Chat',
@@ -152,7 +152,7 @@ const HelpCenter = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate(-1)}
-                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
+                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-pickngo-orange-500'}
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
@@ -165,7 +165,7 @@ const HelpCenter = () => {
               variant="ghost"
               size="icon"
               onClick={toggleDarkMode}
-              className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-quicklymart-orange-500'}
+              className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-pickngo-orange-500'}
             >
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
@@ -192,7 +192,7 @@ const HelpCenter = () => {
           <h2 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Popular Topics</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {popularTopics.map((topic, index) => (
-              <Card key={index} className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} hover:border-quicklymart-orange-500 transition-colors cursor-pointer`}>
+              <Card key={index} className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} hover:border-pickngo-orange-500 transition-colors cursor-pointer`}>
                 <CardContent className="p-4 text-center">
                   <div className="text-3xl mb-2">{topic.icon}</div>
                   <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{topic.title}</h3>
@@ -211,14 +211,14 @@ const HelpCenter = () => {
               <Card key={index} className="bg-white border border-gray-200">
                 <CardContent className="p-6 text-center">
                   <div className="flex justify-center mb-3">
-                    <div className="p-3 bg-quicklymart-orange-100 rounded-full">
+                    <div className="p-3 bg-pickngo-orange-100 rounded-full">
                       {method.icon}
                     </div>
                   </div>
                   <h3 className="font-semibold mb-2 text-gray-800">{method.title}</h3>
                   <p className="text-sm text-gray-600 mb-3">{method.description}</p>
                   <p className="text-sm font-medium mb-3 text-gray-800">{method.value}</p>
-                  <Button variant="outline" className="w-full border-quicklymart-orange-500 text-quicklymart-orange-500 hover:bg-quicklymart-orange-500 hover:text-white">
+                  <Button variant="outline" className="w-full border-pickngo-orange-500 text-pickngo-orange-500 hover:bg-pickngo-orange-500 hover:text-white">
                     {method.action}
                   </Button>
                 </CardContent>
@@ -238,7 +238,7 @@ const HelpCenter = () => {
                     <CardTitle className="flex items-center space-x-2 text-gray-800">
                       <HelpCircle className="w-5 h-5" />
                       <span>{category.category}</span>
-                      <Badge variant="secondary" className="bg-quicklymart-orange-100 text-quicklymart-orange-800">{category.questions.length}</Badge>
+                      <Badge variant="secondary" className="bg-pickngo-orange-100 text-pickngo-orange-800">{category.questions.length}</Badge>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -275,7 +275,7 @@ const HelpCenter = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Button 
               onClick={() => navigate('/current-order')} 
-              className="h-16 text-lg bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600"
+              className="h-16 text-lg bg-pickngo-orange-500 hover:bg-pickngo-orange-600"
             >
               <Clock className="w-5 h-5 mr-2" />
               Track My Order
@@ -283,7 +283,7 @@ const HelpCenter = () => {
             <Button 
               onClick={() => navigate('/past-orders')} 
               variant="outline" 
-              className="h-16 text-lg border-quicklymart-orange-500 text-quicklymart-orange-500 hover:bg-quicklymart-orange-500 hover:text-white"
+              className="h-16 text-lg border-pickngo-orange-500 text-pickngo-orange-500 hover:bg-pickngo-orange-500 hover:text-white"
             >
               <MapPin className="w-5 h-5 mr-2" />
               View Order History
@@ -299,11 +299,11 @@ const HelpCenter = () => {
               Our customer support team is available 24/7 to assist you with any questions or concerns.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button className="bg-quicklymart-orange-500 hover:bg-quicklymart-orange-600">
+              <Button className="bg-pickngo-orange-500 hover:bg-pickngo-orange-600">
                 <Phone className="w-4 h-4 mr-2" />
                 Call Support
               </Button>
-              <Button variant="outline" className="border-quicklymart-orange-500 text-quicklymart-orange-500 hover:bg-quicklymart-orange-500 hover:text-white">
+              <Button variant="outline" className="border-pickngo-orange-500 text-pickngo-orange-500 hover:bg-pickngo-orange-500 hover:text-white">
                 <Mail className="w-4 h-4 mr-2" />
                 Send Email
               </Button>
