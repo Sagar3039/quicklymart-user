@@ -42,7 +42,7 @@ const CurrentOrder = () => {
   const GOOGLE_MAPS_API_KEY = 'AIzaSyC0aUsBjWppu-5sSvme3Zz66Ts9aFKOYRs';
   const mapContainerStyle = { width: '100%', height: '300px' };
   const defaultCenter = { lat: 22.5726, lng: 88.3639 };
-  const { isLoaded } = useJsApiLoader({ googleMapsApiKey: GOOGLE_MAPS_API_KEY });
+  const { isLoaded } = useJsApiLoader({ googleMapsApiKey: GOOGLE_MAPS_API_KEY, libraries: ['places'] });
 
   // Restaurant locations with coordinates
   const restaurantLocations = {
