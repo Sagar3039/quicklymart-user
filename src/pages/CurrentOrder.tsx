@@ -8,17 +8,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { auth, db, getConnectionStatus, retryOperation } from '@/lib/firebase';
 import { doc, onSnapshot, updateDoc, collection, query, where, orderBy, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { toast } from '@/components/ui/sonner';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import { GoogleMap, Marker, Polyline, useJsApiLoader } from '@react-google-maps/api';
 import { useTheme } from '@/App';
 
-// Fix for default markers in react-leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+// Remove Leaflet imports and add Google Maps imports
 
 interface Order {
   id: string;
@@ -45,8 +38,11 @@ const CurrentOrder = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [timeLeft, setTimeLeft] = useState({ minutes: 0, seconds: 0 });
   const [distance, setDistance] = useState(0);
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstance = useRef<L.Map | null>(null);
+  // Define Google Maps variables:
+  const GOOGLE_MAPS_API_KEY = 'AIzaSyC0aUsBjWppu-5sSvme3Zz66Ts9aFKOYRs';
+  const mapContainerStyle = { width: '100%', height: '300px' };
+  const defaultCenter = { lat: 22.5726, lng: 88.3639 };
+  const { isLoaded } = useJsApiLoader({ googleMapsApiKey: GOOGLE_MAPS_API_KEY });
 
   // Restaurant locations with coordinates
   const restaurantLocations = {
@@ -124,7 +120,7 @@ const CurrentOrder = () => {
   };
 
   const initializeMap = async (orderData: Order) => {
-    if (!mapRef.current || mapInstance.current) return;
+    if (!isLoaded) return;
 
     const restaurantInfo = getRestaurantInfo(orderData);
     const userLocation = orderData.userLocation || { lat: 22.5726, lng: 88.3639 };
@@ -143,32 +139,32 @@ const CurrentOrder = () => {
     const centerLng = (restaurantInfo.lng + userLocation.lng) / 2;
 
     // Initialize map
-    mapInstance.current = L.map(mapRef.current).setView([centerLat, centerLng], 15);
+    // mapInstance.current = L.map(mapRef.current).setView([centerLat, centerLng], 15);
 
     // Add tile layer (OpenStreetMap)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(mapInstance.current);
+    // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    //   attribution: '© OpenStreetMap contributors'
+    // }).addTo(mapInstance.current);
 
     // Add restaurant marker
-    const restaurantMarker = L.marker([restaurantInfo.lat, restaurantInfo.lng])
-      .addTo(mapInstance.current)
-      .bindPopup(`<b>${restaurantInfo.name}</b><br>${restaurantInfo.address}`);
+    // const restaurantMarker = L.marker([restaurantInfo.lat, restaurantInfo.lng])
+    //   .addTo(mapInstance.current)
+    //   .bindPopup(`<b>${restaurantInfo.name}</b><br>${restaurantInfo.address}`);
 
     // Add user location marker
-    const userMarker = L.marker([userLocation.lat, userLocation.lng])
-      .addTo(mapInstance.current)
-      .bindPopup(`<b>Your Location</b><br>${userAddress}`);
+    // const userMarker = L.marker([userLocation.lat, userLocation.lng])
+    //   .addTo(mapInstance.current)
+    //   .bindPopup(`<b>Your Location</b><br>${userAddress}`);
 
     // Draw route line
-    const routeLine = L.polyline([
-      [restaurantInfo.lat, restaurantInfo.lng],
-      [userLocation.lat, userLocation.lng]
-    ], {
-      color: '#3b82f6',
-      weight: 4,
-      opacity: 0.7
-    }).addTo(mapInstance.current);
+    // const routeLine = L.polyline([
+    //   [restaurantInfo.lat, restaurantInfo.lng],
+    //   [userLocation.lat, userLocation.lng]
+    // ], {
+    //   color: '#3b82f6',
+    //   weight: 4,
+    //   opacity: 0.7
+    // }).addTo(mapInstance.current);
 
     // Calculate and display distance
     const calculatedDistance = calculateDistance(
@@ -178,11 +174,11 @@ const CurrentOrder = () => {
     setDistance(calculatedDistance);
 
     // Fit map to show both markers
-    const bounds = L.latLngBounds([
-      [restaurantInfo.lat, restaurantInfo.lng],
-      [userLocation.lat, userLocation.lng]
-    ]);
-    mapInstance.current.fitBounds(bounds, { padding: [20, 20] });
+    // const bounds = L.latLngBounds([
+    //   [restaurantInfo.lat, restaurantInfo.lng],
+    //   [userLocation.lat, userLocation.lng]
+    // ]);
+    // mapInstance.current.fitBounds(bounds, { padding: [20, 20] });
   };
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -342,10 +338,10 @@ const CurrentOrder = () => {
   // Cleanup map on unmount
   useEffect(() => {
     return () => {
-      if (mapInstance.current) {
-        mapInstance.current.remove();
-        mapInstance.current = null;
-      }
+      // if (mapInstance.current) {
+      //   mapInstance.current.remove();
+      //   mapInstance.current = null;
+      // }
     };
   }, []);
 
@@ -433,11 +429,37 @@ const CurrentOrder = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div 
-              ref={mapRef} 
-              className="w-full h-64 rounded-lg border border-gray-200"
-              style={{ zIndex: 1 }}
-            />
+            {isLoaded && order && (
+              <GoogleMap
+                mapContainerStyle={mapContainerStyle}
+                center={order.userLocation || defaultCenter}
+                zoom={14}
+                options={{ mapTypeControl: false, streetViewControl: false, fullscreenControl: false }}
+              >
+                {/* Restaurant Marker */}
+                <Marker
+                  position={restaurantLocations[getRestaurantKey(order.items || [])] || restaurantLocations['default']}
+                  label="R"
+                />
+                {/* User Marker */}
+                {order.userLocation && (
+                  <Marker
+                    position={order.userLocation}
+                    label="U"
+                  />
+                )}
+                {/* Polyline between restaurant and user */}
+                {order.userLocation && (
+                  <Polyline
+                    path={[
+                      restaurantLocations[getRestaurantKey(order.items || [])] || restaurantLocations['default'],
+                      order.userLocation
+                    ]}
+                    options={{ strokeColor: '#3b82f6', strokeWeight: 4, strokeOpacity: 0.7 }}
+                  />
+                )}
+              </GoogleMap>
+            )}
             <div className="mt-4 grid grid-cols-2 gap-4">
               <div className="text-center p-3 bg-orange-50 rounded-lg">
                 <p className="text-sm text-gray-600">Distance</p>

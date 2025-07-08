@@ -29,6 +29,7 @@ const Address = () => {
     name: '',
     phone: '',
     address: '',
+    landmark: '', // Add landmark field
     city: '',
     state: '',
     pincode: '',
@@ -99,21 +100,20 @@ const Address = () => {
             const data = await response.json();
             if (data && data.address) {
                 const ad = data.address;
-                const newAddress = {
-                    type: 'other',
-                    name: ad.road || 'Current Location',
-                    phone: '',
-                    address: `${ad.road || ''}, ${ad.suburb || ''}`,
-                    city: ad.city || ad.town || ad.village,
-                    state: ad.state,
-                    pincode: ad.postcode,
-                    isDefault: false,
-                    userId: user.uid,
-                    createdAt: new Date(),
-                };
-                await addDoc(collection(db, 'addresses'), newAddress);
-                toast.success('Current location added as a new address!');
-                await loadAddresses(user.uid);
+                // Instead of saving directly, prefill the form and open dialog for more details
+                setFormData({
+                  type: 'other',
+                  name: ad.road || 'Current Location',
+                  phone: '',
+                  address: `${ad.road || ''}, ${ad.suburb || ''}`,
+                  landmark: '',
+                  city: ad.city || ad.town || ad.village,
+                  state: ad.state,
+                  pincode: ad.postcode,
+                  isDefault: false
+                });
+                setEditingAddress(null);
+                setIsAddDialogOpen(true);
             } else {
               toast.error('Could not determine address from location.');
             }
@@ -138,6 +138,7 @@ const Address = () => {
       name: '',
       phone: '',
       address: '',
+      landmark: '', // Add landmark field
       city: '',
       state: '',
       pincode: '',
@@ -344,6 +345,17 @@ const Address = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
                     className={`${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
                     placeholder="Enter your address"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="landmark" className={isDarkMode ? 'text-white' : 'text-gray-900'}>Landmark</Label>
+                  <Input
+                    id="landmark"
+                    value={formData.landmark}
+                    onChange={(e) => setFormData(prev => ({ ...prev, landmark: e.target.value }))}
+                    className={`${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
+                    placeholder="Enter a nearby landmark (optional)"
                   />
                 </div>
 

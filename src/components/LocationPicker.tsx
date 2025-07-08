@@ -5,16 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/sonner';
 import { useTheme } from '@/App';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-
-// Fix for default markers in react-leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+import { GoogleMap, Marker, useJsApiLoader, StandaloneSearchBox } from '@react-google-maps/api';
 
 interface LocationPickerProps {
   isOpen: boolean;
@@ -33,70 +24,24 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstance = useRef<L.Map | null>(null);
-  const markerInstance = useRef<L.Marker | null>(null);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestionTimeout = useRef<NodeJS.Timeout | null>(null);
+  const [searchBox, setSearchBox] = useState<google.maps.places.SearchBox | null>(null);
+  const [searchInput, setSearchInput] = useState('');
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       if (currentLocation) {
         setLocation(currentLocation);
-        initializeMap(currentLocation);
       } else {
         getCurrentLocation();
       }
     } else {
       // Cleanup map when dialog closes
-      if (mapInstance.current) {
-        mapInstance.current.remove();
-        mapInstance.current = null;
-        markerInstance.current = null;
-      }
     }
   }, [isOpen, currentLocation]);
-
-  const initializeMap = (centerLocation: { lat: number; lng: number }) => {
-    if (!mapRef.current || mapInstance.current) return;
-
-    // Initialize map
-    mapInstance.current = L.map(mapRef.current).setView([centerLocation.lat, centerLocation.lng], 15);
-
-    // Add tile layer (OpenStreetMap)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(mapInstance.current);
-
-    // Add draggable marker
-    markerInstance.current = L.marker([centerLocation.lat, centerLocation.lng], {
-      draggable: true
-    }).addTo(mapInstance.current);
-
-    // Handle marker drag events
-    markerInstance.current.on('dragend', (event) => {
-      const marker = event.target;
-      const position = marker.getLatLng();
-      const newLocation = { lat: position.lat, lng: position.lng };
-      setLocation(newLocation);
-      reverseGeocode(position.lat, position.lng);
-    });
-
-    // Handle map click events
-    mapInstance.current.on('click', (event) => {
-      const { lat, lng } = event.latlng;
-      const newLocation = { lat, lng };
-      setLocation(newLocation);
-      
-      // Move marker to clicked position
-      if (markerInstance.current) {
-        markerInstance.current.setLatLng([lat, lng]);
-      }
-      
-      reverseGeocode(lat, lng);
-    });
-
-    // Get initial address
-    reverseGeocode(centerLocation.lat, centerLocation.lng);
-  };
 
   const getCurrentLocation = async () => {
     setIsLoading(true);
@@ -116,7 +61,6 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
         };
         
         setLocation(newLocation);
-        initializeMap(newLocation);
         toast.success('Current location detected!');
       } else {
         throw new Error('Geolocation not supported');
@@ -138,7 +82,6 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
       // Set default location (Kolkata)
       const defaultLocation = { lat: 22.5726, lng: 88.3639 };
       setLocation(defaultLocation);
-      initializeMap(defaultLocation);
     } finally {
       setIsLoading(false);
     }
@@ -191,12 +134,6 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
         };
         setLocation(newLocation);
         
-        // Update map and marker
-        if (mapInstance.current && markerInstance.current) {
-          mapInstance.current.setView([newLocation.lat, newLocation.lng], 15);
-          markerInstance.current.setLatLng([newLocation.lat, newLocation.lng]);
-        }
-        
         toast.success('Location found!');
       } else {
         toast.error('Address not found. Please try a different address.');
@@ -208,6 +145,65 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
       setIsLoading(false);
     }
   };
+
+  const fetchSuggestions = async (query: string) => {
+    if (!query.trim()) {
+      setSuggestions([]);
+      return;
+    }
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`);
+      const data = await response.json();
+      setSuggestions(data);
+    } catch (error) {
+      setSuggestions([]);
+    }
+  };
+
+  // Hide suggestions when clicking outside
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      setShowSuggestions(false);
+    };
+    if (showSuggestions) {
+      document.addEventListener('mousedown', handleClick);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+    };
+  }, [showSuggestions]);
+
+  const handleAddressSearchWithValue = async (searchValue: string) => {
+    if (!searchValue.trim()) return;
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchValue)}&limit=1`
+      );
+      const data = await response.json();
+      if (data.length > 0) {
+        const result = data[0];
+        const newLocation = {
+          lat: parseFloat(result.lat),
+          lng: parseFloat(result.lon)
+        };
+        setLocation(newLocation);
+        toast.success('Location found!');
+      } else {
+        toast.error('Address not found. Please try a different address.');
+      }
+    } catch (error) {
+      console.error('Error geocoding address:', error);
+      toast.error('Error searching address. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const GOOGLE_MAPS_API_KEY = 'AIzaSyC0aUsBjWppu-5sSvme3Zz66Ts9aFKOYRs';
+  const mapContainerStyle = { width: '100%', height: '300px' };
+  const defaultCenter = { lat: 22.5726, lng: 88.3639 };
+  const { isLoaded } = useJsApiLoader({ googleMapsApiKey: GOOGLE_MAPS_API_KEY, libraries: ['places'] });
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -224,15 +220,39 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
         <div className="space-y-4">
           {/* Address Search */}
           <div className="flex gap-2">
-            <Input
-              placeholder="Search for an address..."
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className={`flex-1 ${isDarkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'}`}
-              onKeyPress={(e) => e.key === 'Enter' && handleAddressSearch()}
-            />
+            <div className="relative flex-1">
+              {isLoaded && (
+                <StandaloneSearchBox
+                  onLoad={ref => setSearchBox(ref)}
+                  onPlacesChanged={() => {
+                    if (searchBox) {
+                      const places = searchBox.getPlaces();
+                      if (places && places.length > 0) {
+                        const place = places[0];
+                        if (place.geometry && place.geometry.location) {
+                          const lat = place.geometry.location.lat();
+                          const lng = place.geometry.location.lng();
+                          setLocation({ lat, lng });
+                          setAddress(place.formatted_address || place.name || '');
+                        }
+                      }
+                    }
+                  }}
+                  options={{ componentRestrictions: { country: 'in' } }}
+                >
+                  <Input
+                    ref={inputRef}
+                    placeholder="Search for an address..."
+                    className={`w-full ${isDarkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'}`}
+                    autoComplete="off"
+                  />
+                </StandaloneSearchBox>
+              )}
+            </div>
             <Button
-              onClick={handleAddressSearch}
+              onClick={() => {
+                if (location) reverseGeocode(location.lat, location.lng);
+              }}
               disabled={isLoading}
               className="bg-orange-500 hover:bg-orange-600 text-white"
             >
@@ -253,11 +273,37 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
 
           {/* Leaflet Map Container */}
           <div className="relative border rounded-lg overflow-hidden">
-            <div
-              ref={mapRef}
-              className="w-full h-64"
-              style={{ zIndex: 1 }}
-            />
+            {isLoaded && (
+              <GoogleMap
+                mapContainerStyle={mapContainerStyle}
+                center={location || defaultCenter}
+                zoom={15}
+                onClick={e => {
+                  const lat = e.latLng?.lat();
+                  const lng = e.latLng?.lng();
+                  if (lat && lng) {
+                    setLocation({ lat, lng });
+                    reverseGeocode(lat, lng);
+                  }
+                }}
+                options={{ mapTypeControl: false, streetViewControl: false, fullscreenControl: false }}
+              >
+                {location && (
+                  <Marker
+                    position={location}
+                    draggable
+                    onDragEnd={e => {
+                      const lat = e.latLng?.lat();
+                      const lng = e.latLng?.lng();
+                      if (lat && lng) {
+                        setLocation({ lat, lng });
+                        reverseGeocode(lat, lng);
+                      }
+                    }}
+                  />
+                )}
+              </GoogleMap>
+            )}
             
             {/* Map Instructions Overlay */}
             <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 text-xs">

@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Home, Briefcase, Send, CreditCard, Landmark, Wallet, ArrowLeft, ArrowRight, Moon, Sun, X, Phone, MapPin } from 'lucide-react';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, DocumentData, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, DocumentData, updateDoc, doc, addDoc } from 'firebase/firestore';
 import { toast } from '@/components/ui/sonner';
 import { useTheme } from '@/App';
 import PriceBreakdown from './PriceBreakdown';
@@ -54,6 +54,17 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
   const [showPhoneInput, setShowPhoneInput] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number; address: string } | null>(null);
+  // Add state for map-based address details
+  const [mapAddressDetails, setMapAddressDetails] = useState({
+    name: '',
+    phone: '',
+    landmark: '',
+  });
+  const [mapAddressErrors, setMapAddressErrors] = useState({
+    name: '',
+    phone: '',
+    landmark: '',
+  });
 
   const deliveryFee = totalPrice > 299 ? 0 : 40;
   const gstRate = 5; // 5% GST
@@ -175,20 +186,89 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
     }
   };
 
-  const handleConfirmOrder = () => {
+  const handleContinueToPayment = () => {
+    // If user selected a map location, validate map address details
+    if (selectedLocation && !selectedAddress) {
+      let errors = { name: '', phone: '', landmark: '' };
+      if (!mapAddressDetails.name.trim()) errors.name = 'Name is required';
+      if (!mapAddressDetails.phone.match(/^\d{10}$/)) errors.phone = 'Valid 10-digit phone required';
+      if (!mapAddressDetails.landmark.trim()) errors.landmark = 'Landmark is required';
+      setMapAddressErrors(errors);
+      if (errors.name || errors.phone || errors.landmark) return;
+    }
+    if (!selectedAddress && !selectedLocation) {
+      toast.error('Please select a delivery address or location.');
+      return;
+    }
+    if (selectedAddress && (!selectedAddress.phone || selectedAddress.phone.trim() === '')) {
+      setShowPhoneInput(true);
+      setPhoneNumber(selectedAddress.phone || '');
+      return;
+    }
+    setStep(2);
+  };
+
+  const handleConfirmOrder = async () => {
+    // If user selected a map location, validate map address details
+    if (selectedLocation && !selectedAddress) {
+      let errors = { name: '', phone: '', landmark: '' };
+      if (!mapAddressDetails.name.trim()) errors.name = 'Name is required';
+      if (!mapAddressDetails.phone.match(/^\d{10}$/)) errors.phone = 'Valid 10-digit phone required';
+      if (!mapAddressDetails.landmark.trim()) errors.landmark = 'Landmark is required';
+      setMapAddressErrors(errors);
+      if (errors.name || errors.phone || errors.landmark) return;
+      // Compose address object for map location
+      const address = {
+        type: 'other',
+        name: mapAddressDetails.name,
+        address: selectedLocation.address,
+        city: '',
+        state: '',
+        pincode: '',
+        phone: mapAddressDetails.phone,
+        email: user?.email || '',
+        isDefault: true,
+        landmark: mapAddressDetails.landmark,
+        userId: user?.uid,
+        createdAt: new Date(),
+      };
+      try {
+        // Set all other addresses to isDefault: false
+        const addressesRef = collection(db, 'addresses');
+        const q = query(addressesRef, where('userId', '==', user.uid));
+        const querySnapshot = await getDocs(q);
+        const updatePromises = querySnapshot.docs.map(docSnap => updateDoc(doc(db, 'addresses', docSnap.id), { isDefault: false }));
+        await Promise.all(updatePromises);
+        // Add new address as default
+        const docRef = await addDoc(addressesRef, address);
+        const addressWithId = { ...address, id: docRef.id };
+        // Reload addresses and set new address as selected
+        await loadAddresses(user.uid);
+        setSelectedAddress(addressWithId);
+        toast.success('Location saved as your default address!');
+        onPlaceOrder({
+          address: addressWithId,
+          paymentMethod,
+          tip,
+          finalTotal,
+          location: selectedLocation,
+        });
+      } catch (error) {
+        toast.error('Failed to save address. Please try again.');
+        return;
+      }
+      return;
+    }
     if (!selectedAddress) {
       toast.error('Please select a delivery address.');
       setStep(1);
       return;
     }
-
-    // Check if address has phone number
     if (!selectedAddress.phone || selectedAddress.phone.trim() === '') {
       setShowPhoneInput(true);
       setPhoneNumber(selectedAddress.phone || '');
       return;
     }
-
     onPlaceOrder({
       address: selectedAddress,
       paymentMethod,
@@ -198,24 +278,9 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
     });
   };
 
-  const handleContinueToPayment = () => {
-    if (!selectedAddress) {
-      toast.error('Please select a delivery address.');
-      return;
-    }
-
-    // Check if address has phone number
-    if (!selectedAddress.phone || selectedAddress.phone.trim() === '') {
-      setShowPhoneInput(true);
-      setPhoneNumber(selectedAddress.phone || '');
-      return;
-    }
-
-    setStep(2);
-  };
-
   const handleLocationSelect = (location: { lat: number; lng: number; address: string }) => {
     setSelectedLocation(location);
+    setSelectedAddress(null); // Clear previous address selection
     setShowLocationPicker(false);
     toast.success('Location selected successfully!');
   };
@@ -313,6 +378,39 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
                 <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'} font-mono`}>
                   📍 Lat: {selectedLocation.lat.toFixed(6)}, Lng: {selectedLocation.lng.toFixed(6)}
                 </p>
+              </div>
+            )}
+            
+            {selectedLocation && !selectedAddress && (
+              <div className="space-y-3 mt-4">
+                <Label htmlFor="map-name" className={`block text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Full Name *</Label>
+                <Input
+                  id="map-name"
+                  value={mapAddressDetails.name}
+                  onChange={e => setMapAddressDetails(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Enter your full name"
+                  className={isDarkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'}
+                />
+                {mapAddressErrors.name && <p className="text-red-500 text-xs">{mapAddressErrors.name}</p>}
+                <Label htmlFor="map-phone" className={`block text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Phone Number *</Label>
+                <Input
+                  id="map-phone"
+                  value={mapAddressDetails.phone}
+                  onChange={e => setMapAddressDetails(prev => ({ ...prev, phone: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
+                  placeholder="Enter 10-digit phone number"
+                  maxLength={10}
+                  className={isDarkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'}
+                />
+                {mapAddressErrors.phone && <p className="text-red-500 text-xs">{mapAddressErrors.phone}</p>}
+                <Label htmlFor="map-landmark" className={`block text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Landmark *</Label>
+                <Input
+                  id="map-landmark"
+                  value={mapAddressDetails.landmark}
+                  onChange={e => setMapAddressDetails(prev => ({ ...prev, landmark: e.target.value }))}
+                  placeholder="Enter a nearby landmark"
+                  className={isDarkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'}
+                />
+                {mapAddressErrors.landmark && <p className="text-red-500 text-xs">{mapAddressErrors.landmark}</p>}
               </div>
             )}
             
@@ -521,7 +619,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
                       {step < 2 ? (
                         <Button
                           onClick={handleContinueToPayment}
-                          disabled={!selectedAddress}
+                          disabled={!(selectedAddress || selectedLocation)}
                           className="bg-orange-500 hover:bg-orange-600 text-white min-h-[44px] min-w-[120px] text-base"
                         >
                           Continue

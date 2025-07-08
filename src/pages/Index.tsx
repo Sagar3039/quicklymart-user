@@ -373,11 +373,13 @@ const PickNGo = () => {
   };
 
   useEffect(() => {
-    // Fetch user's location
+    // Always prompt for user's location on every page load
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
+          // Log coordinates for debugging
+          console.log('Detected coordinates:', { latitude, longitude });
           try {
             const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
             const data = await response.json();
@@ -391,8 +393,15 @@ const PickNGo = () => {
             setSelectedLocation('Could not fetch location');
           }
         },
-        () => {
+        (error) => {
           setSelectedLocation('Location access denied');
+          // Log geolocation error for debugging
+          console.error('Geolocation error:', error);
+        },
+        {
+          enableHighAccuracy: true, // Request high accuracy every time
+          timeout: 10000,
+          maximumAge: 0 // Always get a fresh location
         }
       );
     } else {
@@ -489,7 +498,7 @@ const PickNGo = () => {
                 >
                   <div className="min-w-0">
                     <h3 className={`font-medium text-sm truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {selectedAddress?.city || 'Select Location'}
+                      {getDisplayLocation() || 'Select Location'}
                     </h3>
                   </div>
                 </Button>
