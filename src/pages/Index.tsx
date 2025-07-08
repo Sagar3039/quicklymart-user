@@ -509,6 +509,7 @@ const PickNGo = () => {
             <div className="flex items-center space-x-4">
               <Button variant="ghost" className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}>For Business</Button>
               <Button variant="ghost" className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}>Help</Button>
+              <Button variant="ghost" className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'} onClick={() => navigate('/contact-us')}>Contact Us</Button>
             </div>
             
             {/* Right Section - Cart, Profile & Theme */}
