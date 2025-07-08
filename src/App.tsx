@@ -28,6 +28,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import UserOnboarding from "./components/UserOnboarding";
 import BanCheck from "./components/BanCheck";
 import { CartProvider } from "./contexts/CartContext";
+import { LocationProvider } from './contexts/LocationContext';
 
 const queryClient = new QueryClient();
 
@@ -209,41 +210,43 @@ const App = () => {
   <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <SelectedAddressContext.Provider value={{ selectedAddress, setSelectedAddress }}>
-          <CartProvider>
-            <TooltipProvider>
-              <Sonner position="top-right" />
-              <BrowserRouter>
-                <BanCheck>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/food" element={<Food />} />
-                    <Route path="/daily-essential" element={<DailyEssential />} />
-                    <Route path="/drinks" element={<Drinks />} />
-                    <Route path="/all-categories" element={<AllCategories />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/past-orders" element={<PastOrders />} />
-                    <Route path="/current-order/:orderId" element={<CurrentOrder />} />
-                    <Route path="/settings" element={<Settings />} />
-                    <Route path="/address" element={<Address />} />
-                    <Route path="/help-center" element={<HelpCenter />} />
-                    <Route path="/contact-us" element={<ContactUs />} />
-                    <Route path="/track-order" element={<TrackOrder />} />
-                    <Route path="/about-us" element={<AboutUs />} />
-                    <Route path="/careers" element={<Careers />} />
-                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </BanCheck>
-              </BrowserRouter>
-            </TooltipProvider>
-            
-            {/* User Onboarding Modal */}
-            <UserOnboarding 
-              isOpen={showOnboarding} 
-              onComplete={handleOnboardingComplete}
-            />
-          </CartProvider>
+          <LocationProvider>
+            <CartProvider>
+              <TooltipProvider>
+                <Sonner position="top-right" />
+                <BrowserRouter>
+                  <BanCheck>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/food" element={<Food />} />
+                      <Route path="/daily-essential" element={<DailyEssential />} />
+                      <Route path="/drinks" element={<Drinks />} />
+                      <Route path="/all-categories" element={<AllCategories />} />
+                      <Route path="/profile" element={<Profile />} />
+                      <Route path="/past-orders" element={<PastOrders />} />
+                      <Route path="/current-order/:orderId" element={<CurrentOrder />} />
+                      <Route path="/settings" element={<Settings />} />
+                      <Route path="/address" element={<Address />} />
+                      <Route path="/help-center" element={<HelpCenter />} />
+                      <Route path="/contact-us" element={<ContactUs />} />
+                      <Route path="/track-order" element={<TrackOrder />} />
+                      <Route path="/about-us" element={<AboutUs />} />
+                      <Route path="/careers" element={<Careers />} />
+                      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </BanCheck>
+                </BrowserRouter>
+              </TooltipProvider>
+              
+              {/* User Onboarding Modal */}
+              <UserOnboarding 
+                isOpen={showOnboarding} 
+                onComplete={handleOnboardingComplete}
+              />
+            </CartProvider>
+          </LocationProvider>
         </SelectedAddressContext.Provider>
       </ThemeProvider>
   </QueryClientProvider>

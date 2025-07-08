@@ -11,6 +11,7 @@ import { toast } from '@/components/ui/sonner';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useTheme } from '@/App';
+import { useLocation } from '@/contexts/LocationContext';
 
 // Fix for default markers in react-leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -47,6 +48,7 @@ const CurrentOrder = () => {
   const [distance, setDistance] = useState(0);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
+  const { location: globalLocation } = useLocation();
 
   // Restaurant locations with coordinates
   const restaurantLocations = {
@@ -124,10 +126,16 @@ const CurrentOrder = () => {
   };
 
   const initializeMap = async (orderData: Order) => {
-    if (!mapRef.current || mapInstance.current) return;
+    if (!mapRef.current) return;
+    // Clean up any existing map instance
+    if (mapInstance.current) {
+      mapInstance.current.remove();
+      mapInstance.current = null;
+    }
 
     const restaurantInfo = getRestaurantInfo(orderData);
-    const userLocation = orderData.userLocation || { lat: 22.5726, lng: 88.3639 };
+    // Use orderData.userLocation if available, else globalLocation, else fallback
+    const userLocation = orderData.userLocation || globalLocation || { lat: 22.5726, lng: 88.3639 };
 
     // Get real addresses for both locations
     const [restaurantAddress, userAddress] = await Promise.all([
@@ -248,7 +256,7 @@ const CurrentOrder = () => {
   const getRestaurantInfo = (orderData: Order) => {
     if (!orderData || !orderData.items) return restaurantLocations.default;
     
-    const userLocation = orderData.userLocation || { lat: 22.5726, lng: 88.3639 };
+    const userLocation = orderData.userLocation || globalLocation || { lat: 22.5726, lng: 88.3639 };
     const restaurantKey = getRestaurantKey(orderData.items);
     
     // Generate realistic restaurant locations near the user

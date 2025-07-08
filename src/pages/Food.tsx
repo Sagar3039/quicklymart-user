@@ -47,7 +47,7 @@ const Food = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const { cart, addToCart, updateCartQuantity, removeFromCart, clearCart, getTotalItems, getTotalPrice } = useCart();
+  const { cart, addToCart, updateCartQuantity, removeFromCart, clearCart, getTotalItems, getTotalPrice, isCartPopupOpen, setIsCartPopupOpen } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,7 +56,6 @@ const Food = () => {
   const [user, setUser] = useState(null);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isCartPopupOpen, setIsCartPopupOpen] = useState(false);
   const [sortOption, setSortOption] = useState('relevance');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [vegOption, setVegOption] = useState('all'); // 'all', 'veg', 'non-veg'
@@ -123,7 +122,6 @@ const Food = () => {
 
   const handleAddToCart = (product: Product) => {
     addToCart(product);
-    setIsCartPopupOpen(true);
   };
 
   const loadCategories = async () => {
@@ -181,6 +179,12 @@ const Food = () => {
   useEffect(() => {
     console.log('Categories:', categories);
   }, [categories]);
+
+  useEffect(() => {
+    return () => {
+      setIsCartPopupOpen(false);
+    };
+  }, []);
 
   const placeOrder = async (orderDetails) => {
     const { address, paymentMethod, tip, finalTotal, location } = orderDetails;

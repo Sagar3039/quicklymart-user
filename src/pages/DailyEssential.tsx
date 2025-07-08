@@ -332,6 +332,12 @@ const DailyEssential = () => {
     setShowLocationPicker(false);
   };
 
+  useEffect(() => {
+    return () => {
+      setIsCartPopupOpen(false);
+    };
+  }, []);
+
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'}`}>
 

@@ -128,10 +128,6 @@ const Drinks = () => {
   const cartTotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
 
   const handleAddToCart = (product: Product) => {
-    if (!isAgeVerified) {
-      setShowAgeModal(true);
-      return;
-    }
     addToCart(product);
   };
 
@@ -193,6 +189,12 @@ const Drinks = () => {
     // Save cart to localStorage
     localStorage.setItem('pickngo-cart', JSON.stringify(cart));
   }, [cart]);
+
+  useEffect(() => {
+    return () => {
+      setIsCartPopupOpen(false);
+    };
+  }, []);
 
   const placeOrder = async (orderDetails) => {
     const { address, paymentMethod, tip, finalTotal, location } = orderDetails;
@@ -357,6 +359,28 @@ const Drinks = () => {
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Drinks</h1>
+              <nav className="hidden md:flex space-x-6 ml-8">
+                <a
+                  href="/download"
+                  className={`hover:text-orange-500 transition-colors ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Download App
+                </a>
+                <a
+                  href="/help-center"
+                  className={`hover:text-orange-500 transition-colors ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                >
+                  Help Center
+                </a>
+                <a
+                  href="/about-us"
+                  className={`hover:text-orange-500 transition-colors ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                >
+                  About Us
+                </a>
+              </nav>
             </div>
             <div className="flex items-center space-x-3">
               {/* Location Picker */}
@@ -579,11 +603,11 @@ const Drinks = () => {
                 <div className="flex items-center space-x-1 text-sm text-gray-500 mb-1">
                   <Star className="w-4 h-4 text-green-500 fill-green-500" />
                   <span>{product.rating} (500+) • 20-25 mins</span>
-            </div>
+                </div>
                 <p className={`text-sm mb-1 truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{product.description}</p>
                 <p className={`text-sm mb-2 truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Khaprail Bazar • 2.2 km</p>
                 <div className={`font-bold text-lg mb-2 ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`}>₹{product.price}</div>
-              <Button 
+                <Button 
                   onClick={() => handleAddToCart(product)}
                   size="sm"
                   className={
@@ -594,121 +618,12 @@ const Drinks = () => {
                   variant={isDarkMode ? 'default' : 'outline'}
                 >
                   Add to cart
-              </Button>
+                </Button>
+              </div>
             </div>
-          </div>
           ))}
         </div>
       </main>
-
-      {/* Bottom Cart Bar (Mobile Only, Shared, Fixed Bottom) */}
-      <CartBar
-        cart={cart}
-        totalPrice={cartTotal}
-        onCheckout={() => setShowCart(true)}
-        onDelete={() => { clearCart(); toast.success('Cart cleared!'); }}
-        onViewMenu={() => setShowCart(true)}
-        isDarkMode={isDarkMode}
-        buttonLabel="Checkout"
-        className="!bottom-0"
-      />
-
-       {/* Cart Sidebar */}
-      <Sheet open={showCart} onOpenChange={setShowCart}>
-        <SheetContent className={`w-96 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-          <SheetHeader>
-            <SheetTitle className={isDarkMode ? 'text-white' : 'text-gray-900'}>Your Cart</SheetTitle>
-          </SheetHeader>
-          <div className="flex-1 overflow-y-auto py-4">
-            {cart.length === 0 ? (
-              <div className="text-center py-8">
-                <ShoppingCart className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                <p className={`text-lg font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Your cart is empty</p>
-                <p className={`text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Add some drinks to get started!</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {cart.map((item: any) => (
-                  <div key={item.id} className={`flex items-center space-x-3 p-3 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                    <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />
-                    <div className="flex-1">
-                      <h4 className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.name}</h4>
-                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>₹{item.price}</p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updateCartQuantity(item.id, Math.max(0, item.quantity - 1))}
-                        className={isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-600' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}
-                      >
-                        <Minus className="w-3 h-3" />
-                      </Button>
-                      <span className={`w-8 text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.quantity}</span>
-                        <Button 
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
-                        className={isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-600' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}
-                      >
-                        <Plus className="w-3 h-3" />
-                        </Button>
-                    </div>
-                        </div>
-                ))}
-              </div>
-            )}
-          </div>
-          {cart.length > 0 && (
-            <div className={`border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} pt-4`}>
-              <div className="flex justify-between items-center mb-4">
-                <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Total:</span>
-                <span className="text-orange-500 font-bold text-lg">₹{cartTotal.toFixed(2)}</span>
-              </div>
-              <div className="space-y-2">
-                <Button
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-                  onClick={() => {
-                    if (!user) {
-                      toast.error('You must be logged in to place an order.');
-                      return;
-                    }
-                    setShowCheckoutModal(true);
-                  }}
-                >
-                  Proceed to Checkout
-                </Button>
-                <Button
-                  variant="outline"
-                  className={`w-full ${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-                  onClick={clearCart}
-                >
-                  Clear Cart
-                </Button>
-              </div>
-      </div>
-          )}
-        </SheetContent>
-      </Sheet>
-
-      {/* Modals */}
-      {selectedProduct && (
-      <ProductQuickView 
-        product={selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-        onAddToCart={addToCart}
-      />
-      )}
-      {showCheckoutModal && (
-        <CheckoutModal
-          isOpen={showCheckoutModal}
-          onClose={() => setShowCheckoutModal(false)}
-          onPlaceOrder={placeOrder}
-          totalPrice={cartTotal}
-          user={user}
-        />
-      )}
-
       <CartPopup
         isOpen={isCartPopupOpen}
         onClose={() => setIsCartPopupOpen(false)}
@@ -718,24 +633,15 @@ const Drinks = () => {
         onProceedToCheckout={() => setShowCheckoutModal(true)}
         isDarkMode={isDarkMode}
       />
-
-      <AgeVerificationModal 
-        isOpen={showAgeModal}
-        onClose={() => setShowAgeModal(false)}
-        onVerified={() => {
-          setIsAgeVerified(true);
-          setShowAgeModal(false);
-          localStorage.setItem('pickngo-age-verified', 'true');
-        }}
-      />
-
-      <LocationPicker
-        isOpen={showLocationPicker}
-        onClose={() => setShowLocationPicker(false)}
-        onLocationSelect={handleLocationSelect}
+      <CheckoutModal
+        isOpen={showCheckoutModal}
+        onClose={() => setShowCheckoutModal(false)}
+        onPlaceOrder={placeOrder}
+        totalPrice={getTotalPrice()}
+        user={user}
       />
     </div>
   );
 };
 
-export default Drinks; 
+export default Drinks;

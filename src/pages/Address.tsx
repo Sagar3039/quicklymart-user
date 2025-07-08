@@ -13,11 +13,13 @@ import { auth, db } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, orderBy } from 'firebase/firestore';
 import { useTheme } from '@/App';
 import { useSelectedAddress } from '@/App';
+import { useLocation } from '@/contexts/LocationContext';
 
 const Address = () => {
   const navigate = useNavigate();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { selectedAddress, setSelectedAddress } = useSelectedAddress();
+  const { location: globalLocation, setLocation: setGlobalLocation } = useLocation();
   const [user, setUser] = useState(null);
   const [addresses, setAddresses] = useState([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -226,6 +228,31 @@ const Address = () => {
       toast.success('Default address updated!');
       await loadAddresses(user.uid);
       setSelectedAddressId(addressId);
+    } catch (error) {
+      console.error('Error setting default address:', error);
+      toast.error('Failed to update default address');
+    }
+  };
+
+  const handleSelectAddress = async (address) => {
+    setSelectedAddress(address);
+    setGlobalLocation({
+      lat: address.lat,
+      lng: address.lng,
+      address: address.fullAddress || address.address || '',
+    });
+    try {
+      // Unset isDefault for all addresses
+      const addressesRef = collection(db, 'addresses');
+      const q = query(addressesRef, where('userId', '==', user.uid));
+      const querySnapshot = await getDocs(q);
+      const updatePromises = querySnapshot.docs.map(doc => updateDoc(doc.ref, { isDefault: false }));
+      await Promise.all(updatePromises);
+      // Set isDefault for the selected address
+      await updateDoc(doc(db, 'addresses', address.id), { isDefault: true });
+      toast.success('Address selected and set as default!');
+      await loadAddresses(user.uid);
+      setSelectedAddressId(address.id);
     } catch (error) {
       console.error('Error setting default address:', error);
       toast.error('Failed to update default address');
@@ -485,10 +512,7 @@ const Address = () => {
                       )}
                         <Button 
                           size="sm" 
-                          onClick={() => {
-                            setSelectedAddress(address);
-                          toast.success('Address selected successfully!');
-                          }}
+                          onClick={() => handleSelectAddress(address)}
                         className="bg-pickngo-orange-500 hover:bg-pickngo-orange-600"
                         >
                         Use This Address

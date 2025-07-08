@@ -64,7 +64,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     localStorage.setItem('pickngo-cart', JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (product: any) => {
+  const addToCart = (product: any, showPopup: boolean = true) => {
     setCart(prevCart => {
       const existingProduct = prevCart.find(item => item.id === product.id);
       if (existingProduct) {
@@ -75,10 +75,11 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         return [...prevCart, { ...product, quantity: 1 }];
       }
     });
-    // Show cart popup after a short delay to ensure state is updated
-    setTimeout(() => {
-      setIsCartPopupOpen(true);
-    }, 100);
+    if (showPopup) {
+      setTimeout(() => {
+        setIsCartPopupOpen(true);
+      }, 100);
+    }
   };
 
   const updateCartQuantity = (productId: string, newQuantity: number) => {

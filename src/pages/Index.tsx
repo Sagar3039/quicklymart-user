@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/carousel";
 import { useSelectedAddress } from '@/App';
 import CartBar from '@/components/CartBar';
+import { useLocation } from '@/contexts/LocationContext';
 
 const groceryCategories = [
     { name: 'Fresh Vegetables', image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&h=400&fit=crop&crop=center' },
@@ -88,6 +89,8 @@ const PickNGo = () => {
 
   const [topBuys, setTopBuys] = useState([]);
 
+  const { location: globalLocation } = useLocation();
+
   useEffect(() => {
     const fetchCategories = async () => {
       const categories = await getCategoriesByProductCategory(PRODUCT_CATEGORIES.FOOD);
@@ -131,12 +134,43 @@ const PickNGo = () => {
     }
   };
 
+  // Improved function to extract only city name and pincode from address
+  const getCityAndPincodeFromAddress = (address) => {
+    if (!address) return '';
+    console.log('Parsing address for navbar:', address); // Debug log
+    const parts = address.split(',').map(p => p.trim());
+    let pincode = '';
+    let city = '';
+    // Find pincode (first 6-digit number)
+    for (let i = 0; i < parts.length; i++) {
+      if (/^\d{6}$/.test(parts[i])) {
+        pincode = parts[i];
+        // Try to find a city: the first non-numeric, non-empty part before pincode that is not a district/state/country
+        for (let j = i - 1; j >= 0; j--) {
+          if (
+            parts[j] &&
+            !/^\d+$/.test(parts[j]) &&
+            !/India|West Bengal|Paschim Medinipur|WB|IN|District|State|Block|Tehsil/i.test(parts[j])
+          ) {
+            city = parts[j];
+            break;
+          }
+        }
+        break;
+      }
+    }
+    if (city && pincode) return `${city}, ${pincode}`;
+    if (pincode) return pincode;
+    if (city) return city;
+    return '';
+  };
+
   // Function to get display location
   const getDisplayLocation = () => {
-    if (selectedAddress) {
-      return `${selectedAddress.city}, ${selectedAddress.state}`;
+    if (globalLocation && globalLocation.address) {
+      return getCityAndPincodeFromAddress(globalLocation.address);
     }
-    return truncateLocation(selectedLocation);
+    return 'Select Location';
   };
 
   // Sample product data to match the image
@@ -372,6 +406,10 @@ const PickNGo = () => {
     toast.success(`Selected ${product.name}`);
   };
 
+  const handleAddToCartFromHome = (product) => {
+    addToCart(product); // Do not show popup
+  };
+
   useEffect(() => {
     // Fetch user's location
     if (navigator.geolocation) {
@@ -472,15 +510,11 @@ const PickNGo = () => {
       {/* --- Desktop Header --- */}
       <header className={`hidden md:block sticky top-0 z-50 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center h-16 gap-8 justify-end">
             {/* Left Section - Logo & Location */}
             <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-2">
-                <img src="/logo.jpg" alt="PickNGo Logo" className="h-12 w-auto object-contain" />
-              </div>
-              
-              {/* Location Bar */}
-              <div className="flex items-center space-x-2">
+              <img src="/logo.jpg" alt="PickNGo Logo" className="h-12 w-auto object-contain" />
+              <div className="flex items-center space-x-2 pl-2 border-l border-gray-300 dark:border-gray-700">
                 <MapPin className="w-5 h-5 text-orange-500" />
                 <Button
                   variant="ghost"
@@ -488,22 +522,39 @@ const PickNGo = () => {
                   onClick={() => setShowLocationPicker(true)}
                 >
                   <div className="min-w-0">
-                    <h3 className={`font-medium text-sm truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {selectedAddress?.city || 'Select Location'}
+                    <h3 className={`font-medium text-sm truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}> 
+                      {getDisplayLocation()}
                     </h3>
                   </div>
                 </Button>
               </div>
             </div>
-            
-            {/* Center Section - Navigation */}
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}>For Business</Button>
-              <Button variant="ghost" className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}>Help</Button>
-            </div>
-            
-            {/* Right Section - Cart, Profile & Theme */}
-            <div className="flex items-center space-x-3">
+            {/* Spacer for center alignment */}
+            <div className="flex-1" />
+            {/* Right Section - Nav Menu + Cart/Profile/Theme */}
+            <div className="flex items-center space-x-8 ml-auto ml-20">
+              <nav className="flex space-x-6">
+                <a
+                  href="/download"
+                  className={`hover:text-orange-500 font-medium transition-colors ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Download App
+                </a>
+                <a
+                  href="/help-center"
+                  className={`hover:text-orange-500 font-medium transition-colors ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                >
+                  Help Center
+                </a>
+                <a
+                  href="/about-us"
+                  className={`hover:text-orange-500 font-medium transition-colors ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                >
+                  About Us
+                </a>
+              </nav>
               {/* Cart Section */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -678,7 +729,7 @@ const PickNGo = () => {
                 >
                   <div className="min-w-0 flex-1">
                     <h3 className={`font-medium text-xs truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {selectedAddress?.city || 'Location'}
+                      {getDisplayLocation()}
                     </h3>
                   </div>
                 </Button>
@@ -854,7 +905,7 @@ const PickNGo = () => {
                             isOpen={true}
                             onClose={() => {}}
                             onProductSelect={handleProductSelect}
-                            onAddToCart={addToCart}
+                            onAddToCart={handleAddToCartFromHome}
                             cart={cart}
                         />
                     </div>
@@ -871,7 +922,7 @@ const PickNGo = () => {
               isOpen={true}
               onClose={() => {}}
               onProductSelect={handleProductSelect}
-              onAddToCart={addToCart}
+              onAddToCart={handleAddToCartFromHome}
               cart={cart}
           />
           <Button 
@@ -1312,6 +1363,7 @@ const PickNGo = () => {
           isOpen={showLocationPicker}
           onClose={() => setShowLocationPicker(false)}
           onLocationSelect={handleLocationSelect}
+          currentLocation={globalLocation}
         />
     </div>
   );

@@ -12,6 +12,7 @@ import { useTheme } from '@/App';
 import PriceBreakdown from './PriceBreakdown';
 import LocationPicker from './LocationPicker';
 import { useBanCheck } from '@/hooks/useBanCheck';
+import { useLocation } from '@/contexts/LocationContext';
 
 interface Address {
     id: string;
@@ -43,6 +44,7 @@ interface CheckoutModalProps {
 const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceOrder, totalPrice, user }) => {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { banStatus } = useBanCheck();
+  const { location: globalLocation } = useLocation();
   const [step, setStep] = useState(1);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
@@ -189,12 +191,15 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
       return;
     }
 
+    // Use global location context if available
+    const deliveryLocation = globalLocation || selectedLocation;
+
     onPlaceOrder({
       address: selectedAddress,
       paymentMethod,
       tip,
       finalTotal,
-      location: selectedLocation,
+      location: deliveryLocation,
     });
   };
 
