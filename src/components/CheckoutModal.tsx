@@ -8,7 +8,7 @@ import { Home, Briefcase, Send, CreditCard, Landmark, Wallet, ArrowLeft, ArrowRi
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, DocumentData, updateDoc, doc, addDoc } from 'firebase/firestore';
 import { toast } from '@/components/ui/sonner';
-import { useTheme } from '@/App';
+import { useTheme, useSelectedAddress } from '@/App';
 import PriceBreakdown from './PriceBreakdown';
 import LocationPicker from './LocationPicker';
 import { useBanCheck } from '@/hooks/useBanCheck';
@@ -43,6 +43,7 @@ interface CheckoutModalProps {
 const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceOrder, totalPrice, user }) => {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { banStatus } = useBanCheck();
+  const { selectedAddress: globalSelectedAddress, setSelectedAddress: setGlobalSelectedAddress } = useSelectedAddress();
   const [step, setStep] = useState(1);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
@@ -82,6 +83,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
   useEffect(() => {
     if (isOpen && user) {
       loadAddresses(user.uid);
+      // Sync with global selected address
+      setSelectedAddress(globalSelectedAddress || null);
     } else {
       setStep(1);
       setSelectedAddress(null);
@@ -93,7 +96,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
       setShowLocationPicker(false);
       setSelectedLocation(null);
     }
-  }, [isOpen, user]);
+  }, [isOpen, user, globalSelectedAddress]);
 
   const loadAddresses = async (userId: string) => {
     setIsLoading(true);
@@ -124,9 +127,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
       });
       
       setAddresses(addressesData);
-      if (addressesData.length > 0) {
-        setSelectedAddress(addressesData.find(a => a.isDefault) || addressesData[0]);
-      }
+      // Only set default if nothing is selected
+      setSelectedAddress(prev => prev || addressesData.find(a => a.isDefault) || addressesData[0] || null);
     } catch (error) {
       console.error("Error loading addresses: ", error);
       toast.error("Failed to load addresses.");
@@ -168,6 +170,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
       // Update the selected address locally
       const updatedAddress = { ...selectedAddress, phone: phoneNumber };
       setSelectedAddress(updatedAddress);
+      setGlobalSelectedAddress(updatedAddress); // Update global context
       
       // Update the address in the addresses array
       setAddresses(prev => prev.map(addr => 
@@ -245,6 +248,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
         // Reload addresses and set new address as selected
         await loadAddresses(user.uid);
         setSelectedAddress(addressWithId);
+        setGlobalSelectedAddress(addressWithId); // Update global context
         toast.success('Location saved as your default address!');
         onPlaceOrder({
           address: addressWithId,
@@ -291,6 +295,12 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
       case 'work': return <Briefcase className="w-5 h-5 text-gray-500" />;
       default: return <Send className="w-5 h-5 text-gray-500" />;
     }
+  };
+
+  // Define handleAddressSelect before use
+  const handleAddressSelect = (address: Address | null) => {
+    setSelectedAddress(address);
+    setGlobalSelectedAddress(address);
   };
 
   const renderStepContent = () => {
@@ -419,7 +429,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
               </div>
             ) : (
-              <RadioGroup value={selectedAddress?.id} onValueChange={(id) => setSelectedAddress(addresses.find(a => a.id === id) || null)}>
+              <RadioGroup value={selectedAddress?.id} onValueChange={(id) => handleAddressSelect(addresses.find(a => a.id === id) || null)}>
                 <div className="space-y-3 max-h-80 overflow-y-auto">
                   {addresses.map(address => (
                     <Label key={address.id} htmlFor={address.id} className={`flex items-start space-x-3 p-4 border rounded-xl cursor-pointer hover:border-orange-500 transition-colors ${isDarkMode ? 'border-gray-700 bg-gray-700' : 'border-gray-200 bg-white'}`}>

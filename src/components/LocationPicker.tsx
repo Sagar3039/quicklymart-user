@@ -24,9 +24,6 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState<any[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const suggestionTimeout = useRef<NodeJS.Timeout | null>(null);
   const [searchBox, setSearchBox] = useState<google.maps.places.SearchBox | null>(null);
   const [searchInput, setSearchInput] = useState('');
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -146,60 +143,6 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
     }
   };
 
-  const fetchSuggestions = async (query: string) => {
-    if (!query.trim()) {
-      setSuggestions([]);
-      return;
-    }
-    try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`);
-      const data = await response.json();
-      setSuggestions(data);
-    } catch (error) {
-      setSuggestions([]);
-    }
-  };
-
-  // Hide suggestions when clicking outside
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      setShowSuggestions(false);
-    };
-    if (showSuggestions) {
-      document.addEventListener('mousedown', handleClick);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClick);
-    };
-  }, [showSuggestions]);
-
-  const handleAddressSearchWithValue = async (searchValue: string) => {
-    if (!searchValue.trim()) return;
-    setIsLoading(true);
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchValue)}&limit=1`
-      );
-      const data = await response.json();
-      if (data.length > 0) {
-        const result = data[0];
-        const newLocation = {
-          lat: parseFloat(result.lat),
-          lng: parseFloat(result.lon)
-        };
-        setLocation(newLocation);
-        toast.success('Location found!');
-      } else {
-        toast.error('Address not found. Please try a different address.');
-      }
-    } catch (error) {
-      console.error('Error geocoding address:', error);
-      toast.error('Error searching address. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const GOOGLE_MAPS_API_KEY = 'AIzaSyC0aUsBjWppu-5sSvme3Zz66Ts9aFKOYRs';
   const mapContainerStyle = { width: '100%', height: '300px' };
   const defaultCenter = { lat: 22.5726, lng: 88.3639 };
@@ -233,18 +176,27 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
                           const lat = place.geometry.location.lat();
                           const lng = place.geometry.location.lng();
                           setLocation({ lat, lng });
-                          setAddress(place.formatted_address || place.name || '');
+                          const value = place.formatted_address || place.name || '';
+                          setAddress(value);
+                          setSearchInput(value);
+                          if (inputRef.current) {
+                            inputRef.current.value = value;
+                          }
                         }
                       }
                     }
                   }}
-                  options={{ componentRestrictions: { country: 'in' } }}
                 >
                   <Input
                     ref={inputRef}
                     placeholder="Search for an address..."
                     className={`w-full ${isDarkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'}`}
                     autoComplete="off"
+                    value={searchInput}
+                    onChange={e => {
+                      setSearchInput(e.target.value);
+                      setAddress(e.target.value);
+                    }}
                   />
                 </StandaloneSearchBox>
               )}
@@ -272,7 +224,9 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
           </Button>
 
           {/* Leaflet Map Container */}
-          <div className="relative border rounded-lg overflow-hidden">
+          <div
+            className="relative border rounded-lg overflow-hidden"
+          >
             {isLoaded && (
               <GoogleMap
                 mapContainerStyle={mapContainerStyle}

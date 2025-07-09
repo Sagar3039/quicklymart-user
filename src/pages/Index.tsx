@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/carousel";
 import { useSelectedAddress } from '@/App';
 import CartBar from '@/components/CartBar';
+import AddressSelectDialog from '@/components/AddressSelectDialog';
 
 const groceryCategories = [
     { name: 'Fresh Vegetables', image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&h=400&fit=crop&crop=center' },
@@ -87,6 +88,11 @@ const PickNGo = () => {
   const [essentialCategories, setEssentialCategories] = useState([]);
 
   const [topBuys, setTopBuys] = useState([]);
+
+  const [showAddressDialog, setShowAddressDialog] = useState(false);
+
+  // Add state for detected location
+  const [detectedLocation, setDetectedLocation] = useState({ city: '', pincode: '', display: 'Fetching location...' });
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -475,6 +481,35 @@ const PickNGo = () => {
     toast.success('Location selected successfully!');
   };
 
+  // Fetch current location on mount
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+            const data = await response.json();
+            const city = data.address.city || data.address.town || data.address.village || '';
+            const pincode = data.address.postcode || '';
+            setDetectedLocation({
+              city,
+              pincode,
+              display: city && pincode ? `${city}, ${pincode}` : city || pincode || 'Location not found',
+            });
+          } catch (error) {
+            setDetectedLocation({ city: '', pincode: '', display: 'Location not found' });
+          }
+        },
+        (error) => {
+          setDetectedLocation({ city: '', pincode: '', display: 'Location not found' });
+        }
+      );
+    } else {
+      setDetectedLocation({ city: '', pincode: '', display: 'Location not found' });
+    }
+  }, []);
+
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'}`}>
 
@@ -491,17 +526,9 @@ const PickNGo = () => {
               {/* Location Bar */}
               <div className="flex items-center space-x-2">
                 <MapPin className="w-5 h-5 text-orange-500" />
-                <Button
-                  variant="ghost"
-                  className="flex items-center space-x-2 text-left h-auto p-1"
-                  onClick={() => setShowLocationPicker(true)}
-                >
-                  <div className="min-w-0">
-                    <h3 className={`font-medium text-sm truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {getDisplayLocation() || 'Select Location'}
-                    </h3>
-                  </div>
-                </Button>
+                <div className="min-w-0">
+                  <h3 className={`font-medium text-sm truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{detectedLocation.display}</h3>
+                </div>
               </div>
             </div>
             
@@ -648,6 +675,10 @@ const PickNGo = () => {
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Log out</span>
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowAddressDialog(true)} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
+                      <MapPin className="mr-2 h-4 w-4" />
+                      <span>Saved Address</span>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
@@ -681,17 +712,9 @@ const PickNGo = () => {
               {/* Location Bar */}
               <div className="flex items-center space-x-1">
                 <MapPin className="w-4 h-4 text-orange-500" />
-                <Button
-                  variant="ghost"
-                  className="flex items-center space-x-1 text-left h-auto p-1 rounded-md max-w-[100px] sm:max-w-[120px]"
-                  onClick={() => setShowLocationPicker(true)}
-                >
-                  <div className="min-w-0 flex-1">
-                    <h3 className={`font-medium text-xs truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {selectedAddress?.city || 'Location'}
-                    </h3>
-                  </div>
-                </Button>
+                <div className="min-w-0 flex-1">
+                  <h3 className={`font-medium text-xs truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{detectedLocation.display}</h3>
+                </div>
               </div>
             </div>
             
@@ -828,6 +851,10 @@ const PickNGo = () => {
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Log out</span>
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowAddressDialog(true)} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
+                      <MapPin className="mr-2 h-4 w-4" />
+                      <span>Saved Address</span>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
@@ -850,12 +877,26 @@ const PickNGo = () => {
         <div className={`hidden md:block py-16 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
             <div className="container mx-auto text-center">
                 <h2 className="text-4xl font-bold mb-4 text-orange-500">Your daily essentials, delivered in minutes.</h2>
-                {selectedAddress && (
+                {selectedAddress ? (
                   <div className="mb-4">
                     <Badge className="bg-orange-100 text-orange-700 px-4 py-2 text-sm">
-                      🎯 Delivering to: {selectedAddress.city}, {selectedAddress.state}
+                      🎯 Delivering to: {selectedAddress.city || ''}{selectedAddress.city && selectedAddress.state ? ', ' : ''}{selectedAddress.state || ''}{(selectedAddress.city || selectedAddress.state) && selectedAddress.pincode ? ', ' : ''}{selectedAddress.pincode || ''}
                     </Badge>
                   </div>
+                ) : (
+                  detectedLocation.city || detectedLocation.pincode ? (
+                    <div className="mb-4">
+                      <Badge className="bg-orange-100 text-orange-700 px-4 py-2 text-sm">
+                        🎯 Delivering to: {detectedLocation.city}{detectedLocation.city && detectedLocation.pincode ? ', ' : ''}{detectedLocation.pincode}
+                      </Badge>
+                    </div>
+                  ) : (
+                    <div className="mb-4">
+                      <Badge className="bg-orange-100 text-orange-700 px-4 py-2 text-sm">
+                        🎯 Delivering to: Not selected
+                      </Badge>
+                    </div>
+                  )
                 )}
                 <p className={`text-lg mb-8 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Order food, groceries, and more from the best places near you.</p>
                 <div className="flex justify-center">
@@ -1318,11 +1359,17 @@ const PickNGo = () => {
       </footer>
 
       {/* Location Picker */}
-              <LocationPicker
-          isOpen={showLocationPicker}
-          onClose={() => setShowLocationPicker(false)}
-          onLocationSelect={handleLocationSelect}
-        />
+      <LocationPicker
+        isOpen={showLocationPicker}
+        onClose={() => setShowLocationPicker(false)}
+        onLocationSelect={handleLocationSelect}
+      />
+
+      <AddressSelectDialog
+        isOpen={showAddressDialog}
+        onClose={() => setShowAddressDialog(false)}
+        userId={user?.uid || null}
+      />
     </div>
   );
 };
