@@ -533,10 +533,10 @@ const PickNGo = () => {
             </div>
             
             {/* Center Section - Navigation */}
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}>For Business</Button>
-              <Button variant="ghost" className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}>Help</Button>
-              <Button variant="ghost" className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'} onClick={() => navigate('/contact-us')}>Contact Us</Button>
+            <div className="flex items-center space-x-4 ml-auto pr-6">
+              <Button variant="ghost" className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'} onClick={() => toast.info('Download our mobile app!')}>Download App</Button>
+              <Button variant="ghost" className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'} onClick={() => navigate('/help-center')}>Help Center</Button>
+              <Button variant="ghost" className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'} onClick={() => navigate('/about-us')}>About Us</Button>
             </div>
             
             {/* Right Section - Cart, Profile & Theme */}
@@ -666,18 +666,27 @@ const PickNGo = () => {
                       <Package className="mr-2 h-4 w-4" />
                       <span>Past Orders</span>
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowAddressDialog(true)} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
+                      <MapPin className="mr-2 h-4 w-4" />
+                      <span>Saved Address</span>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/settings')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Settings</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className={isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} />
+                    <DropdownMenuItem onClick={() => toast.info('Download our mobile app!')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
+                      <span>Download App</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/help-center')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
+                      <span>Help Center</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/about-us')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
+                      <span>About Us</span>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleSignOut} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Log out</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setShowAddressDialog(true)} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
-                      <MapPin className="mr-2 h-4 w-4" />
-                      <span>Saved Address</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -842,18 +851,27 @@ const PickNGo = () => {
                       <Package className="mr-2 h-4 w-4" />
                       <span>Past Orders</span>
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowAddressDialog(true)} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
+                      <MapPin className="mr-2 h-4 w-4" />
+                      <span>Saved Address</span>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/settings')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Settings</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className={isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} />
+                    <DropdownMenuItem onClick={() => toast.info('Download our mobile app!')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
+                      <span>Download App</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/help-center')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
+                      <span>Help Center</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/about-us')} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
+                      <span>About Us</span>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleSignOut} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Log out</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setShowAddressDialog(true)} className={isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}>
-                      <MapPin className="mr-2 h-4 w-4" />
-                      <span>Saved Address</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

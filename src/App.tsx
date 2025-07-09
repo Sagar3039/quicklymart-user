@@ -211,7 +211,7 @@ const App = () => {
         <SelectedAddressContext.Provider value={{ selectedAddress, setSelectedAddress }}>
           <CartProvider>
             <TooltipProvider>
-              <Sonner position="top-right" />
+              <Sonner position="bottom-right" />
               <BrowserRouter>
                 <BanCheck>
                   <Routes>

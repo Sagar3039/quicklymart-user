@@ -184,16 +184,6 @@ const PastOrders = () => {
             </div>
             
             <div className="flex items-center space-x-4">
-              {/* Dark Mode Toggle */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-gray-600 hover:text-orange-500"
-                onClick={toggleDarkMode}
-                title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-              >
-                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </Button>
               {/* Connection Status */}
               <div className="flex items-center space-x-2">
                 {isOnline ? (

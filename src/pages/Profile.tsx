@@ -142,15 +142,6 @@ const Profile = () => {
               <div className="flex space-x-2">
                 <Button
                   variant="ghost"
-                  size="icon"
-                  className="text-gray-600 hover:text-orange-500 bg-gray-100 rounded-full w-10 h-10"
-                  onClick={toggleDarkMode}
-                  title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-                >
-                  {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                </Button>
-                <Button
-                  variant="ghost"
                   size="sm"
                   className="text-gray-600 hover:text-orange-500"
                   onClick={handleCancel}
@@ -171,15 +162,6 @@ const Profile = () => {
               </div>
             ) : (
               <div className="flex space-x-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-gray-600 hover:text-orange-500 bg-gray-100 rounded-full w-10 h-10"
-                  onClick={toggleDarkMode}
-                  title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-                >
-                  {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                </Button>
                 <Button
                   variant="ghost"
                   size="sm"

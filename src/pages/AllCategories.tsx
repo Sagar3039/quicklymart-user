@@ -103,15 +103,6 @@ const AllCategories = () => {
                 <div className="container mx-auto px-4 h-16 flex items-center justify-between">
                     <h1 className="text-xl font-bold text-gray-800 dark:text-white">All Categories</h1>
                     <div className="flex items-center space-x-4">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-gray-600 dark:text-gray-300"
-                          onClick={toggleDarkMode}
-                          title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-                        >
-                          {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                        </Button>
                         <Search className="w-6 h-6 text-gray-600 dark:text-gray-300" />
                         <Camera className="w-6 h-6 text-gray-600 dark:text-gray-300" />
                         <ShoppingCart className="w-6 h-6 text-gray-600 dark:text-gray-300" />

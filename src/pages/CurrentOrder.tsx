@@ -401,15 +401,6 @@ const CurrentOrder = () => {
             </div>
             <div className="flex items-center space-x-3">
               {/* Dark Mode Toggle */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-gray-600 hover:text-orange-500"
-                onClick={toggleDarkMode}
-                title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-              >
-                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </Button>
               <Badge className="bg-orange-500 text-white">
                 <Clock className="w-4 h-4 mr-1" />
                 {distance.toFixed(1)} km away

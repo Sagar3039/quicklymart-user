@@ -237,14 +237,6 @@ const PrivacyPolicy = () => {
                 <p className="text-sm text-gray-600">How we protect your data</p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleDarkMode}
-              className="text-gray-600 hover:text-pickngo-orange-500"
-            >
-              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </Button>
           </div>
         </div>
       </header>

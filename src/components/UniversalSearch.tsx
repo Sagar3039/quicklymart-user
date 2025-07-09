@@ -61,6 +61,8 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose, onPr
   const [error, setError] = useState('');
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const inputWrapperRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   // Load all products on component mount
   useEffect(() => {
@@ -73,6 +75,12 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose, onPr
   useEffect(() => {
     filterProducts();
   }, [searchQuery, selectedCategory, selectedSubcategory, products]);
+
+  useEffect(() => {
+    if (isPopoverOpen && inputRef.current) {
+      inputRef.current.focus({ preventScroll: true });
+    }
+  }, [isPopoverOpen]);
 
   const loadAllProducts = async () => {
     setIsLoading(true);
@@ -223,19 +231,9 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose, onPr
     // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      console.log('Filtering by search query:', query);
       filtered = filtered.filter(product => {
-        const nameMatch = product.name.toLowerCase().includes(query);
-        const descMatch = product.description.toLowerCase().includes(query);
-        const tagMatch = product.tags && product.tags.some(tag => tag.toLowerCase().includes(query));
-        
-        const matches = nameMatch || descMatch || tagMatch;
-        if (matches) {
-          console.log('Product matches search:', product.name);
-        }
-        return matches;
+        return product.name.toLowerCase().includes(query);
       });
-      console.log('Products after search filter:', filtered.length);
     }
 
     // Filter by category
@@ -354,184 +352,175 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose, onPr
     ? selectedSubcategory
     : 'all';
 
-  const handleInputClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsPopoverOpen(true);
-  };
-
-  const handleInputFocus = () => {
-    setIsPopoverOpen(true);
-  };
-
   // Show content only when there's a search query or when popover is first opened
   const shouldShowContent = searchQuery.trim() || isPopoverOpen;
 
+  // Add a blur handler to close the popover only if focus is not moving to the popover
+  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    setTimeout(() => {
+      if (
+        document.activeElement &&
+        popoverRef.current &&
+        popoverRef.current.contains(document.activeElement)
+      ) {
+        // Focus moved to popover, do not close
+        return;
+      }
+      setIsPopoverOpen(false);
+    }, 100);
+  };
+
   return (
-    <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-      <PopoverTrigger asChild>
-        <div className="relative flex-1 max-w-2xl">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <Input
-            ref={inputRef}
-            placeholder="Search for food, drinks, groceries..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onClick={handleInputClick}
-            onFocus={handleInputFocus}
-            className={`pl-10 pr-10 h-12 text-lg focus:border-orange-500 transition-all duration-200 ${isDarkMode ? 'bg-gray-800 text-white border-gray-600 placeholder-gray-400' : 'bg-gray-50 text-gray-900 border-gray-200'}`}
-          />
-          {searchQuery && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSearchQuery('')}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-orange-500"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          )}
-        </div>
-      </PopoverTrigger>
-      <PopoverContent className="w-[500px] max-h-[600px] overflow-y-auto p-0 shadow-2xl border-0" align="center" side="bottom" sideOffset={8}>
-        <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-white'} rounded-xl overflow-hidden`}>
-          {/* Header */}
-          <div className={`p-4 border-b ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-100 bg-gray-50'}`}>
-            <div className="flex items-center justify-between">
-              <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                {searchQuery.trim() ? `Search Results (${filteredProducts.length})` : 'Search Products'}
-              </h3>
-              {searchQuery.trim() && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearFilters}
-                  className={`text-xs ${isDarkMode ? 'text-gray-400 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}`}
-                >
-                  Clear
-                </Button>
+    <div className="relative flex-1 max-w-2xl" ref={inputWrapperRef}>
+      <Input
+        ref={inputRef}
+        placeholder="Search for products by name..."
+        value={searchQuery}
+        onFocus={() => setIsPopoverOpen(true)}
+        onBlur={handleInputBlur}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className={`pl-10 pr-10 h-12 text-lg transition-all duration-200 border border-black/10 dark:border-black/20 outline-none focus:outline-none focus:border-transparent focus:ring-0 ${isDarkMode ? 'bg-gray-800 text-white placeholder-gray-400' : 'bg-gray-50 text-gray-900 placeholder-gray-400'}`}
+      />
+      {isPopoverOpen && (
+        <div
+          ref={popoverRef}
+          className="absolute z-50 w-[500px] max-h-[600px] overflow-y-auto p-0 shadow-2xl border-0 left-1/2 transform -translate-x-1/2"
+          style={{ top: '110%' }}
+        >
+          <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-white'} rounded-xl overflow-hidden`}>
+            <div className={`p-4 border-b ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-100 bg-gray-50'}`}>
+              <div className="flex items-center justify-between">
+                <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{searchQuery.trim() ? `Search Results (${filteredProducts.length})` : 'Search Products'}</h3>
+                {searchQuery.trim() && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className={`text-xs ${isDarkMode ? 'text-gray-400 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}`}
+                  >
+                    Clear
+                  </Button>
+                )}
+              </div>
+            </div>
+            {/* Content */}
+            <div className="p-4">
+              {/* Error Message */}
+              {error && (
+                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+              {/* Show content only when there's a search query */}
+              {searchQuery.trim() ? (
+                <>
+                  {/* Popular Searches */}
+                  <div className="mb-4">
+                    <h4 className={`text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Popular Searches</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {popularSearches.slice(0, 6).map((search) => (
+                        <Button
+                          key={search}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePopularSearchClick(search)}
+                          className={`text-xs rounded-full ${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                        >
+                          {search}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Search Results */}
+                  <div>
+                    {isLoading ? (
+                      <div className="flex justify-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                      </div>
+                    ) : filteredProducts.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Search className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                        <p className={`text-base font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>No products found</p>
+                        <p className={`text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Try adjusting your search terms</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                        {filteredProducts.slice(0, 10).map((product) => (
+                          <div
+                            key={product.id}
+                            className={`flex items-center space-x-4 p-3 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md ${isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-50'}`}
+                            onClick={() => handleProductClick(product)}
+                          >
+                            <div className="relative">
+                              <img
+                                src={product.image}
+                                alt={product.name}
+                                className="w-16 h-16 object-cover rounded-lg"
+                                onError={(e) => {
+                                  e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yNCAyOEMyNi4yMDkxIDI4IDI4IDI2LjIwOTEgMjggMjRDMjggMjEuNzkwOSAyNi4yMDkxIDIwIDI0IDIwQzIxLjc5MDkgMjAgMjAgMjEuNzkwOSAyMCAyNEMyMCAyNi4yMDkxIDIxLjc5MDkgMjggMjQgMjhaIiBmaWxsPSIjOUI5QkEwIi8+CjxwYXRoIGQ9Ik0yNCAzMkMyNi4yMDkxIDMyIDI4IDMwLjIwOTEgMjggMjhDMjggMjUuNzkwOSAyNi4yMDkxIDI0IDI0IDI0QzIxLjc5MDkgMjQgMjAgMjUuNzkwOSAyMCAyOEMyMCAzMC4yMDkxIDIxLjc5MDkgMzIgMjQgMzJaIiBmaWxsPSIjOUI5QkEwIi8+Cjwvc3ZnPgo=';
+                                }}
+                              />
+                              {product.discount && (
+                                <div className="absolute -top-1 -right-1 bg-orange-500 text-white px-1.5 py-0.5 rounded-full text-xs font-bold">
+                                  {product.discount}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className={`font-semibold text-base truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                {product.name}
+                              </h4>
+                              <p className={`text-sm truncate mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                {product.description}
+                              </p>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                  <span className="text-orange-500 font-bold text-lg">₹{product.price}</span>
+                                  <Badge variant="secondary" className={`text-xs ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>
+                                    {getCategoryLabel(product.category)}
+                                  </Badge>
+                                </div>
+                                <div className="flex items-center space-x-1">
+                                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                  <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{product.rating}</span>
+                                </div>
+                              </div>
+                            </div>
+                            {/* Add to Cart Button */}
+                            <Button
+                              size="sm"
+                              onClick={(e) => handleAddToCart(product, e)}
+                              className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-lg flex items-center space-x-1"
+                            >
+                              <Plus className="w-4 h-4" />
+                              <span className="text-xs">Add</span>
+                            </Button>
+                          </div>
+                        ))}
+                        {filteredProducts.length > 10 && (
+                          <div className="text-center py-3">
+                            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                              +{filteredProducts.length - 10} more results
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                /* Show initial state when no search query */
+                <div className="text-center py-8">
+                  <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className={`text-lg font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Start typing to search</p>
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Search for products by name</p>
+                </div>
               )}
             </div>
           </div>
-
-          {/* Content */}
-          <div className="p-4">
-            {/* Error Message */}
-            {error && (
-              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
-                {error}
-              </div>
-            )}
-
-            {/* Show content only when there's a search query */}
-            {searchQuery.trim() ? (
-              <>
-                {/* Popular Searches */}
-                <div className="mb-4">
-                  <h4 className={`text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Popular Searches</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {popularSearches.slice(0, 6).map((search) => (
-                      <Button
-                        key={search}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePopularSearchClick(search)}
-                        className={`text-xs rounded-full ${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-                      >
-                        {search}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Search Results */}
-                <div>
-                  {isLoading ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-                    </div>
-                  ) : filteredProducts.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Search className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                      <p className={`text-base font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>No products found</p>
-                      <p className={`text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Try adjusting your search terms</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                      {filteredProducts.slice(0, 10).map((product) => (
-                        <div
-                          key={product.id}
-                          className={`flex items-center space-x-4 p-3 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md ${isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-50'}`}
-                          onClick={() => handleProductClick(product)}
-                        >
-                          <div className="relative">
-                            <img
-                              src={product.image}
-                              alt={product.name}
-                              className="w-16 h-16 object-cover rounded-lg"
-                              onError={(e) => {
-                                e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yNCAyOEMyNi4yMDkxIDI4IDI4IDI2LjIwOTEgMjggMjRDMjggMjEuNzkwOSAyNi4yMDkxIDIwIDI0IDIwQzIxLjc5MDkgMjAgMjAgMjEuNzkwOSAyMCAyNEMyMCAyNi4yMDkxIDIxLjc5MDkgMjggMjQgMjhaIiBmaWxsPSIjOUI5QkEwIi8+CjxwYXRoIGQ9Ik0yNCAzMkMyNi4yMDkxIDMyIDI4IDMwLjIwOTEgMjggMjhDMjggMjUuNzkwOSAyNi4yMDkxIDI0IDI0IDI0QzIxLjc5MDkgMjQgMjAgMjUuNzkwOSAyMCAyOEMyMCAzMC4yMDkxIDIxLjc5MDkgMzIgMjQgMzJaIiBmaWxsPSIjOUI5QkEwIi8+Cjwvc3ZnPgo=';
-                              }}
-                            />
-                            {product.discount && (
-                              <div className="absolute -top-1 -right-1 bg-orange-500 text-white px-1.5 py-0.5 rounded-full text-xs font-bold">
-                                {product.discount}
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className={`font-semibold text-base truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                              {product.name}
-                            </h4>
-                            <p className={`text-sm truncate mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                              {product.description}
-                            </p>
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-3">
-                                <span className="text-orange-500 font-bold text-lg">₹{product.price}</span>
-                                <Badge variant="secondary" className={`text-xs ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>
-                                  {getCategoryLabel(product.category)}
-                                </Badge>
-                              </div>
-                              <div className="flex items-center space-x-1">
-                                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{product.rating}</span>
-                              </div>
-                            </div>
-                          </div>
-                          {/* Add to Cart Button */}
-                          <Button
-                            size="sm"
-                            onClick={(e) => handleAddToCart(product, e)}
-                            className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-lg flex items-center space-x-1"
-                          >
-                            <Plus className="w-4 h-4" />
-                            <span className="text-xs">Add</span>
-                          </Button>
-                        </div>
-                      ))}
-                      {filteredProducts.length > 10 && (
-                        <div className="text-center py-3">
-                          <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                            +{filteredProducts.length - 10} more results
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              /* Show initial state when no search query */
-              <div className="text-center py-8">
-                <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className={`text-lg font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Start typing to search</p>
-                <p className={`text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Search for food, drinks, and groceries</p>
-              </div>
-            )}
-          </div>
         </div>
-      </PopoverContent>
-    </Popover>
+      )}
+    </div>
   );
 };
 
