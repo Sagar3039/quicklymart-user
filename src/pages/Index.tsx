@@ -715,9 +715,11 @@ const PickNGo = () => {
             {/* Left Section - Logo & Location */}
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
-                <img src="/logo.jpg" alt="PickNGo Logo" className="h-10 w-auto object-contain" />
+                {/* New food tray with arrow logo for mobile navbar */}
+                <img src="/food-tray-arrow.jpg" alt="PickNGo Delivery Logo" className="h-10 w-10 object-contain" style={{ minWidth: 36 }} />
+                {/* Optionally keep the old logo for reference or remove the next line if not needed */}
+                {/* <img src="/logo.jpg" alt="PickNGo Logo" className="h-10 w-auto object-contain" /> */}
               </div>
-              
               {/* Location Bar */}
               <div className="flex items-center space-x-1">
                 <MapPin className="w-4 h-4 text-orange-500" />

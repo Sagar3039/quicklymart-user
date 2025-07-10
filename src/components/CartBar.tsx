@@ -29,18 +29,19 @@ const CartBar: React.FC<CartBarProps> = ({
   return (
     <div className={`md:hidden fixed left-0 right-0 bottom-0 z-50 flex justify-center items-end pointer-events-none mb-1.5 ${className}`}>
       <div
-        className={`flex items-center w-[95vw] max-w-xl rounded-2xl shadow-lg px-3 py-2 border pointer-events-auto gap-3
-          ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+        className={`flex items-center w-[98vw] max-w-xl rounded-2xl shadow-xl px-2.5 py-2 border pointer-events-auto gap-2 sm:gap-3
+          ${isDarkMode ? 'bg-gray-800/90 border-gray-700 backdrop-blur-md' : 'bg-white/90 border-gray-200 backdrop-blur-md'}`}
+        style={{ minHeight: 64 }}
       >
         <img
           src={first.image}
           alt={first.name}
-          className={`w-12 h-12 rounded-xl object-cover border ${isDarkMode ? 'border-gray-700' : 'border-gray-300'}`}
+          className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl object-cover border ${isDarkMode ? 'border-gray-700' : 'border-gray-300'}`}
         />
         <div className="flex-1 min-w-0">
-          <div className={`font-bold text-base truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{first.name}</div>
+          <div className={`font-bold text-sm sm:text-base truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{first.name}</div>
           <button
-            className={`text-sm underline truncate ${isDarkMode ? 'text-gray-300' : 'text-gray-500'} hover:text-pickngo-orange-500`}
+            className={`text-xs sm:text-sm underline truncate ${isDarkMode ? 'text-gray-300' : 'text-gray-500'} hover:text-pickngo-orange-500`}
             onClick={onViewMenu}
             tabIndex={-1}
             type="button"
@@ -49,15 +50,16 @@ const CartBar: React.FC<CartBarProps> = ({
           </button>
         </div>
         <button
-          className={`flex flex-col items-center justify-center font-bold rounded-xl px-5 py-2 focus:outline-none transition-colors
+          className={`flex flex-col items-center justify-center font-bold rounded-xl px-3 py-2 sm:px-5 focus:outline-none transition-colors text-xs sm:text-sm
             ${isDarkMode ? 'bg-rose-600 hover:bg-rose-700 text-white' : 'bg-green-500 hover:bg-green-600 text-white'}`}
           onClick={onCheckout}
+          style={{ minWidth: 90 }}
         >
-          <span className="text-sm font-semibold">{itemCount} item{itemCount > 1 ? 's' : ''} | ₹{totalPrice}</span>
-          <span className="text-base font-bold">{buttonLabel}</span>
+          <span className="font-semibold whitespace-nowrap">{itemCount} item{itemCount > 1 ? 's' : ''} | ₹{totalPrice}</span>
+          <span className="text-sm sm:text-base font-bold">{buttonLabel}</span>
         </button>
         <button
-          className={`ml-2 w-9 h-9 flex items-center justify-center rounded-full focus:outline-none transition-colors
+          className={`ml-1 sm:ml-2 w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full focus:outline-none transition-colors
             ${isDarkMode ? 'bg-rose-900/60 hover:bg-rose-900 text-white' : 'bg-rose-100 hover:bg-rose-200 text-rose-500'}`}
           onClick={onDelete}
           aria-label="Clear Cart"

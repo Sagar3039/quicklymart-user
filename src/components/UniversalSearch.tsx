@@ -223,11 +223,11 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose, onPr
 
   const filterProducts = () => {
     let filtered = products;
-    console.log('Filtering products. Total products:', products.length);
-    console.log('Search query:', searchQuery);
-    console.log('Selected category:', selectedCategory);
-    console.log('Selected subcategory:', selectedSubcategory);
-
+    // On desktop, if search is blank, show nothing
+    if (typeof window !== 'undefined' && window.innerWidth >= 640 && !searchQuery.trim()) {
+      setFilteredProducts([]);
+      return;
+    }
     // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -235,34 +235,14 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose, onPr
         return product.name.toLowerCase().includes(query);
       });
     }
-
     // Filter by category
     if (selectedCategory && selectedCategory !== 'all') {
-      console.log('Filtering by category:', selectedCategory);
-      filtered = filtered.filter(product => {
-        const matches = product.category === selectedCategory;
-        if (matches) {
-          console.log('Product matches category:', product.name);
-        }
-        return matches;
-      });
-      console.log('Products after category filter:', filtered.length);
+      filtered = filtered.filter(product => product.category === selectedCategory);
     }
-
     // Filter by subcategory
     if (selectedSubcategory && selectedSubcategory !== 'all') {
-      console.log('Filtering by subcategory:', selectedSubcategory);
-      filtered = filtered.filter(product => {
-        const matches = product.subcategory === selectedSubcategory;
-        if (matches) {
-          console.log('Product matches subcategory:', product.name);
-        }
-        return matches;
-      });
-      console.log('Products after subcategory filter:', filtered.length);
+      filtered = filtered.filter(product => product.subcategory === selectedSubcategory);
     }
-
-    console.log('Final filtered products:', filtered.length);
     setFilteredProducts(filtered);
   };
 
@@ -384,8 +364,8 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose, onPr
       {isPopoverOpen && (
         <div
           ref={popoverRef}
-          className="absolute z-50 w-[500px] max-h-[600px] overflow-y-auto p-0 shadow-2xl border-0 left-1/2 transform -translate-x-1/2"
-          style={{ top: '110%' }}
+          className="z-50 max-h-[70vh] h-[60vh] overflow-y-auto overscroll-contain touch-action-none p-0 shadow-2xl border-0 w-screen max-w-sm left-1/2 -translate-x-1/2 mx-auto rounded-xl fixed top-[145px] sm:absolute sm:w-[400px] sm:max-w-md sm:left-1/2 sm:-translate-x-1/2 sm:overflow-visible sm:touch-auto sm:h-auto"
+          style={window.innerWidth >= 640 ? { top: '110%' } : {}}
         >
           <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-white'} rounded-xl overflow-hidden`}>
             <div className={`p-4 border-b ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-100 bg-gray-50'}`}>
@@ -412,19 +392,19 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose, onPr
                 </div>
               )}
               {/* Show content only when there's a search query */}
-              {searchQuery.trim() ? (
+              {(searchQuery.trim() || (typeof window !== 'undefined' && window.innerWidth >= 640)) ? (
                 <>
-                  {/* Popular Searches */}
-                  <div className="mb-4">
-                    <h4 className={`text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Popular Searches</h4>
-                    <div className="flex flex-wrap gap-2">
+                  {/* Popular Searches (only on desktop) */}
+                  <div className="mb-4 hidden sm:block">
+                    <h4 className={`text-xs font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Popular Searches</h4>
+                    <div className="flex flex-nowrap gap-1">
                       {popularSearches.slice(0, 6).map((search) => (
                         <Button
                           key={search}
                           variant="outline"
                           size="sm"
                           onClick={() => handlePopularSearchClick(search)}
-                          className={`text-xs rounded-full ${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                          className={`px-2 py-0.5 text-[11px] rounded-full min-w-0 ${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
                         >
                           {search}
                         </Button>
@@ -509,8 +489,8 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose, onPr
                   </div>
                 </>
               ) : (
-                /* Show initial state when no search query */
-                <div className="text-center py-8">
+                // Only show the empty state on desktop
+                <div className="hidden sm:block text-center py-8">
                   <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                   <p className={`text-lg font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Start typing to search</p>
                   <p className={`text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Search for products by name</p>

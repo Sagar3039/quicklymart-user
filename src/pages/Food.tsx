@@ -341,17 +341,6 @@ const Food = () => {
               <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Offers</h1>
             </div>
             <div className="flex items-center space-x-3">
-              {/* Location Picker */}
-              <Button
-                onClick={() => setShowLocationPicker(true)}
-                variant="outline"
-                size="sm"
-                className={`${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-              >
-                <MapPin className="w-4 h-4 mr-1" />
-                {selectedLocation ? 'Location Set' : 'Set Location'}
-              </Button>
-
               {/* Search */}
               <Button
                 onClick={() => setIsSearchVisible(!isSearchVisible)}
@@ -376,27 +365,8 @@ const Food = () => {
                   </Badge>
                 )}
               </Button>
-
-              {/* Profile */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className={isDarkMode ? 'text-gray-300 hover:text-orange-400' : 'text-gray-600 hover:text-orange-500'}
-              >
-                <User className="w-5 h-5" />
-              </Button>
-
-              {/* Mobile Menu Button */}
-              <Button
-                onClick={() => setShowCart(true)}
-                variant="ghost"
-                size="icon"
-                className="md:hidden"
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
             </div>
-            </div>
+          </div>
         </div>
       </header>
 
@@ -414,7 +384,7 @@ const Food = () => {
       {/* Filter Bar */}
       <div className={`sticky top-16 z-40 py-2 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
         <div className="container mx-auto px-4">
-          <div className="flex space-x-2 overflow-x-auto pb-2">
+          <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             <Button variant="outline" className={`rounded-full ${isDarkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300'}`}>
               <Filter className="w-4 h-4 mr-2" /> Filter
             </Button>
@@ -450,7 +420,7 @@ const Food = () => {
 
       {/* Categories - new image style, now dynamic and flexible */}
       <div className="py-4">
-        <div className="flex space-x-4 overflow-x-auto px-2 md:justify-center md:space-x-8">
+        <div className="flex space-x-4 overflow-x-auto px-2 md:justify-center md:space-x-8 scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {(() => {
             const seen = new Set();
             const uniqueCategories = categories.filter(cat => {
