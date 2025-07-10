@@ -9,7 +9,7 @@ import ProductQuickView from '@/components/ProductQuickView';
 import { getProductsByCategory, getCategoriesByProductCategory, PRODUCT_CATEGORIES, type Product, type Category } from '@/lib/products';
 import { useTheme } from '@/App';
 import { useCart } from '@/contexts/CartContext';
-import CartPopup from '@/components/CartPopup';
+import Cart from '@/components/Cart';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import CheckoutModal from '@/components/CheckoutModal';
@@ -72,7 +72,10 @@ const Food = () => {
 
     // Category filter
     if (activeCategory !== 'all' && activeCategory !== 'All') {
-      results = results.filter(product => product.subcategory === activeCategory);
+      results = results.filter(product =>
+        product.subcategory &&
+        product.subcategory.trim().toLowerCase() === activeCategory.trim().toLowerCase()
+      );
     }
 
     // Search filter
@@ -353,7 +356,7 @@ const Food = () => {
 
               {/* Cart */}
               <Button
-                onClick={() => setIsCartPopupOpen(true)}
+                onClick={() => setIsCartOpen(true)}
                 variant="ghost"
                 size="icon"
                 className="relative"
@@ -385,9 +388,6 @@ const Food = () => {
       <div className={`sticky top-16 z-40 py-2 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
         <div className="container mx-auto px-4">
           <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            <Button variant="outline" className={`rounded-full ${isDarkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300'}`}>
-              <Filter className="w-4 h-4 mr-2" /> Filter
-            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className={`rounded-full ${isDarkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300'}`}>Sort by</Button>
@@ -413,7 +413,6 @@ const Food = () => {
                 <DropdownMenuItem onClick={() => setVegOption('non-veg')}>Non-Veg</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="outline" className={`rounded-full ${isDarkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300'}`}>Offers</Button>
           </div>
         </div>
       </div>
@@ -578,82 +577,20 @@ const Food = () => {
       />
 
       {/* Cart Sidebar */}
-      <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
-        <SheetContent className={`w-96 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-          <SheetHeader>
-            <SheetTitle className={isDarkMode ? 'text-white' : 'text-gray-900'}>Your Cart</SheetTitle>
-          </SheetHeader>
-          <div className="flex-1 overflow-y-auto py-4">
-            {cart.length === 0 ? (
-              <div className="text-center py-8">
-                <ShoppingCart className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                <p className={`text-lg font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Your cart is empty</p>
-                <p className={`text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Add some delicious food to get started!</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {cart.map((item: any) => (
-                  <div key={item.id} className={`flex items-center space-x-3 p-3 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                    <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />
-                    <div className="flex-1">
-                      <h4 className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.name}</h4>
-                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>₹{item.price}</p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updateCartQuantity(item.id, Math.max(0, item.quantity - 1))}
-                        className={isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-600' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}
-                      >
-                        <Minus className="w-3 h-3" />
-                      </Button>
-                      <span className={`w-8 text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.quantity}</span>
-                        <Button 
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
-                        className={isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-600' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}
-                      >
-                        <Plus className="w-3 h-3" />
-                        </Button>
-                    </div>
-                        </div>
-                ))}
-              </div>
-            )}
-          </div>
-          {cart.length > 0 && (
-            <div className={`border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} pt-4`}>
-              <div className="flex justify-between items-center mb-4">
-                <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Total:</span>
-                <span className="text-orange-500 font-bold text-lg">₹{cartTotal.toFixed(2)}</span>
-              </div>
-              <div className="space-y-2">
-                <Button
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-                  onClick={() => {
-                    if (!user) {
-                      toast.error('You must be logged in to place an order.');
-                      return;
-                    }
-                    setShowCheckoutModal(true);
-                  }}
-                >
-                  Proceed to Checkout
-                </Button>
-                <Button
-                  variant="outline"
-                  className={`w-full ${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-                  onClick={clearCart}
-                >
-                  Clear Cart
-                </Button>
-              </div>
-      </div>
-          )}
-        </SheetContent>
-      </Sheet>
+      <Cart
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cart={cart}
+        updateQuantity={updateCartQuantity}
+        totalPrice={getTotalPrice()}
+        onProceedToCheckout={() => {
+          if (!user) {
+            toast.error('You must be logged in to place an order.');
+            return;
+          }
+          setShowCheckoutModal(true);
+        }}
+      />
 
       {/* Modals will be kept as they are for now */}
       {selectedProduct && (
@@ -672,16 +609,6 @@ const Food = () => {
           user={user}
         />
       )}
-
-      <CartPopup
-        isOpen={isCartPopupOpen}
-        onClose={() => setIsCartPopupOpen(false)}
-        cart={cart}
-        onUpdateQuantity={updateCartQuantity}
-        onRemoveItem={removeFromCart}
-        onProceedToCheckout={() => setShowCheckoutModal(true)}
-        isDarkMode={isDarkMode}
-      />
 
       <LocationPicker
         isOpen={showLocationPicker}

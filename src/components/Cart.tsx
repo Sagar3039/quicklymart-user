@@ -7,10 +7,16 @@ import { Separator } from '@/components/ui/separator';
 import { Plus, Minus, Trash2, ShoppingBag, CreditCard, ShoppingCart, X, Moon, Sun } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { useTheme } from '@/App';
+import { db } from '@/lib/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const Cart = ({ isOpen, onClose, cart, updateQuantity, totalPrice, onProceedToCheckout }) => {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [couponCode, setCouponCode] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [promoError, setPromoError] = useState('');
+  const [isCheckingPromo, setIsCheckingPromo] = useState(false);
 
   // Group cart items by id and sum quantities
   const groupedCart = Object.values(
@@ -25,7 +31,48 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, totalPrice, onProceedToCh
   ) as any[];
 
   const deliveryFee = totalPrice > 299 ? 0 : 29;
-  const finalTotal = totalPrice + deliveryFee;
+  const finalTotal = Math.max(0, totalPrice - discountAmount + (totalPrice > 299 ? 0 : 29));
+
+  const handleApplyPromo = async () => {
+    setPromoError('');
+    setIsCheckingPromo(true);
+    setDiscountAmount(0);
+    setAppliedPromo(null);
+    try {
+      const q = query(
+        collection(db, 'promocodes'),
+        where('code', '==', couponCode.trim()),
+        where('status', '==', 'active')
+      );
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        setPromoError('Invalid or expired promo code.');
+        setIsCheckingPromo(false);
+        return;
+      }
+      const promo = snap.docs[0].data();
+      let discount = 0;
+      if (promo.discountType === 'percentage') {
+        discount = Math.round((totalPrice * promo.discountValue) / 100);
+      } else if (promo.discountType === 'fixed') {
+        discount = promo.discountValue;
+      }
+      setDiscountAmount(discount);
+      setAppliedPromo(promo);
+      setPromoError('');
+    } catch (err) {
+      setPromoError('Error checking promo code.');
+    } finally {
+      setIsCheckingPromo(false);
+    }
+  };
+
+  const handleRemovePromo = () => {
+    setAppliedPromo(null);
+    setDiscountAmount(0);
+    setCouponCode('');
+    setPromoError('');
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -98,12 +145,34 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, totalPrice, onProceedToCh
         {groupedCart.length > 0 && (
           <div className={`border-t pt-4 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
             <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Input placeholder="Enter promo code" className="mb-2" />
-                <Button variant="outline" className="border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white">
-                  Apply
-                </Button>
-              </div>
+              {/* Promo code input */}
+              {appliedPromo ? (
+                <div className="flex items-center space-x-2 mb-2">
+                  <Badge className="bg-green-100 text-green-700 px-3 py-1 text-sm">
+                    {appliedPromo.code} - {appliedPromo.discountType === 'percentage' ? `${appliedPromo.discountValue}% off` : `₹${appliedPromo.discountValue} off`}
+                  </Badge>
+                  <Button size="sm" variant="outline" onClick={handleRemovePromo} className="text-red-500 border-red-300 hover:bg-red-50">Remove</Button>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Input
+                    placeholder="Enter promo code"
+                    className="mb-2"
+                    value={couponCode}
+                    onChange={e => setCouponCode(e.target.value)}
+                    disabled={isCheckingPromo}
+                  />
+                  <Button
+                    variant="outline"
+                    className="border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white"
+                    onClick={handleApplyPromo}
+                    disabled={isCheckingPromo || !couponCode.trim()}
+                  >
+                    {isCheckingPromo ? 'Checking...' : 'Apply'}
+                  </Button>
+                </div>
+              )}
+              {promoError && <div className="text-red-500 text-xs mb-2">{promoError}</div>}
               
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
@@ -112,7 +181,7 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, totalPrice, onProceedToCh
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Delivery Fee</span>
-                  <span className="text-gray-800">{deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}</span>
+                  <span className="text-gray-800">{totalPrice > 299 ? 'FREE' : `₹29`}</span>
                 </div>
                 {totalPrice < 299 && (
                   <p className="text-xs text-green-600">
@@ -120,9 +189,15 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, totalPrice, onProceedToCh
                   </p>
                 )}
                 <Separator />
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-600">Discount</span>
+                    <span className="text-green-700">-₹{discountAmount}</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-semibold">
                   <span className="text-gray-800">Total</span>
-                  <span className="text-orange-500">₹{(totalPrice > 299 ? totalPrice : totalPrice + deliveryFee).toFixed(2)}</span>
+                  <span className="text-orange-500">₹{finalTotal.toFixed(2)}</span>
                 </div>
               </div>
               

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+
 import { MapPin, Navigation, X, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { toast } from '@/components/ui/sonner';
 import { useTheme } from '@/App';
 import { GoogleMap, Marker, useJsApiLoader, StandaloneSearchBox } from '@react-google-maps/api';
+import type { Libraries } from '@react-google-maps/api';
 
 interface LocationPickerProps {
   isOpen: boolean;
@@ -144,9 +146,10 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
   };
 
   const GOOGLE_MAPS_API_KEY = 'AIzaSyC0aUsBjWppu-5sSvme3Zz66Ts9aFKOYRs';
+  const GOOGLE_MAPS_LIBRARIES: Libraries = ['places'];
   const mapContainerStyle = { width: '100%', height: '300px' };
   const defaultCenter = { lat: 22.5726, lng: 88.3639 };
-  const { isLoaded } = useJsApiLoader({ googleMapsApiKey: GOOGLE_MAPS_API_KEY, libraries: ['places'] });
+  const { isLoaded } = useJsApiLoader({ googleMapsApiKey: GOOGLE_MAPS_API_KEY, libraries: GOOGLE_MAPS_LIBRARIES });
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
