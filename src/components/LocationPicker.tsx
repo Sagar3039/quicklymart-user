@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/sonner';
 import { useTheme } from '@/App';
-import { GoogleMap, Marker, useJsApiLoader, StandaloneSearchBox } from '@react-google-maps/api';
+import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 import type { Libraries } from '@react-google-maps/api';
 
 interface LocationPickerProps {
@@ -26,9 +26,20 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [searchBox, setSearchBox] = useState<google.maps.places.SearchBox | null>(null);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestionLoading, setSuggestionLoading] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
+  const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
+
+  const GOOGLE_MAPS_API_KEY = 'AIzaSyC0aUsBjWppu-5sSvme3Zz66Ts9aFKOYRs';
+  const GOOGLE_MAPS_LIBRARIES: Libraries = ['places'];
+  const mapContainerStyle = { width: '100%', height: '300px' };
+  const defaultCenter = { lat: 22.5726, lng: 88.3639 };
+  const { isLoaded } = useJsApiLoader({ googleMapsApiKey: GOOGLE_MAPS_API_KEY, libraries: GOOGLE_MAPS_LIBRARIES });
 
   useEffect(() => {
     if (isOpen) {
@@ -41,6 +52,48 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
       // Cleanup map when dialog closes
     }
   }, [isOpen, currentLocation]);
+
+  // Initialize AutocompleteService and PlacesService when map is loaded
+  useEffect(() => {
+    if (window.google && window.google.maps && isLoaded) {
+      autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
+    }
+  }, [isLoaded]);
+
+  // Fetch Google Places predictions as user types
+  useEffect(() => {
+    if (!autocompleteServiceRef.current || searchInput.trim().length < 3) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    setSuggestionLoading(true);
+    autocompleteServiceRef.current.getPlacePredictions({
+      input: searchInput,
+      componentRestrictions: { country: 'in' },
+      types: ['geocode', 'establishment'],
+    }, (predictions, status) => {
+      if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
+        setSuggestions(predictions);
+        setShowSuggestions(true);
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+      setSuggestionLoading(false);
+    });
+  }, [searchInput, isLoaded]);
+
+  // When user clicks outside, close suggestions
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (inputRef.current && !(inputRef.current as HTMLElement).contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, []);
 
   const getCurrentLocation = async () => {
     setIsLoading(true);
@@ -145,12 +198,6 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
     }
   };
 
-  const GOOGLE_MAPS_API_KEY = 'AIzaSyC0aUsBjWppu-5sSvme3Zz66Ts9aFKOYRs';
-  const GOOGLE_MAPS_LIBRARIES: Libraries = ['places'];
-  const mapContainerStyle = { width: '100%', height: '300px' };
-  const defaultCenter = { lat: 22.5726, lng: 88.3639 };
-  const { isLoaded } = useJsApiLoader({ googleMapsApiKey: GOOGLE_MAPS_API_KEY, libraries: GOOGLE_MAPS_LIBRARIES });
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={`max-w-2xl w-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
@@ -167,41 +214,51 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
           {/* Address Search */}
           <div className="flex gap-2">
             <div className="relative flex-1">
-              {isLoaded && (
-                <StandaloneSearchBox
-                  onLoad={ref => setSearchBox(ref)}
-                  onPlacesChanged={() => {
-                    if (searchBox) {
-                      const places = searchBox.getPlaces();
-                      if (places && places.length > 0) {
-                        const place = places[0];
-                        if (place.geometry && place.geometry.location) {
-                          const lat = place.geometry.location.lat();
-                          const lng = place.geometry.location.lng();
-                          setLocation({ lat, lng });
-                          const value = place.formatted_address || place.name || '';
-                          setAddress(value);
-                          setSearchInput(value);
-                          if (inputRef.current) {
-                            inputRef.current.value = value;
-                          }
+              <Input
+                ref={inputRef}
+                placeholder="Search for an address..."
+                className={`w-full ${isDarkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'}`}
+                autoComplete="off"
+                value={searchInput}
+                onChange={e => {
+                  setSearchInput(e.target.value);
+                  setAddress(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => {
+                  if (suggestions.length > 0) setShowSuggestions(true);
+                }}
+              />
+              {showSuggestions && suggestions.length > 0 && (
+                <div className={`absolute z-50 left-0 right-0 mt-1 bg-white border rounded shadow-lg max-h-60 overflow-y-auto ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
+                  {suggestionLoading && <div className="p-2 text-sm">Loading...</div>}
+                  {suggestions.map((s, idx) => (
+                    <div
+                      key={s.place_id || idx}
+                      className="p-2 cursor-pointer hover:bg-orange-100 dark:hover:bg-gray-700 text-sm"
+                      onClick={() => {
+                        setSearchInput(s.description);
+                        setAddress(s.description);
+                        setShowSuggestions(false);
+                        // Get place details for lat/lng
+                        if (placesServiceRef.current && s.place_id) {
+                          placesServiceRef.current.getDetails({ placeId: s.place_id }, (place, status) => {
+                            if (status === window.google.maps.places.PlacesServiceStatus.OK && place && place.geometry && place.geometry.location) {
+                              const lat = place.geometry.location.lat();
+                              const lng = place.geometry.location.lng();
+                              setLocation({ lat, lng });
+                              if (mapRef.current) {
+                                mapRef.current.panTo({ lat, lng });
+                              }
+                            }
+                          });
                         }
-                      }
-                    }
-                  }}
-                >
-                  <Input
-                    ref={inputRef}
-                    placeholder="Search for an address..."
-                    className={`w-full ${isDarkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'}`}
-                    autoComplete="off"
-                    value={searchInput}
-                    onChange={e => {
-                      setSearchInput(e.target.value);
-                      setAddress(e.target.value);
-                    }}
-                  />
-                </StandaloneSearchBox>
+                      }}
+                    >
+                      {s.description}
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
             <Button
@@ -235,6 +292,12 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
                 mapContainerStyle={mapContainerStyle}
                 center={location || defaultCenter}
                 zoom={15}
+                onLoad={map => {
+                  mapRef.current = map;
+                  if (!placesServiceRef.current) {
+                    placesServiceRef.current = new window.google.maps.places.PlacesService(map);
+                  }
+                }}
                 onClick={e => {
                   const lat = e.latLng?.lat();
                   const lng = e.latLng?.lng();
