@@ -35,12 +35,16 @@ interface CheckoutModalProps {
     tip: number;
     finalTotal: number;
     location?: { lat: number; lng: number; address: string };
+    discountAmount?: number;
+    appliedPromo?: any;
   }) => void;
   totalPrice: number;
   user: any;
+  discountAmount?: number;
+  appliedPromo?: any;
 }
 
-const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceOrder, totalPrice, user }) => {
+const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceOrder, totalPrice, user, discountAmount = 0, appliedPromo }) => {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { banStatus } = useBanCheck();
   const { selectedAddress: globalSelectedAddress, setSelectedAddress: setGlobalSelectedAddress } = useSelectedAddress();
@@ -67,10 +71,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
     landmark: '',
   });
 
-  const deliveryFee = totalPrice > 299 ? 0 : 40;
+  const deliveryFee = totalPrice - discountAmount > 299 ? 0 : 40;
   const gstRate = 5; // 5% GST
-  const gstAmount = Math.round((totalPrice + deliveryFee) * (gstRate / 100));
-  const finalTotal = totalPrice + deliveryFee + gstAmount + tip;
+  const gstAmount = Math.round(((totalPrice - discountAmount + deliveryFee) * (gstRate / 100)));
+  const finalTotal = Math.max(0, totalPrice - discountAmount + deliveryFee + gstAmount + tip);
 
   // Check if user is banned and prevent checkout
   useEffect(() => {
@@ -256,6 +260,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
           tip,
           finalTotal,
           location: selectedLocation,
+          discountAmount,
+          appliedPromo
         });
       } catch (error) {
         toast.error('Failed to save address. Please try again.');
@@ -279,6 +285,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
       tip,
       finalTotal,
       location: selectedLocation,
+      discountAmount,
+      appliedPromo
     });
   };
 
@@ -585,6 +593,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onPlaceO
                     deliveryCharge={deliveryFee}
                     gstRate={gstRate}
                     isDarkMode={isDarkMode}
+                    discountAmount={discountAmount}
+                    appliedPromo={appliedPromo}
                   />
                 </div>
               )}

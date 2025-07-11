@@ -202,10 +202,10 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, totalPrice, onProceedToCh
               </div>
               
               <Button 
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-                onClick={onProceedToCheckout}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold"
+                onClick={() => onProceedToCheckout({ discountAmount, appliedPromo })}
               >
-                Proceed to Checkout
+                Place Order
               </Button>
               
               <Button 
