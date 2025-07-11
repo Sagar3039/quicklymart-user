@@ -11,8 +11,8 @@ import { searchProducts, PRODUCT_CATEGORIES, PRODUCT_SUBCATEGORIES, type Product
 import { useTheme } from '@/App';
 
 interface UniversalSearchProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
   onProductSelect?: (product: Product) => void;
   onAddToCart?: (product: Product) => void;
   cart?: any[];
@@ -49,7 +49,7 @@ const categories = [
   }
 ];
 
-const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose, onProductSelect, onAddToCart, cart = [] }) => {
+const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen = true, onClose = () => {}, onProductSelect, onAddToCart, cart = [] }) => {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
@@ -66,10 +66,8 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose, onPr
 
   // Load all products on component mount
   useEffect(() => {
-    if (isPopoverOpen) {
-      loadAllProducts();
-    }
-  }, [isPopoverOpen]);
+    loadAllProducts();
+  }, []);
 
   // Filter products when search query or filters change
   useEffect(() => {
@@ -352,15 +350,42 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose, onPr
 
   return (
     <div className="relative flex-1 max-w-2xl" ref={inputWrapperRef}>
-      <Input
-        ref={inputRef}
-        placeholder="Search for products by name..."
-        value={searchQuery}
-        onFocus={() => setIsPopoverOpen(true)}
-        onBlur={handleInputBlur}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className={`pl-10 pr-10 h-12 text-lg transition-all duration-200 border border-black/10 dark:border-black/20 outline-none focus:outline-none focus:border-transparent focus:ring-0 ${isDarkMode ? 'bg-gray-800 text-white placeholder-gray-400' : 'bg-gray-50 text-gray-900 placeholder-gray-400'}`}
-      />
+      {/* Search Input */}
+      <div className="relative w-full">
+        <Input
+          ref={inputRef}
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          placeholder="Search for products, restaurants, etc..."
+          className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
+          autoFocus
+        />
+        {/* Results Dropdown */}
+        {searchQuery && (
+          <div className="absolute left-0 right-0 mt-2 bg-white shadow-lg rounded-xl z-20 max-h-72 overflow-y-auto border border-gray-100">
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map(product => (
+                <div
+                  key={product.id}
+                  className="flex items-center gap-3 px-4 py-2 hover:bg-purple-50 cursor-pointer"
+                  onClick={() => onProductSelect && onProductSelect(product)}
+                >
+                  <img src={product.image} alt={product.name} className="w-10 h-10 rounded object-cover" />
+                  <div className="flex-1">
+                    <div className="font-semibold text-sm text-gray-900">{product.name}</div>
+                    <div className="text-xs text-gray-500">₹{product.price} • {product.category}</div>
+                  </div>
+                  <Button size="sm" onClick={e => { e.stopPropagation(); onAddToCart && onAddToCart(product); }}>
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))
+            ) : (
+              <div className="px-4 py-3 text-gray-400 text-sm">No results found.</div>
+            )}
+          </div>
+        )}
+      </div>
       {isPopoverOpen && (
         <div
           ref={popoverRef}

@@ -10,12 +10,20 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 const foodPageCategories = [
-    { name: 'Biryani', image: 'https://images.unsplash.com/photo-1563379091339-03246963d4a9?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Burgers', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Chinese', image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Pizzas', image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Indian', image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Desserts', image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&h=400&fit=crop&crop=center' },
+    { name: 'Biryani', image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=400&fit=crop&crop=center' },
+    { name: 'Burgers', image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&h=400&fit=crop&crop=center' },
+    { name: 'Indian', image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=400&fit=crop&crop=center' },
+    { name: 'Desserts', image: 'https://images.unsplash.com/photo-1505250469679-203ad9ced0cb?w=400&h=400&fit=crop&crop=center' },
+    { name: 'Sandwiches', image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=400&fit=crop&crop=center' },
+    { name: 'Rolls', image: 'https://images.unsplash.com/photo-1506089676908-3592f7389d4d?w=400&h=400&fit=crop&crop=center' },
+    { name: 'South Indian', image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=400&fit=crop&crop=center' },
+    { name: 'Seafood', image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=400&fit=crop&crop=center' },
+    { name: 'Snacks', image: 'https://images.unsplash.com/photo-1502741338009-cac2772e18bc?w=400&h=400&fit=crop&crop=center' },
+    { name: 'Beverages', image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=400&fit=crop&crop=center' },
+
+    { name: 'Sweets', image: 'https://images.unsplash.com/photo-1502741338009-cac2772e18bc?w=400&h=400&fit=crop&crop=center' },
+    { name: 'Momos', image: 'https://images.unsplash.com/photo-1502741338009-cac2772e18bc?w=400&h=400&fit=crop&crop=center' },
+    { name: 'Noodles', image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop&crop=center' },
 ];
 
 const groceryCategories = [

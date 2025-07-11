@@ -26,6 +26,13 @@ interface Order {
   estimatedMinutes?: number;
   userLocation?: { lat: number; lng: number };
   createdAt?: any;
+  subtotal?: number;
+  deliveryFee?: number;
+  gstRate?: number;
+  gstAmount?: number;
+  discountAmount?: number;
+  appliedPromo?: { code: string };
+  tip?: number;
 }
 
 const CurrentOrder = () => {
@@ -588,8 +595,32 @@ const CurrentOrder = () => {
             </div>
             
             {/* Order Total */}
-            <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="mt-4 pt-4 border-t border-gray-200 space-y-2">
               <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Subtotal:</span>
+                <span className="text-gray-800 font-medium">₹{order.subtotal || 0}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Delivery Fee:</span>
+                <span className="text-gray-800 font-medium">₹{order.deliveryFee !== undefined ? order.deliveryFee : 0}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">GST ({order.gstRate || 5}%):</span>
+                <span className="text-gray-800 font-medium">₹{order.gstAmount !== undefined ? order.gstAmount : 0}</span>
+              </div>
+              {order.discountAmount > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-green-600 text-sm">Discount{order.appliedPromo?.code ? ` (${order.appliedPromo.code})` : ''}:</span>
+                  <span className="text-green-700 font-medium">-₹{order.discountAmount}</span>
+                </div>
+              )}
+              {order.tip > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Tip:</span>
+                  <span className="text-gray-800 font-medium">₹{order.tip}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center mt-2">
                 <span className="text-lg font-semibold text-gray-800">Total:</span>
                 <span className="text-2xl font-bold text-orange-500">
                   ₹{order.totalPrice || order.total || 0}
