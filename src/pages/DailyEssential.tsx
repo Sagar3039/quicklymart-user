@@ -183,8 +183,11 @@ const DailyEssential = () => {
     return () => unsubscribe();
   }, []);
 
+  // Set activeCategory from navigation state (subcategory) if provided
   useEffect(() => {
-    if (location.state?.category) {
+    if (location.state?.subcategory) {
+      setActiveCategory(location.state.subcategory);
+    } else if (location.state?.category) {
       const categoryExists = categories.some(
         cat => cat.name === location.state.category || cat.subcategory === location.state.category
       );
@@ -192,7 +195,7 @@ const DailyEssential = () => {
         setActiveCategory(location.state.category);
       }
     }
-  }, [location.state?.category, categories]);
+  }, [location.state?.subcategory, location.state?.category, categories]);
 
   // Debug: Log categories to check for image/logo property
   useEffect(() => {
@@ -444,14 +447,19 @@ const DailyEssential = () => {
             return (uniqueCategories as CategoryWithImage[]).map((cat) => {
               let visual = null;
               
-              // Handle icon display - only use database categories
+              // Handle icon display - support both emojis and image URLs
               if (cat.image) {
                 visual = <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />;
               } else if (cat.logo) {
                 visual = <img src={cat.logo} alt={cat.name} className="w-full h-full object-cover" />;
-              } else if (cat.icon && typeof cat.icon === 'string' && !cat.icon.startsWith('http')) {
-                // Only show valid emoji icons from database
-                visual = <span className="text-4xl flex items-center justify-center w-full h-full">{cat.icon}</span>;
+              } else if (cat.icon && typeof cat.icon === 'string') {
+                if (cat.icon.startsWith('http') || cat.icon.startsWith('data:')) {
+                  // It's an image URL
+                  visual = <img src={cat.icon} alt={cat.name} className="w-full h-full object-cover" />;
+                } else {
+                  // It's an emoji
+                  visual = <span className="text-4xl flex items-center justify-center w-full h-full">{cat.icon}</span>;
+                }
               } else {
                 // Skip categories without proper icons
                 return null;

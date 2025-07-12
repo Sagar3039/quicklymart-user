@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, ShoppingCart, User, Briefcase, Clock, Star, Grid, List, Filter, Plus, Minus, Mic, Heart, History, Home, Play, LayoutGrid, LogOut, Package, Settings, User as UserIcon, MapPin, ChevronDown, Moon, Sun, X, Bolt, Leaf, Flame, Droplet, Percent, Utensils } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,7 +26,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getProductsByCategory, PRODUCT_CATEGORIES, SAMPLE_CATEGORIES, getCategoriesByProductCategory, getTopBoughtProducts, checkAndInitializeProducts } from '@/lib/products';
+import { getProductsByCategory, PRODUCT_CATEGORIES, getCategoriesByProductCategory, getTopBoughtProducts, checkAndInitializeProducts } from '@/lib/products';
 import { addDoc, collection, getDoc, doc, updateDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import LocationPicker from '@/components/LocationPicker';
@@ -45,17 +45,6 @@ import { useSelectedAddress } from '@/App';
 import CartBar from '@/components/CartBar';
 import AddressSelectDialog from '@/components/AddressSelectDialog';
 import { DesktopCarousels } from '@/components/DesktopCarousels';
-
-const groceryCategories = [
-    { name: 'Fresh Vegetables', image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Fresh Fruits', image: 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Dairy, Bread & Eggs', image: 'https://images.unsplash.com/photo-1550583724-b28f40a0ca4b?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Rice, Atta & Dals', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Masalas & Dry Fruits', image: 'https://images.unsplash.com/photo-1604329760661-e71dc83f8f26?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Oils & Ghee', image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Munchies', image: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Sweet Tooth', image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&h=400&fit=crop&crop=center' },
-]
 
 const PickNGo = () => {
   const navigate = useNavigate();
@@ -101,6 +90,11 @@ const PickNGo = () => {
   // Add state for checkout discount and promo
   const [checkoutDiscount, setCheckoutDiscount] = useState(0);
   const [checkoutPromo, setCheckoutPromo] = useState(null);
+
+  // Add state for Fast Delivery 'see all' toggle
+  const [showAllFastDelivery, setShowAllFastDelivery] = useState(false);
+
+  const popularCuisinesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -153,48 +147,8 @@ const PickNGo = () => {
     return truncateLocation(selectedLocation);
   };
 
-  // Sample product data to match the image
-  const products = {
-    fast_delivery: (() => {
-      if (selectedAddress) {
-        const city = selectedAddress.city?.toLowerCase();
-        if (city?.includes('mumbai')) {
-          return [
-            { id: 5, name: "Pizza Hut", price: 120, rating: 4.6, image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400', category: 'Pizzas', inStock: true, deliveryTime: '25-30 mins', ad: true },
-            { id: 6, name: 'Bombay Spice', price: 150, rating: 4.4, image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400', category: 'Indian', inStock: true, deliveryTime: '20-25 mins', discount: '50% OFF' },
-            { id: 7, name: 'Mumbai Chinese', price: 200, rating: 4.2, image: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=400', category: 'Chinese', inStock: true, deliveryTime: '18-22 mins', offer: 'BUY1 GET1' },
-          ];
-        } else if (city?.includes('delhi')) {
-          return [
-            { id: 5, name: "Domino's Delhi", price: 110, rating: 4.5, image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400', category: 'Pizzas', inStock: true, deliveryTime: '22-28 mins', ad: true },
-            { id: 6, name: 'Delhi Darbar', price: 140, rating: 4.3, image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400', category: 'Indian', inStock: true, deliveryTime: '18-23 mins', discount: '40% OFF' },
-            { id: 7, name: 'Beijing Express', price: 180, rating: 4.1, image: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=400', category: 'Chinese', inStock: true, deliveryTime: '20-25 mins', offer: 'BUY1 GET1' },
-          ];
-        } else if (city?.includes('bangalore')) {
-          return [
-            { id: 5, name: "Pizza Corner", price: 130, rating: 4.7, image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400', category: 'Pizzas', inStock: true, deliveryTime: '20-25 mins', ad: true },
-            { id: 6, name: 'Bangalore Spice', price: 160, rating: 4.4, image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400', category: 'Indian', inStock: true, deliveryTime: '15-20 mins', discount: '60% OFF' },
-            { id: 7, name: 'Tech Chinese', price: 190, rating: 4.2, image: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=400', category: 'Chinese', inStock: true, deliveryTime: '18-22 mins', offer: 'BUY1 GET1' },
-          ];
-        }
-      }
-      
-      return [
-        { id: 5, name: "Domino's Pizza", price: 91, rating: 4.5, image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400', category: 'Pizzas', inStock: true, deliveryTime: '20-25 mins', ad: true },
-        { id: 6, name: 'Spice N Ice', price: 130, rating: 4.3, image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400', category: 'Indian', inStock: true, deliveryTime: '20-25 mins', discount: '60% OFF' },
-        { id: 7, name: 'China Nation', price: 180, rating: 4.1, image: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=400', category: 'Chinese', inStock: true, deliveryTime: '15-20 mins', offer: 'BUY1 GET1' },
-      ];
-    })(),
-  };
-
-  const serviceCategories = [
-    { name: 'FEAST MODE', subtitle: '65% OFF Every 30 Mins', icon: '🍽️', color: 'bg-blue-900/50' },
-    { name: 'FLASH DEALS', subtitle: 'Dishes From ₹49', icon: '⚡', color: 'bg-blue-900/50' },
-    { name: 'DISCOUNTS', subtitle: 'Up To 60% OFF', icon: '%', color: 'bg-blue-900/50' },
-    { name: 'Bolt', subtitle: 'Food In 10 Mins', icon: '⚡', color: 'bg-blue-900/50' },
-  ];
-
-  const filteredProducts = products.fast_delivery.filter(product => 
+  // Use only real DB data for Fast Delivery section
+  const filteredProducts = foodItems.filter(product =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -466,7 +420,7 @@ const PickNGo = () => {
       // Check and initialize products if needed
       await checkAndInitializeProducts();
       
-      setFoodItems(await getProductsByCategory('Food'));
+      setFoodItems(await getProductsByCategory('food'));
       setDrinkItems(await getProductsByCategory('Drinks'));
       setEssentialItems(await getProductsByCategory('Daily Essential'));
     };
@@ -533,8 +487,20 @@ const PickNGo = () => {
     }
   }, []);
 
+  const cuisineItems = foodCategories.filter(cat => cat.subcategory !== 'all');
+
+  // Helper to get min time from preparationTime or deliveryTime
+  const getMinTime = (product) => {
+    const timeStr = product.preparationTime || product.deliveryTime || '';
+    const match = timeStr.match(/(\d+)/);
+    return match ? parseInt(match[1], 10) : 999;
+  };
+
+  // Debug: log foodItems to check if products are being loaded from the DB
+  console.log('foodItems:', foodItems);
+
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'}`}>
+    <div className={`min-h-screen w-full overflow-x-hidden ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
 
       {/* --- Desktop Header --- */}
       <header className={`hidden md:block sticky top-0 z-50 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
@@ -919,22 +885,21 @@ const PickNGo = () => {
         {/* --- Mobile View (Restored) --- */}
         <div className="md:hidden">
           {/* Hero Gradient Section */}
-          <div className="relative w-full min-h-[340px] bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 rounded-b-3xl pb-6">
+          <div className="relative w-full min-h-[340px] bg-gradient-to-br from-pickngo-orange-500 via-pickngo-red-400 to-pickngo-red-500 rounded-b-3xl pb-6">
             {/* Free Delivery Pill */}
             <div className="flex justify-center pt-4">
-              <span className="bg-white/20 text-white text-xs font-semibold px-4 py-1 rounded-full shadow">🚚 Free delivery on orders over $25</span>
+              <span className="bg-pickngo-orange-100 text-pickngo-orange-700 text-xs font-semibold px-4 py-1 rounded-full shadow">🚚 Free delivery on orders over $25</span>
             </div>
             {/* Main Heading */}
             <div className="flex flex-col items-center text-center mt-4 px-4">
-              <h1 className="text-2xl font-bold text-white leading-tight mb-1">Everything You Need<br /> <span className="text-yellow-300">Delivered Fast</span></h1>
+              <h1 className="text-2xl font-bold text-white leading-tight mb-1">Everything You Need<br /> <span className="text-pickngo-orange-200">Delivered Fast</span></h1>
               <p className="text-white/90 text-sm mb-4">From fresh groceries to hot meals - get it all in minutes</p>
             </div>
             {/* Category Pills */}
             <div className="flex justify-center gap-2 mb-4 flex-wrap px-4">
-              <span className="bg-green-400/90 text-white text-xs font-semibold px-3 py-1 rounded-full">Groceries</span>
-              <span className="bg-orange-400/90 text-white text-xs font-semibold px-3 py-1 rounded-full">Restaurants</span>
-              {/* <span className="bg-blue-400/90 text-white text-xs font-semibold px-3 py-1 rounded-full">Pharmacy</span> */}
-              <span className="bg-purple-400/90 text-white text-xs font-semibold px-3 py-1 rounded-full">Alcohol</span>
+              <span className="bg-pickngo-orange-400 text-white text-xs font-semibold px-3 py-1 rounded-full">Groceries</span>
+              <span className="bg-pickngo-red-400 text-white text-xs font-semibold px-3 py-1 rounded-full">Restaurants</span>
+              <span className="bg-pickngo-red-200 text-white text-xs font-semibold px-3 py-1 rounded-full">Alcohol</span>
             </div>
             {/* Delivering To Card */}
             <div className="mx-4 bg-white rounded-2xl shadow-lg p-4 flex flex-col gap-3">
@@ -976,8 +941,30 @@ const PickNGo = () => {
               </div>
             </div>
           </div>
+          {/* Popular Cuisines (Mobile Only, now immediately after Hero) */}
+          <div className="mx-4 mt-8 md:hidden">
+            <h2 className="text-lg font-bold text-pickngo-orange-700 mb-4">Popular Cuisines</h2>
+            <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar" ref={popularCuisinesRef}>
+              {cuisineItems.map((category, index) => (
+                <button
+                  key={category.id + '-' + index}
+                  className="flex flex-col items-center min-w-[90px] w-24 bg-pickngo-orange-50 rounded-full py-3 px-2 focus:outline-none"
+                  onClick={() => handleFoodClick(category.subcategory)}
+                >
+                  <div className="w-16 h-16 rounded-full bg-pickngo-orange-100 flex items-center justify-center mb-1 overflow-hidden">
+                    {category.icon && (category.icon.startsWith('http') || category.icon.startsWith('data:')) ? (
+                      <img src={category.icon} alt={category.displayName || category.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-4xl">{category.icon}</span>
+                    )}
+                  </div>
+                  <span className="text-xs font-semibold text-gray-900 mt-1 truncate w-full text-center dark:text-white">{category.displayName || category.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
           {/* Trending Now */}
-          <div className="mx-2 mt-6 rounded-2xl p-4 bg-gradient-to-br from-[#7b2ff2]/80 to-[#f357a8]/80 shadow-lg">
+          <div className="mx-2 mt-6 rounded-2xl p-4 bg-gradient-to-br from-pickngo-orange-400 via-pickngo-red-400 to-pickngo-red-500 shadow-lg">
             <div className="flex items-center justify-between mb-2">
               <span className="font-semibold text-sm text-white flex items-center gap-1"><Bolt className="w-4 h-4 text-yellow-300" />Trending Now</span>
               <span className="text-xs text-yellow-200 font-bold">Hot <span className="ml-1">🔥</span></span>
@@ -1020,93 +1007,97 @@ const PickNGo = () => {
           {/* Stats Row */}
           <div className="mx-4 mt-4 flex justify-between gap-2">
             <div className="flex-1 bg-white rounded-xl shadow flex flex-col items-center py-3">
-              <span className="text-lg font-bold text-orange-500">500+</span>
-              <span className="text-[11px] text-gray-500 font-semibold">Stores</span>
+              <span className="text-lg font-bold text-pickngo-orange-500">500+</span>
+              <span className="text-[11px] text-pickngo-orange-700 font-semibold">Stores</span>
             </div>
             <div className="flex-1 bg-white rounded-xl shadow flex flex-col items-center py-3">
-              <span className="text-lg font-bold text-orange-500">15 min</span>
-              <span className="text-[11px] text-gray-500 font-semibold">Avg Delivery</span>
+              <span className="text-lg font-bold text-pickngo-orange-500">15 min</span>
+              <span className="text-[11px] text-pickngo-orange-700 font-semibold">Avg Delivery</span>
             </div>
             <div className="flex-1 bg-white rounded-xl shadow flex flex-col items-center py-3">
-              <span className="text-lg font-bold text-orange-500">4.8</span>
-              <span className="text-[11px] text-gray-500 font-semibold">Rating</span>
+              <span className="text-lg font-bold text-pickngo-orange-500">4.8</span>
+              <span className="text-[11px] text-pickngo-orange-700 font-semibold">Rating</span>
             </div>
             <div className="flex-1 bg-white rounded-xl shadow flex flex-col items-center py-3">
-              <span className="text-lg font-bold text-orange-500">24/7</span>
-              <span className="text-[11px] text-gray-500 font-semibold">Available</span>
+              <span className="text-lg font-bold text-pickngo-orange-500">24/7</span>
+              <span className="text-[11px] text-pickngo-orange-700 font-semibold">Available</span>
             </div>
           </div>
           {/* Feature Cards Row */}
           <div className="mx-4 mt-8">
             <div className="grid grid-cols-2 gap-4">
-              <button className="bg-blue-100 text-blue-800 rounded-2xl p-6 flex flex-col items-start shadow min-h-[90px]">
+              <button className="bg-pickngo-orange-100 text-pickngo-orange-800 rounded-2xl p-6 flex flex-col items-start shadow min-h-[90px]">
                 <span className="text-2xl mb-2">🍽️</span>
                 <span className="font-bold text-base">FEAST MODE</span>
                 <span className="text-xs opacity-80 mt-1">65% OFF Every 30 Mins</span>
               </button>
-              <button className="bg-purple-100 text-purple-800 rounded-2xl p-6 flex flex-col items-start shadow min-h-[90px]">
+              <button className="bg-pickngo-red-100 text-pickngo-red-700 rounded-2xl p-6 flex flex-col items-start shadow min-h-[90px]">
                 <span className="text-2xl mb-2">⚡</span>
                 <span className="font-bold text-base">FLASH DEALS</span>
                 <span className="text-xs opacity-80 mt-1">Dishes From ₹49</span>
               </button>
-              <button className="bg-green-100 text-green-800 rounded-2xl p-6 flex flex-col items-start shadow min-h-[90px]">
+              <button className="bg-pickngo-orange-50 text-pickngo-orange-700 rounded-2xl p-6 flex flex-col items-start shadow min-h-[90px]">
                 <span className="text-2xl mb-2">%</span>
                 <span className="font-bold text-base">DISCOUNTS</span>
                 <span className="text-xs opacity-80 mt-1">Up To 60% OFF</span>
               </button>
-              <button className="bg-yellow-100 text-yellow-800 rounded-2xl p-6 flex flex-col items-start shadow min-h-[90px]">
+              <button className="bg-pickngo-red-50 text-pickngo-red-700 rounded-2xl p-6 flex flex-col items-start shadow min-h-[90px]">
                 <span className="text-2xl mb-2">⚡</span>
                 <span className="font-bold text-base">Bolt</span>
                 <span className="text-xs opacity-80 mt-1">Food In 10 Mins</span>
               </button>
             </div>
           </div>
-          {/* Fast Delivery Section */}
-          <div className="mx-4 mt-10">
+          {/* Fast Delivery Section (Mobile Only) */}
+          <div className="mx-4 mt-10 md:hidden">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900">Fast delivery</h2>
-              <button className="text-xs text-blue-600 font-semibold">See all</button>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Fast delivery</h2>
+              {filteredProducts.length > 4 && (
+                <button
+                  className="text-xs text-blue-600 font-semibold"
+                  onClick={() => setShowAllFastDelivery((v) => !v)}
+                >
+                  {showAllFastDelivery ? 'Show less' : 'See all'}
+                </button>
+              )}
             </div>
-            <div className="flex flex-col gap-6">
-              {filteredProducts.map((product) => (
-                <div key={product.id} className="bg-white rounded-2xl shadow p-4 flex gap-4 relative min-h-[110px]">
-                  <img src={product.image} alt={product.name} className="w-24 h-24 rounded-xl object-cover" />
-                  <div className="flex-1 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs bg-gray-100 text-gray-600 rounded px-2 py-0.5 font-semibold">₹{product.price} for two</span>
-                        <button className="p-1 rounded-full hover:bg-gray-100"><Heart className="w-4 h-4 text-gray-400" /></button>
+            <div className="grid grid-cols-2 gap-4">
+              {filteredProducts
+                .slice() // copy
+                .sort((a, b) => getMinTime(a) - getMinTime(b))
+                .slice(0, showAllFastDelivery ? filteredProducts.length : 4)
+                .map((product) => (
+                  <div key={product.id} className="bg-white rounded-2xl shadow p-4 flex flex-col gap-2 min-h-[110px]">
+                    <img src={product.image} alt={product.name} className="w-full h-24 rounded-xl object-cover mb-2" />
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs bg-gray-100 text-gray-600 rounded px-2 py-0.5 font-semibold">₹{product.price} for two</span>
+                          <button className="p-1 rounded-full hover:bg-gray-100"><Heart className="w-4 h-4 text-gray-400" /></button>
+                        </div>
+                        <div className="font-bold text-base text-gray-900 mt-2 truncate">{product.name}</div>
+                        <div className="text-xs text-gray-500 truncate mt-1">{product.category}</div>
                       </div>
-                      <div className="font-bold text-base text-gray-900 mt-2 truncate">{product.name}</div>
-                      <div className="text-xs text-gray-500 truncate mt-1">{product.category}</div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="flex items-center text-xs text-green-600 font-bold"><Star className="w-3 h-3 mr-0.5" />{product.rating}</span>
+                        <span className="text-xs text-gray-400">• {product.deliveryTime}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="flex items-center text-xs text-green-600 font-bold"><Star className="w-3 h-3 mr-0.5" />{product.rating}</span>
-                      <span className="text-xs text-gray-400">• {product.deliveryTime}</span>
-                    </div>
+                    <button
+                      className="mt-2 w-full bg-pickngo-orange-500 hover:bg-pickngo-orange-600 text-white font-bold py-1.5 rounded-full text-sm transition"
+                      onClick={() => addToCart(product)}
+                    >
+                      Add to Cart
+                    </button>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          {/* Popular Cuisines */}
-          <div className="mx-4 mt-10 mb-28">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Popular Cuisines</h2>
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300">
-              <button className="bg-orange-100 text-orange-700 rounded-full px-6 py-2 text-sm font-semibold whitespace-nowrap">Pizza</button>
-              <button className="bg-yellow-100 text-yellow-700 rounded-full px-6 py-2 text-sm font-semibold whitespace-nowrap">Burger</button>
-              <button className="bg-red-100 text-red-700 rounded-full px-6 py-2 text-sm font-semibold whitespace-nowrap">Chinese</button>
-              <button className="bg-green-100 text-green-700 rounded-full px-6 py-2 text-sm font-semibold whitespace-nowrap">Biryani</button>
-              <button className="bg-blue-100 text-blue-700 rounded-full px-6 py-2 text-sm font-semibold whitespace-nowrap">Mexican</button>
-              <button className="bg-pink-100 text-pink-700 rounded-full px-6 py-2 text-sm font-semibold whitespace-nowrap">Salads</button>
-              <button className="bg-purple-100 text-purple-700 rounded-full px-6 py-2 text-sm font-semibold whitespace-nowrap">Coffee</button>
+                ))}
             </div>
           </div>
         </div>
         {/* --- Desktop Hero Section --- */}
         <div className={`hidden md:block py-16 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}> 
           <div className="container mx-auto text-center">
-            <h2 className="text-4xl font-bold mb-4 text-orange-500">Your daily essentials, delivered in minutes.</h2>
+            <h2 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">Your daily essentials, delivered in minutes.</h2>
             {selectedAddress ? (
               <div className="mb-4">
                 <Badge className="bg-orange-100 text-orange-700 px-4 py-2 text-sm">
@@ -1161,13 +1152,35 @@ const PickNGo = () => {
                 <span className="text-sm text-yellow-500">Ready now</span>
               </div>
             </div>
+            {/* --- Desktop Popular Cuisines Section --- */}
+            <div className="hidden md:flex flex-col items-center mt-12 mb-12">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Popular Cuisines</h2>
+              <div className="flex gap-6 overflow-x-auto hide-scrollbar w-full max-w-4xl justify-center pb-2">
+                {cuisineItems.map((category, index) => (
+                  <button
+                    key={category.id + '-' + index}
+                    className="flex flex-col items-center min-w-[110px] w-28 bg-gray-50 rounded-full py-4 px-3 focus:outline-none"
+                    onClick={() => handleFoodClick(category.subcategory)}
+                  >
+                    <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-2 overflow-hidden">
+                      {category.icon && (category.icon.startsWith('http') || category.icon.startsWith('data:')) ? (
+                        <img src={category.icon} alt={category.displayName || category.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-5xl">{category.icon}</span>
+                      )}
+                    </div>
+                    <span className="text-sm font-semibold text-gray-900 mt-1 truncate w-full text-center">{category.displayName || category.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
             {/* --- Desktop Large Cards Section (Food Delivery, Instamart, Dineout & Drinks) --- */}
             <div className="flex justify-center gap-8 mt-12">
               {/* Food Delivery Card */}
               <div className="bg-white rounded-2xl shadow-lg overflow-hidden flex-1 max-w-sm flex flex-col">
                 <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800" alt="Food Delivery" className="w-full h-56 object-cover" />
                 <div className="p-8 flex flex-col flex-1">
-                  <h3 className="text-2xl font-bold mb-2 text-gray-900">Food Delivery</h3>
+                  <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Food Delivery</h3>
                   <p className="text-gray-600 mb-6 flex-1">From the best local restaurants</p>
                   <button className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-full self-start" onClick={() => navigate('/food')}>Order Now</button>
                 </div>
@@ -1176,7 +1189,7 @@ const PickNGo = () => {
               <div className="bg-white rounded-2xl shadow-lg overflow-hidden flex-1 max-w-sm flex flex-col">
                 <img src="https://images.unsplash.com/photo-1502741338009-cac2772e18bc?w=800" alt="Instamart" className="w-full h-56 object-cover" />
                 <div className="p-8 flex flex-col flex-1">
-                  <h3 className="text-2xl font-bold mb-2 text-gray-900">Instamart</h3>
+                  <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Instamart</h3>
                   <p className="text-gray-600 mb-6 flex-1">Instant Grocery Delivery</p>
                   <button className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-full self-start" onClick={() => navigate('/daily-essential')}>Shop Now</button>
                 </div>
@@ -1185,7 +1198,7 @@ const PickNGo = () => {
               <div className="bg-white rounded-2xl shadow-lg overflow-hidden flex-1 max-w-sm flex flex-col">
                 <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800" alt="Dineout & Drinks" className="w-full h-56 object-cover" />
                 <div className="p-8 flex flex-col flex-1">
-                  <h3 className="text-2xl font-bold mb-2 text-gray-900">Dineout & Drinks</h3>
+                  <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Dineout & Drinks</h3>
                   <p className="text-gray-600 mb-6 flex-1">Eat out or get drinks delivered</p>
                   <button className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-full self-start" onClick={handleWineStoreClick}>Explore Now</button>
                 </div>
@@ -1194,7 +1207,7 @@ const PickNGo = () => {
             {/* --- Trending Now Section (Desktop) --- */}
             <div className="mt-12">
               <div className="flex items-center justify-between mb-4">
-                <span className="font-semibold text-xl text-gray-900 flex items-center gap-2"><Bolt className="w-6 h-6 text-yellow-400" />Trending Now</span>
+                <span className="font-semibold text-xl text-gray-900 dark:text-white flex items-center gap-2"><Bolt className="w-6 h-6 text-yellow-400" />Trending Now</span>
               </div>
               <div className="grid grid-cols-4 gap-6">
                 {(() => {
@@ -1224,7 +1237,7 @@ const PickNGo = () => {
                   return cards.map((product, idx) => (
                     <div key={product.id || product.name || idx} className="bg-white rounded-2xl px-6 py-6 flex flex-col items-center gap-2 shadow">
                       <img src={product.image} alt={product.name} className="w-16 h-16 rounded-full object-cover mb-2" />
-                      <span className="font-semibold text-base text-gray-900">{product.name}</span>
+                      <span className="font-semibold text-base text-gray-900 dark:text-white">{product.name}</span>
                       <span className="text-green-600 font-bold">{product.hike || `+${18 + (idx * 3)}%`}</span>
                     </div>
                   ));
@@ -1340,9 +1353,9 @@ const PickNGo = () => {
             {/* Company Info */}
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
-                <h3 className="text-2xl font-bold text-pickngo-orange-500">PickNGo</h3>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">PickNGo</h3>
               </div>
-              <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              <p className={`text-sm text-gray-600 dark:text-gray-300`}>
                 Your trusted partner for quick food delivery, grocery shopping, and daily essentials.
               </p>
             </div>

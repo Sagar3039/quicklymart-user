@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Carousel,
@@ -8,88 +8,145 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { useNavigate } from 'react-router-dom';
-
-const foodPageCategories = [
-    { name: 'Biryani', image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Burgers', image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Indian', image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Desserts', image: 'https://images.unsplash.com/photo-1505250469679-203ad9ced0cb?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Sandwiches', image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Rolls', image: 'https://images.unsplash.com/photo-1506089676908-3592f7389d4d?w=400&h=400&fit=crop&crop=center' },
-    { name: 'South Indian', image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Seafood', image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Snacks', image: 'https://images.unsplash.com/photo-1502741338009-cac2772e18bc?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Beverages', image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=400&fit=crop&crop=center' },
-
-    { name: 'Sweets', image: 'https://images.unsplash.com/photo-1502741338009-cac2772e18bc?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Momos', image: 'https://images.unsplash.com/photo-1502741338009-cac2772e18bc?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Noodles', image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop&crop=center' },
-];
-
-const groceryCategories = [
-    { name: 'Fresh Vegetables', image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Fresh Fruits', image: 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Dairy, Bread & Eggs', image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Rice, Atta & Dals', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Masalas & Dry Fruits', image: 'https://images.unsplash.com/photo-1604329760661-e71dc83f8f26?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Oils & Ghee', image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Munchies', image: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=400&h=400&fit=crop&crop=center' },
-    { name: 'Sweet Tooth', image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&h=400&fit=crop&crop=center' },
-]
+import { getCategoriesByProductCategory, PRODUCT_CATEGORIES, type Category } from '@/lib/products';
 
 export const DesktopCarousels = () => {
     const navigate = useNavigate();
+    const [foodCategories, setFoodCategories] = useState<Category[]>([]);
+    const [essentialCategories, setEssentialCategories] = useState<Category[]>([]);
+    const [isLoadingFood, setIsLoadingFood] = useState(true);
+    const [isLoadingEssential, setIsLoadingEssential] = useState(true);
 
-    const handleFoodClick = (category: string) => {
-        navigate('/food', { state: { category } });
+    // Fetch food categories
+    useEffect(() => {
+        const fetchFoodCategories = async () => {
+            try {
+                const categories = await getCategoriesByProductCategory(PRODUCT_CATEGORIES.FOOD);
+                // Filter out the "All" category and limit to 12 for carousel
+                const filteredCategories = categories
+                    .filter(cat => cat.subcategory !== 'all')
+                    .slice(0, 12);
+                setFoodCategories(filteredCategories);
+            } catch (error) {
+                console.error('Error fetching food categories:', error);
+            } finally {
+                setIsLoadingFood(false);
+            }
+        };
+        fetchFoodCategories();
+    }, []);
+
+    // Fetch essential categories
+    useEffect(() => {
+        const fetchEssentialCategories = async () => {
+            try {
+                const categories = await getCategoriesByProductCategory(PRODUCT_CATEGORIES.DAILY_ESSENTIAL);
+                // Filter out the "All" category and limit to 8 for carousel
+                const filteredCategories = categories
+                    .filter(cat => cat.subcategory !== 'all')
+                    .slice(0, 8);
+                setEssentialCategories(filteredCategories);
+            } catch (error) {
+                console.error('Error fetching essential categories:', error);
+            } finally {
+                setIsLoadingEssential(false);
+            }
+        };
+        fetchEssentialCategories();
+    }, []);
+
+    const handleFoodClick = (category: Category) => {
+        navigate('/food', { state: { category: category.subcategory } });
     };
 
-    const handleDailyEssentialClick = () => {
-        navigate('/daily-essential');
+    const handleDailyEssentialClick = (category: Category) => {
+        navigate('/daily-essential', { state: { subcategory: category.subcategory } });
     }
+
+    // Function to render category icon or image
+    const renderCategoryVisual = (category: Category, size: string = 'text-6xl') => {
+        if (category.icon) {
+            // Check if icon is an image URL
+            if (category.icon.startsWith('http') || category.icon.startsWith('data:')) {
+                return (
+                    <img 
+                        src={category.icon} 
+                        alt={category.displayName || category.name} 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                            // Fallback to emoji if image fails to load
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                    />
+                );
+            } else {
+                // It's an emoji
+                return <span className={`${size} flex items-center justify-center w-full h-full`}>{category.icon}</span>;
+            }
+        }
+        // Fallback emoji
+        return <span className={`${size} flex items-center justify-center w-full h-full`}>📦</span>;
+    };
 
     return (
         <>
             {/* --- Desktop Food Categories Carousel --- */}
             <div className="hidden md:block container mx-auto py-12">
                 <h2 className="text-3xl font-bold mb-6">What's on your mind?</h2>
-                <Carousel opts={{ align: "start", loop: true }}>
-                    <CarouselContent>
-                        {foodPageCategories.map((category, index) => (
-                            <CarouselItem key={index} className="basis-auto">
-                                <div className="text-center cursor-pointer" onClick={() => handleFoodClick(category.name)}>
-                                    <img src={category.image} alt={category.name} className="w-36 h-36 object-cover rounded-full mx-auto" />
-                                    <p className="mt-2 font-semibold">{category.name}</p>
-                                </div>
-                            </CarouselItem>
-                        ))}
-                    </CarouselContent>
-                    <CarouselPrevious />
-                    <CarouselNext />
-                </Carousel>
+                {isLoadingFood ? (
+                    <div className="flex justify-center items-center h-48">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                    </div>
+                ) : (
+                    <Carousel opts={{ align: "start", loop: true }}>
+                        <CarouselContent>
+                            {foodCategories.map((category, index) => (
+                                <CarouselItem key={category.id || index} className="basis-auto">
+                                    <div className="text-center cursor-pointer" onClick={() => handleFoodClick(category)}>
+                                        <div className="w-36 h-36 rounded-full mx-auto bg-gray-100 hover:bg-gray-200 transition-colors overflow-hidden">
+                                            {renderCategoryVisual(category, 'text-6xl')}
+                                        </div>
+                                        <p className="mt-2 font-semibold">{category.displayName || category.name}</p>
+                                    </div>
+                                </CarouselItem>
+                            ))}
+                        </CarouselContent>
+                        <CarouselPrevious />
+                        <CarouselNext />
+                    </Carousel>
+                )}
             </div>
 
             {/* --- Desktop Grocery Categories Carousel --- */}
             <div className="hidden md:block container mx-auto py-12">
                 <h2 className="text-3xl font-bold mb-6">Shop groceries on Instamart</h2>
-                <Carousel opts={{ align: "start", loop: true }}>
-                    <CarouselContent>
-                        {groceryCategories.map((category, index) => (
-                            <CarouselItem key={index} className="basis-1/5">
-                                <Card className="overflow-hidden cursor-pointer group" onClick={handleDailyEssentialClick}>
-                                    <CardContent className="p-0">
-                                        <img src={category.image} alt={category.name} className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" />
-                                        <div className="p-4">
-                                            <p className="font-semibold text-center">{category.name}</p>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </CarouselItem>
-                        ))}
-                    </CarouselContent>
-                    <CarouselPrevious />
-                    <CarouselNext />
-                </Carousel>
+                {isLoadingEssential ? (
+                    <div className="flex justify-center items-center h-48">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                    </div>
+                ) : (
+                    <Carousel opts={{ align: "start", loop: true }}>
+                        <CarouselContent>
+                            {essentialCategories.map((category, index) => (
+                                <CarouselItem key={category.id || index} className="basis-1/5">
+                                    <Card className="overflow-hidden cursor-pointer group" onClick={() => handleDailyEssentialClick(category)}>
+                                        <CardContent className="p-0">
+                                            <div className="w-full h-48 bg-gray-100 transition-transform duration-300 group-hover:scale-105 overflow-hidden">
+                                                {renderCategoryVisual(category, 'text-8xl')}
+                                            </div>
+                                            <div className="p-4">
+                                                <p className="font-semibold text-center">{category.displayName || category.name}</p>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </CarouselItem>
+                            ))}
+                        </CarouselContent>
+                        <CarouselPrevious />
+                        <CarouselNext />
+                    </Carousel>
+                )}
             </div>
         </>
     )

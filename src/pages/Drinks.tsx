@@ -444,14 +444,19 @@ const Drinks = () => {
             return (uniqueCategories as CategoryWithImage[]).map((cat) => {
               let visual = null;
               
-              // Handle icon display - only use database categories
+              // Handle icon display - support both emojis and image URLs
               if (cat.image) {
                 visual = <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />;
               } else if (cat.logo) {
                 visual = <img src={cat.logo} alt={cat.name} className="w-full h-full object-cover" />;
-              } else if (cat.icon && typeof cat.icon === 'string' && !cat.icon.startsWith('http')) {
-                // Only show valid emoji icons from database
-                visual = <span className="text-4xl flex items-center justify-center w-full h-full">{cat.icon}</span>;
+              } else if (cat.icon && typeof cat.icon === 'string') {
+                if (cat.icon.startsWith('http') || cat.icon.startsWith('data:')) {
+                  // It's an image URL
+                  visual = <img src={cat.icon} alt={cat.name} className="w-full h-full object-cover" />;
+                } else {
+                  // It's an emoji
+                  visual = <span className="text-4xl flex items-center justify-center w-full h-full">{cat.icon}</span>;
+                }
               } else {
                 // Skip categories without proper icons
                 return null;

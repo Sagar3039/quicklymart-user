@@ -1,3 +1,10 @@
+/* Prevent horizontal scroll and ensure full width */
+html, body, #root {
+  width: 100vw;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -39,4 +46,14 @@
 
 .read-the-docs {
   color: #888;
+}
+
+.hide-scrollbar,
+.hide-scrollbar * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.hide-scrollbar::-webkit-scrollbar,
+.hide-scrollbar *::-webkit-scrollbar {
+  display: none !important;
 }

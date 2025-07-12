@@ -22,47 +22,43 @@ export default {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
-				background: 'hsl(var(--background))',
-				foreground: 'hsl(var(--foreground))',
+				background: '#FFFFFF', // White background
+				foreground: '#1A1A1A', // Near-black text
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					DEFAULT: '#FF6A00', // Vibrant orange
+					foreground: '#FFFFFF',
 				},
 				secondary: {
-					DEFAULT: 'hsl(var(--secondary))',
-					foreground: 'hsl(var(--secondary-foreground))'
-				},
-				destructive: {
-					DEFAULT: 'hsl(var(--destructive))',
-					foreground: 'hsl(var(--destructive-foreground))'
-				},
-				muted: {
-					DEFAULT: 'hsl(var(--muted))',
-					foreground: 'hsl(var(--muted-foreground))'
+					DEFAULT: '#FF2D55', // Strong red
+					foreground: '#FFFFFF',
 				},
 				accent: {
-					DEFAULT: 'hsl(var(--accent))',
-					foreground: 'hsl(var(--accent-foreground))'
+					DEFAULT: '#FF8800', // Accent orange
+					foreground: '#FFFFFF',
 				},
-				popover: {
-					DEFAULT: 'hsl(var(--popover))',
-					foreground: 'hsl(var(--popover-foreground))'
+				destructive: {
+					DEFAULT: '#FF2D55',
+					foreground: '#FFFFFF',
+				},
+				muted: {
+					DEFAULT: '#FFF3E0', // Light orange
+					foreground: '#FF6A00',
 				},
 				card: {
-					DEFAULT: 'hsl(var(--card))',
-					foreground: 'hsl(var(--card-foreground))'
+					DEFAULT: '#FFFFFF',
+					foreground: '#1A1A1A',
 				},
 				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
+					DEFAULT: '#FFF3E0',
+					foreground: '#FF6A00',
+					primary: '#FF6A00',
+					'primary-foreground': '#FFFFFF',
+					accent: '#FF2D55',
+					'accent-foreground': '#FFFFFF',
+					border: '#FFD1C0',
+					ring: '#FF8A66',
 				},
-				      'pickngo-orange': {
+				'pickngo-orange': {
 					50: '#FFF5F2',
 					100: '#FFE8E0',
 					200: '#FFD1C0',
@@ -73,8 +69,21 @@ export default {
 					700: '#ED3500',
 					800: '#C42D00',
 					900: '#9B2400',
-					950: '#5A1500'
-				}
+					950: '#5A1500',
+				},
+				'pickngo-red': {
+					50: '#FFF2F3',
+					100: '#FFE0E3',
+					200: '#FFC1C7',
+					300: '#FF8A99',
+					400: '#FF5A6A',
+					500: '#FF2D55',
+					600: '#E62648',
+					700: '#C41F3B',
+					800: '#A1192F',
+					900: '#7A1121',
+					950: '#4D0812',
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
