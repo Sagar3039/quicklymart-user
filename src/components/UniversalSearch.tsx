@@ -63,10 +63,17 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen = true, onClos
   const inputRef = useRef<HTMLInputElement>(null);
   const inputWrapperRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const [shouldAutoFocus, setShouldAutoFocus] = useState(false);
 
   // Load all products on component mount
   useEffect(() => {
     loadAllProducts();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setShouldAutoFocus(window.innerWidth >= 768); // Only desktop
+    }
   }, []);
 
   // Filter products when search query or filters change
@@ -358,7 +365,7 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen = true, onClos
           onChange={e => setSearchQuery(e.target.value)}
           placeholder="Search for products, restaurants, etc..."
           className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
-          autoFocus
+          autoFocus={shouldAutoFocus}
         />
         {/* Results Dropdown */}
         {searchQuery && (

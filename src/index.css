@@ -100,4 +100,16 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Remove focus outlines from all input elements */
+  input:focus,
+  input:focus-visible,
+  textarea:focus,
+  textarea:focus-visible,
+  select:focus,
+  select:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    ring: none !important;
+  }
 }

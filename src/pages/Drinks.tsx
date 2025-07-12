@@ -30,6 +30,7 @@ import CartBar from '@/components/CartBar';
 import UniversalSearch from '@/components/UniversalSearch';
 import LocationPicker from '@/components/LocationPicker';
 import { useBanCheck } from '@/hooks/useBanCheck';
+import SearchResultsPopup from '@/components/SearchResultsPopup';
 
 interface CartItem extends Product {
   quantity: number;
@@ -60,7 +61,7 @@ const Drinks = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const { cart, addToCart, updateCartQuantity, removeFromCart, clearCart, getTotalItems, getTotalPrice, isCartOpen, setIsCartOpen } = useCart();
+  const { cart, addToCart, updateCartQuantity, removeFromCart, clearCart, getTotalItems, getTotalPrice, isCartPopupOpen, setIsCartPopupOpen } = useCart();
   const { banStatus } = useBanCheck();
   const [isAgeVerified, setIsAgeVerified] = useState(false);
   const [showAgeModal, setShowAgeModal] = useState(false);
@@ -69,14 +70,17 @@ const Drinks = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [showCart, setShowCart] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [sortOption, setSortOption] = useState('relevance');
+
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number; address: string } | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [showSearchPopup, setShowSearchPopup] = useState(false);
 
   const filteredAndSortedProducts = useMemo(() => {
     let results = [...products];
@@ -95,6 +99,8 @@ const Drinks = () => {
         product.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
+
+
 
     // Sorting logic
     switch (sortOption) {
@@ -125,6 +131,17 @@ const Drinks = () => {
     }
     return Array.from(seen.values());
   }, [filteredAndSortedProducts]);
+
+  // Search results for popup (limited to first 10 results)
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    return uniqueProducts
+      .filter(product => 
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      .slice(0, 10);
+  }, [uniqueProducts, searchQuery]);
 
   // Calculate total items in cart
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
@@ -396,9 +413,17 @@ const Drinks = () => {
             <Input
               placeholder="Search for drinks..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full ${isDarkMode ? 'bg-gray-700' : ''}`}
-          />
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowSearchPopup(e.target.value.trim().length > 0);
+              }}
+              onFocus={() => {
+                if (searchQuery.trim().length > 0) {
+                  setShowSearchPopup(true);
+                }
+              }}
+              className={`w-full ${isDarkMode ? 'bg-gray-700' : ''}`}
+            />
         </div>
       )}
 
@@ -410,7 +435,7 @@ const Drinks = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className={`rounded-full ${isDarkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300'}`}>Sort by</Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
+              <DropdownMenuContent className={`z-50 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                 <DropdownMenuLabel>Sort Options</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setSortOption('relevance')}>Relevance</DropdownMenuItem>
@@ -419,13 +444,14 @@ const Drinks = () => {
                 <DropdownMenuItem onClick={() => setSortOption('rating')}>Rating</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
           </div>
         </div>
       </div>
 
       {/* Categories - new image style, now dynamic and flexible */}
-      <div className="py-4">
-        <div className="flex space-x-4 overflow-x-auto px-2 md:justify-center md:space-x-8 scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div className="py-4 mt-[0px] mb-[15px] md:mt-0">
+        <div className="flex items-center space-x-4 overflow-x-auto px-2 md:justify-center md:space-x-8 scrollbar-none py-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', overflowY: 'visible', marginTop: 15, marginBottom: 15 }}>
           {(() => {
             const seen = new Set();
             const uniqueCategories = categories.filter(cat => {
@@ -462,14 +488,19 @@ const Drinks = () => {
                 return null;
               }
               
+              // Handle "All" category specially
+              const isAllCategory = cat.name === 'All' || cat.subcategory === 'All';
+              const categoryValue = isAllCategory ? 'All' : cat.subcategory;
+              const isActive = isAllCategory ? activeCategory === 'All' : activeCategory === cat.subcategory;
+              
               return (
                 <button
                   key={cat.id || cat.name}
-                  onClick={() => setActiveCategory(cat.subcategory)}
+                  onClick={() => setActiveCategory(categoryValue)}
                   className="flex flex-col items-center focus:outline-none"
                 >
-                  <div className={`w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-4 transition-all duration-200 ${activeCategory === cat.subcategory ? 'border-orange-500 shadow-lg' : 'border-transparent'}`}
-                    style={{ boxShadow: activeCategory === cat.subcategory ? '0 0 0 4px rgba(255, 115, 0, 0.2)' : undefined }}
+                  <div className={`w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-4 transition-all duration-200 ${isActive ? 'border-orange-500 shadow-lg' : 'border-transparent'}`}
+                    style={{ boxShadow: isActive ? '0 0 0 4px rgba(255, 115, 0, 0.2)' : undefined }}
                   >
                     {visual}
                   </div>
@@ -633,6 +664,16 @@ const Drinks = () => {
         isOpen={showLocationPicker}
         onClose={() => setShowLocationPicker(false)}
         onLocationSelect={handleLocationSelect}
+      />
+
+      {/* Search Results Popup */}
+      <SearchResultsPopup
+        isVisible={showSearchPopup}
+        searchQuery={searchQuery}
+        results={searchResults}
+        onAddToCart={handleAddToCart}
+        onClose={() => setShowSearchPopup(false)}
+        isDarkMode={isDarkMode}
       />
     </div>
   );

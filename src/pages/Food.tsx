@@ -29,6 +29,7 @@ import CartBar from '@/components/CartBar';
 import LocationPicker from '@/components/LocationPicker';
 import UniversalSearch from '@/components/UniversalSearch';
 import { useBanCheck } from '@/hooks/useBanCheck';
+import SearchResultsPopup from '@/components/SearchResultsPopup';
 
 interface GeolocationPosition {
   coords: {
@@ -66,6 +67,7 @@ const Food = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const { banStatus } = useBanCheck();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showSearchPopup, setShowSearchPopup] = useState(false);
 
   const filteredAndSortedProducts = useMemo(() => {
     let results = [...products];
@@ -114,6 +116,17 @@ const Food = () => {
   const uniqueProducts = Array.from(
     new Map(filteredAndSortedProducts.map(item => [`${item.name}-${item.price}`, item])).values()
   );
+
+  // Search results for popup (limited to first 10 results)
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    return uniqueProducts
+      .filter(product => 
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      .slice(0, 10);
+  }, [uniqueProducts, searchQuery]);
 
   // Calculate total items in cart
   const cartItemCount = getTotalItems();
@@ -377,21 +390,29 @@ const Food = () => {
             <Input
               placeholder="Search for food..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full ${isDarkMode ? 'bg-gray-700' : ''}`}
-          />
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowSearchPopup(e.target.value.trim().length > 0);
+              }}
+              onFocus={() => {
+                if (searchQuery.trim().length > 0) {
+                  setShowSearchPopup(true);
+                }
+              }}
+              className={`w-full ${isDarkMode ? 'bg-gray-700' : ''}`}
+            />
         </div>
       )}
 
       {/* Filter Bar */}
-      <div className={`sticky top-16 z-40 py-2 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
+      <div className={`sticky top-16 z-40 py-1 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
         <div className="container mx-auto px-4">
           <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className={`rounded-full ${isDarkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300'}`}>Sort by</Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
+              <DropdownMenuContent className={`z-50 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                 <DropdownMenuLabel>Sort Options</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setSortOption('relevance')}>Relevance</DropdownMenuItem>
@@ -404,7 +425,7 @@ const Food = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className={`rounded-full ${isDarkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300'}`}>Veg/Non-Veg</Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
+              <DropdownMenuContent className={`z-50 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                 <DropdownMenuLabel>Dietary</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setVegOption('all')}>All</DropdownMenuItem>
@@ -417,8 +438,22 @@ const Food = () => {
       </div>
 
       {/* Categories - new image style, now dynamic and flexible */}
-      <div className="py-4">
-        <div className="flex space-x-4 overflow-x-auto px-2 md:justify-center md:space-x-8 scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div className="py-4 mt-[0px] mb-[15px] md:mt-0">
+        <div className="flex items-center space-x-4 overflow-x-auto px-2 md:justify-center md:space-x-8 scrollbar-none py-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', overflowY: 'visible', marginTop: 15, marginBottom: 15 }}>
+          {/* All Category Icon - Mobile Only */}
+          <button
+            onClick={() => setActiveCategory('All')}
+            className="flex flex-col items-center focus:outline-none md:hidden"
+          >
+            <div className={`w-20 h-20 rounded-full overflow-hidden border-4 transition-all duration-200 ${activeCategory === 'All' ? 'border-orange-500 shadow-lg' : 'border-transparent'}`}
+              style={{ boxShadow: activeCategory === 'All' ? '0 0 0 4px rgba(255, 115, 0, 0.2)' : undefined }}
+            >
+              <div className="w-full h-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
+                <span className="text-4xl">🍽️</span>
+              </div>
+            </div>
+            <span className="mt-2 text-sm font-medium text-center whitespace-nowrap">All</span>
+          </button>
           {(() => {
             const seen = new Set();
             const uniqueCategories = categories.filter(cat => {
@@ -618,6 +653,16 @@ const Food = () => {
         isOpen={showLocationPicker}
         onClose={() => setShowLocationPicker(false)}
         onLocationSelect={handleLocationSelect}
+      />
+
+      {/* Search Results Popup */}
+      <SearchResultsPopup
+        isVisible={showSearchPopup}
+        searchQuery={searchQuery}
+        results={searchResults}
+        onAddToCart={handleAddToCart}
+        onClose={() => setShowSearchPopup(false)}
+        isDarkMode={isDarkMode}
       />
     </div>
   );
